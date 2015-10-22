@@ -85,12 +85,11 @@ class Mamis_Shippit_Helper_Api
                 'cookies' => array()
             ) 
         );
-
         // if ( is_wp_error( $response ) ) {
         //    $error_message = $response->get_error_message();
         //    echo "Something went wrong: $error_message";
         // } 
-        
+
         // else 
         // {
         //    echo 'Response:<pre>';
@@ -103,5 +102,34 @@ class Mamis_Shippit_Helper_Api
         //   $header = $response['headers']; // array of http header lines
         //   echo $body = $response['body']; // use the content
         // }
+    }
+
+    public function getApiUri($path, $authToken = null)
+    {
+        if (is_null($authToken)) {
+            $authToken = $this->helper->getApiKey();
+        }
+
+        return self::API_ENDPOINT . '/' . $path . '?auth_token=' . $authToken;
+    }
+
+    public function call()
+    {
+
+    }
+
+    public function getQuote($requestData)
+    {
+
+    }
+
+    public function sendOrder($requestData)
+    {
+
+    }
+
+    public function getMerchant()
+    {
+
     }
 }
