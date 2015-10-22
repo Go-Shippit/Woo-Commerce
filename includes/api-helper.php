@@ -85,17 +85,20 @@ class Mamis_Shippit_Helper_Api
                 'cookies' => array()
             ) 
         );
-        // if ( is_wp_error( $response ) ) {
-        //    $error_message = $response->get_error_message();
-        //    echo "Something went wrong: $error_message";
-        // } 
 
-        // else 
-        // {
-        //    echo 'Response:<pre>';
-        //    print_r( $response );
-        //    echo '</pre>';
-        // }
+        //Currently getting 500 response from API
+
+        if ( is_wp_error( $response ) ) {
+           $error_message = $response->get_error_message();
+           echo "Something went wrong: $error_message";
+        } 
+
+        else 
+        {
+           echo 'Response:<pre>';
+           print_r( $response );
+           echo '</pre>';
+        }
 
         // $response = wp_remote_get( 'http://goshippit.herokuapp.com/api/3/merchant?auth_token=R6XVx2B-lXsOzOH1Z7ew6w' );
         // if( is_array($response) ) {
