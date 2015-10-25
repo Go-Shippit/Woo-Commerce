@@ -26,7 +26,30 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->method_description   = __( 'Configure Shippit' ); 
         
         $this->init();
+        /*
+        * For testing purposes
+        */
+        // $allowedMethods = $this->allowed_methods;
+        // $api_key = $this->shippit_api_key;
 
+        // $isPremiumAvailable = in_array('premium', $allowedMethods);
+        // $isStandardAvailable = in_array('standard', $allowedMethods);
+
+        // $results = $this->api_helper->get_post_response($api_key);
+
+        // foreach($results->response as $result) {
+        //     if ($result->success) {
+        //         if ($result->courier_type == 'Bonds'
+        //             && $isPremiumAvailable) {
+        //             $this->_addPremiumQuote($result);
+
+        //         }
+        //         elseif ($result->courier_type != 'Bonds' 
+        //             && $isStandardAvailable) {
+        //             $this->_addStandardQuote($results);
+        //         }
+        //     }
+        // }
     }
 
     /**
@@ -41,6 +64,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->enabled             = $this->settings['enabled'];
         $this->shippit_api_key     = $this->settings['shippit_api_key'];
         $this->debug               = $this->settings['shippit_debug'];
+        $this->allowed_methods     = $this->settings['shippit_allowed_methods'];
         $this->shippit_send_orders = $this->settings['shippit_send_orders'];
         $this->shippit_title       = $this->settings['shippit_title'];
         $this->hide_shipping       = $this->settings['hide_other_shipping'];
@@ -190,32 +214,78 @@ class Shippit_Shipping extends WC_Shipping_Method {
      */
     public function calculate_shipping( $package ) {
 
-        $API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w';
-
         $shipping_postcode = WC()->customer->get_shipping_postcode();
         $shipping_state = WC()->customer->get_shipping_state();
 
-        // $api_key = 'R6XVx2B-lXsOzOH1Z7ew6w';
+        $this->_processShippingQuotes();
+    }
+
+    public function _processShippingQuotes()
+    {
+        $allowedMethods = $this->allowed_methods;
         $api_key = $this->shippit_api_key;
+
+        $isPremiumAvailable = in_array('premium', $allowedMethods);
+        $isStandardAvailable = in_array('standard', $allowedMethods);
 
         $results = $this->api_helper->get_post_response($api_key);
 
-        $calc_tax = @$match_details['calc_tax'];
-
-        foreach ($results as $resultsArray) {
-            if (is_Array($resultsArray)) {
-                foreach ($resultsArray as $result) {
-                    if ($result['success']) {
-                        $rate = array (
-                            'id' => $result['courier_type'] . rand(),
-                            'label' => $result['courier_type'],
-                            'cost' => $result['quotes'][0]['price'],
-                            'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
-                        );
-                        $this->add_rate($rate);
-                    }
+        foreach($results->response as $result) {
+            if ($result->success) {
+                if ($result->courier_type == 'Bonds'
+                    && $isPremiumAvailable) {
+                    $this->_addPremiumQuote($results, $result);
+                }
+                elseif ($result->courier_type != 'Bonds' 
+                    && $isStandardAvailable) {
+                    $this->_addStandardQuote($results, $result);
                 }
             }
+        }
+
+
+    }
+
+    public function _addStandardQuote($results, $result) 
+    {
+        foreach($result->quotes as $shippingQuote) {
+            echo $shippingQuote->price;
+            $rate = array(
+                'id' => $result->courier_type . rand(),
+                'label' => $result->courier_type,
+                'cost' => $shippingQuote->price,
+                'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
+            );
+            $this->add_rate($rate);
+        }
+    }
+
+    public function _addPremiumQuote($results, $result) 
+    {
+        $timeSlotCount = 0;
+        $maxTimeSlots = 10;
+
+        foreach($result->quotes as $shippingQuote) {
+            if (property_exists($shippingQuote, 'delivery_date')
+                && property_exists($shippingQuote, 'delivery_window')
+                && property_exists($shippingQuote, 'delivery_window_desc')) {
+                // $timeSlotCount++;
+                $carrierTitle = $result->courier_type;
+                $method = $result->courier_type . '_' . $shippingQuote->delivery_date . '_' . $shippingQuote->delivery_window;
+                $methodTitle = 'Premium' . ' - Delivered ' . $shippingQuote->delivery_date. ' Between ' . $shippingQuote->delivery_window_desc;
+            }   
+            else {
+                $carrierTitle = $result->courier_type;
+                $method = $result->courier_type;
+                $methodTitle = 'Premium';
+            }
+            $rate = array(
+                'id' => $carrierTitle . rand(),
+                'label' => $methodTitle,
+                'cost' => $shippingQuote->price,
+                'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
+            );
+            $this->add_rate($rate);
         }
     }
 

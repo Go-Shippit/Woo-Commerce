@@ -44,10 +44,10 @@ class Mamis_Shippit_Helper_Api
     {
         $requestData = array(
             'quote' => array(
-                'order_date' => '2015-12-12', 
-                'dropoff_suburb' => 'Melbourne ',
-                'dropoff_postcode' => '3028',
-                'dropoff_state' => 'VIC',
+                'order_date' => '2015-10-30', 
+                'dropoff_suburb' => 'Sydney',
+                'dropoff_postcode' => '2000',
+                'dropoff_state' => 'NSW',
                 'parcel_attributes' => array(
                     array(
                         'qty' => 1,
@@ -72,7 +72,7 @@ class Mamis_Shippit_Helper_Api
         $curl->addHeader('Content-Type', 'application/json');
         $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token='.$api_key.'', $encoded);
 
-        $apiResponseBody = json_decode($response, true);
+        $apiResponseBody = json_decode($response, false);
 
         return $apiResponseBody;
     }
