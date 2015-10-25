@@ -78,7 +78,7 @@ class Mamis_Shippit {
 
 		// Add hooks/filters
 		$this->hooks();
-
+		//$this->api = Mamis_Shippit_Helper_Api::get_instance();
 	}
 
 	/**

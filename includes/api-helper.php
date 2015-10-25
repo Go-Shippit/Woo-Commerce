@@ -14,6 +14,8 @@
 *  @license    http://www.mamis.com.au/licencing
 */
 
+require_once( plugin_dir_path( __FILE__ ) . '../vendor/CurlWrapper.php');
+
 class Mamis_Shippit_Helper_Api
 {
     const API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3';
@@ -23,14 +25,26 @@ class Mamis_Shippit_Helper_Api
     const API_KEY = 'R6XVx2B-lXsOzOH1Z7ew6w';
 
     protected $api;
+    /**
+     * Instance of this class.
+     *
+     * @since    1.0.0
+     *
+     * @var      object
+     */
+    protected static $instance = null;
 
     public function __construct()
     {
+        add_action( 'the_content', array( $this, 'get_post_response' ) );
+    }
 
-        // Testing to see if wp_remote_post() will work
+    public function get_post_response( $content ) 
+    {
+
         $requestData = array(
             'quote' => array(
-                'order_date' => '2015-12-13', 
+                'order_date' => '2015-12-12', 
                 'dropoff_suburb' => 'Melbourne ',
                 'dropoff_postcode' => '3028',
                 'dropoff_state' => 'VIC',
@@ -48,64 +62,51 @@ class Mamis_Shippit_Helper_Api
 
         $encoded = json_encode($requestData);
 
-        $this->api = array(
-            'method'      => 'POST',
-            'timeout'     => 45,
-            'redirection' => 5,
-            'httpversion' => '1.0',
-            'blocking'    => true,
-            'headers'     => array(),
-            'body'        => $requestData,
-            'cookies'     => array(),
-        );
-        
-        $args = array(
-            'method'      => 'POST',
-            'timeout'     => 45,
-            'redirection' => 5,
-            'httpversion' => '1.0',
-            'blocking'    => true,
-            'headers'     => array(),
-            'body'        => $requestData,
-            'cookies'     => array(),
-        ); 
-
-        $data = json_encode($args);
-
-        //$requestData;
-
-        $response = wp_remote_post( 'http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', array(
-                'method' => 'POST',
-                'timeout' => 45,
-                'redirection' => 15,
-                'httpversion' => '1.0',
-                'blocking' => true,
-                'headers' => array(),
-                'body' => $requestData,
-                'cookies' => array()
-            ) 
-        );
-
-        //Currently getting 500 response from API
-
-        if ( is_wp_error( $response ) ) {
-           $error_message = $response->get_error_message();
-           echo "Something went wrong: $error_message";
+        try {
+            $curl = new CurlWrapper();
         } 
-
-        else 
-        {
-           echo 'Response:<pre>';
-           print_r( $response );
-           echo '</pre>';
+        catch (CurlWrapperException $e) {
+            echo $e->getMessage();
         }
 
-        // $response = wp_remote_get( 'http://goshippit.herokuapp.com/api/3/merchant?auth_token=R6XVx2B-lXsOzOH1Z7ew6w' );
-        // if( is_array($response) ) {
-        //   $header = $response['headers']; // array of http header lines
-        //   echo $body = $response['body']; // use the content
-        // }
+        $vars = array( 
+            'quote' => array(
+                'order_date' => '2015-12-12', 
+                'dropoff_suburb' => 'Melbourne ',
+                'dropoff_postcode' => '3028',
+                'dropoff_state' => 'VIC',
+                'parcel_attributes' => array(
+                    array(
+                        'qty' => 1,
+                        'length' => 0.1,
+                        'width' => 0.10,
+                        'depth' => 0.15,
+                        'weight' => 3
+                    )
+                ),
+            )
+        );
+
+        $curl->addHeader('Content-Type', 'application/json');
+        $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', $encoded);
+
+        var_dump($response);
+
     }
+
+    /**
+     * Return an instance of this class.
+     *
+     * @since     1.0.0
+     *
+     * @return    object    A single instance of this class.
+     */
+    public static function get_instance() {
+        if ( null == self::$instance ) {
+            self::$instance = new self;
+        }
+        return self::$instance;
+    } // end get_instance
 
     public function getApiUri($path, $authToken = null)
     {

@@ -14,62 +14,62 @@ class Shippit_Shipping extends WC_Shipping_Method {
     protected $helper;
     protected $api;
 
-	/**
-	 * Constructor.
-	 */
-	public function __construct() 
+    /**
+     * Constructor.
+     */
+    public function __construct() 
     {
 
-		$this->id                	= 'mamis_shippit';
-		$this->title  				= __( 'Shippit', 'shippit' );
-		$this->method_title  		= __( 'Shippit', 'shippit' );
-		$this->method_description 	= __( 'Configure Shippit' ); 
-		// $this->encode();
+        $this->id                   = 'mamis_shippit';
+        $this->title                = __( 'Shippit', 'shippit' );
+        $this->method_title         = __( 'Shippit', 'shippit' );
+        $this->method_description   = __( 'Configure Shippit' ); 
         
-		$this->init();
+        $this->init();
 
-	}
+    }
 
-	/**
-	 * Initialize Shippit method.
-	 */
-	function init() {
+    /**
+     * Initialize Shippit method.
+     */
+    function init() {
 
         $this->load_helper();
-		$this->init_form_fields();
-		$this->init_settings();
+        $this->init_form_fields();
+        $this->init_settings();
 
-		$this->enabled 			   = $this->get_option( 'enabled' );
+        $this->enabled             = $this->get_option( 'enabled' );
         $this->shippit_api_key     = $this->get_option( 'shippit_api_ley' );
         $this->debug               = $this->get_option( 'shippit_debug' );
         $this->shippit_send_orders = $this->get_option( 'shippit_send_orders' );
         $this->shippit_title       = $this->get_option( 'shippit_title' );
-		$this->hide_shipping 	   = $this->get_option( 'hide_other_shipping' );
+        $this->hide_shipping       = $this->get_option( 'hide_other_shipping' );
 
-		// Save settings in admin if you have any defined
-		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-	}
+        // Save settings in admin if you have any defined
+        add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
+    }
 
     function load_helper()
     {
-        $this->api = new Mamis_Shippit_Helper_Api();
+        $this->api = Mamis_Shippit_Helper_Api::get_instance();
+        $this->api->get_post_response();
     }
 
-	/**
-	 * Init fields.
-	 *
-	 * Add fields to the Shippit settings page.
-	 *
-	 */
-	public function init_form_fields() {
+    /**
+     * Init fields.
+     *
+     * Add fields to the Shippit settings page.
+     *
+     */
+    public function init_form_fields() {
 
-		$this->form_fields = array(
-			'enabled' => array(
-				'title' 		=> __( 'Enabled', 'woocommerce' ),
-				'type' 			=> 'checkbox',
-				'label' 		=> __( 'Enable Advanced Free Shipping', 'shippit' ),
-				'default' 		=> 'yes'
-			),
+        $this->form_fields = array(
+            'enabled' => array(
+                'title'         => __( 'Enabled', 'woocommerce' ),
+                'type'          => 'checkbox',
+                'label'         => __( 'Enable Advanced Free Shipping', 'shippit' ),
+                'default'       => 'yes'
+            ),
             array(
                 'title'    => __( 'API Key', 'mamis' ),
                 'desc'     => '',
@@ -176,116 +176,79 @@ class Shippit_Shipping extends WC_Shipping_Method {
                     'yes' => __( 'Yes', 'mamis' ),
                 ),
             ),
-		);
-
-
-
-	}
-
-    public function encode() 
-    {
-    $API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w';
-
-    $requestData = array(
-        'quote' => array(
-            'order_date' => '2015-04-13', 
-            'dropoff_suburb' => 'Melbourne ',
-            'dropoff_postcode' => '3028',
-            'dropoff_state' => 'VIC',
-            'parcel_attributes' => array(array(
-                'qty' => 1,
-                'length' => 0.1,
-                'width' => 0.10,
-                'depth' => 0.15,
-                'weight' => 3)
-            ),
-    ));
-
-    $encoded = json_encode($requestData);
-                                                                
-    $data_string = json_encode($requestData);
-
-    $ch = curl_init('http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w');                                                                      
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                         
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                 
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                             
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                     
-         'Content-Type: application/json',
-         'Content-Length: ' . strlen($data_string))                                                                       
-    ); 
-     $result = curl_exec($ch);
-     $results = json_decode($result);
-
+        );
     }
 
-	/**
-	 * Calculate shipping.
-	 *
-	 * @param mixed $package
-	 * @return void
-	 */
-	public function calculate_shipping( $package ) {
 
-		$API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w';
+    /**
+     * Calculate shipping.
+     *
+     * @param mixed $package
+     * @return void
+     */
+    public function calculate_shipping( $package ) {
 
-		$shipping_postcode = WC()->customer->get_shipping_postcode();
-		$shipping_city = WC()->customer->get_shipping_city();
+        $API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w';
 
-		$requestData = array(
-		 'quote' => array(
-		     'order_date' => '2015-10-28', 
-		     'dropoff_suburb' => $shipping_city,
-		     'dropoff_postcode' => $shipping_postcode,
-		     'dropoff_state' => 'NSW',
-		     'parcel_attributes' => array(array(
-		         'qty' => 1,
-		         'length' => 0.1,
-		         'width' => 0.10,
-		         'depth' => 0.15,
-		         'weight' => 3)
-		     ),
-		));
-		$encoded = json_encode($requestData);
+        $shipping_postcode = WC()->customer->get_shipping_postcode();
+        $shipping_state = WC()->customer->get_shipping_state();
+
+        //dropoff suburb currently hard coded for cart calculate shipping page. There is no option to select a suburb by default
+        $requestData = array(
+         'quote' => array(
+             'order_date' => '2015-10-28', 
+             'dropoff_suburb' => 'Melbourne',
+             'dropoff_postcode' => $shipping_postcode,
+             'dropoff_state' => $shipping_state,
+             'parcel_attributes' => array(array(
+                 'qty' => 1,
+                 'length' => 0.1,
+                 'width' => 0.10,
+                 'depth' => 0.15,
+                 'weight' => 3)
+             ),
+        ));
+        $encoded = json_encode($requestData);
                                                                    
-		$data_string = json_encode($requestData);                                                                                                      
-		$ch = curl_init('http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w');                                                                      
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);            
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                    
-			'Content-Type: application/json',
-			'Content-Length: ' . strlen($data_string)
+        $data_string = json_encode($requestData);                                                                                                      
+        $ch = curl_init('http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w');                                                                      
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);            
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(                    
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data_string)
             )
-		);                                                                                             
+        );                                                                                             
 
         $result = curl_exec($ch);
 
         // change from associative array to standard object
-		$results = json_decode($result,true);
+        $results = json_decode($result,true);
 
-		$calc_tax = @$match_details['calc_tax'];
+        $calc_tax = @$match_details['calc_tax'];
 
-		foreach ($results as $resultsArray) {
+        foreach ($results as $resultsArray) {
 
-			if (is_Array($resultsArray)) {
+            if (is_Array($resultsArray)) {
 
-				foreach ($resultsArray as $result) {
+                foreach ($resultsArray as $result) {
 
-					if($result['success']) {
+                    if ($result['success']) {
 
-						$rate = array (
-							'id' => $result['courier_type'] . rand(),
-							'label' => $result['courier_type'],
-							'cost' => $result['quotes'][0]['price'],
-							'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
-						);
+                        $rate = array (
+                            'id' => $result['courier_type'] . rand(),
+                            'label' => $result['courier_type'],
+                            'cost' => $result['quotes'][0]['price'],
+                            'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
+                        );
 
-						$this->add_rate($rate);
+                        $this->add_rate($rate);
 
-					}
-				}
-			}
-		}
-	}
+                    }
+                }
+            }
+        }
+    }
 
 }
