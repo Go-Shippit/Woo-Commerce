@@ -67,7 +67,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->allowed_methods     = $this->settings['shippit_allowed_methods'];
         $this->shippit_send_orders = $this->settings['shippit_send_orders'];
         $this->shippit_title       = $this->settings['shippit_title'];
-        $this->hide_shipping       = $this->settings['hide_other_shipping'];
+        // $this->hide_shipping       = $this->settings['hide_other_shipping'];
 
 
         // Save settings in admin if you have any defined
@@ -202,7 +202,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 ),
             ),
         );
-        return apply_filters( 'wc_'.$this->id.'_settings', $settings );
+        //return apply_filters( 'wc_'.$this->id.'_settings', $settings );
     }
 
 
@@ -251,10 +251,10 @@ class Shippit_Shipping extends WC_Shipping_Method {
         foreach($result->quotes as $shippingQuote) {
             $shippingQuote->price;
             $rate = array(
-                'id' => $result->courier_type . rand(),
+                'id' => $result->courier_type . rand(1,1000),
                 'label' => $result->courier_type,
                 'cost' => $shippingQuote->price,
-                'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
+                'calc_tax' => 'per_order',
             );
             $this->add_rate($rate);
         }
@@ -280,10 +280,10 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 $methodTitle = 'Premium';
             }
             $rate = array(
-                'id' => $carrierTitle . rand(),
+                'id' => $carrierTitle . rand(1,1000),
                 'label' => $methodTitle,
                 'cost' => $shippingQuote->price,
-                'calc_tax' => ( null == $calc_tax ) ? 'per_order' : $calc_tax
+                'calc_tax' => 'per_order',
             );
             $this->add_rate($rate);
         }
