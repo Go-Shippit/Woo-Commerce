@@ -61,7 +61,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->init_form_fields();
         $this->init_settings();
 
-        $this->enabled             = $this->settings['enabled'];
+        $this->enabled             = $this->get_option('enabled');
         $this->shippit_api_key     = $this->settings['shippit_api_key'];
         $this->debug               = $this->settings['shippit_debug'];
         $this->allowed_methods     = $this->settings['shippit_allowed_methods'];
@@ -91,7 +91,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
             'enabled' => array(
                 'title'         => __( 'Enabled', 'woocommerce' ),
                 'type'          => 'checkbox',
-                'label'         => __( 'Enable Advanced Free Shipping', 'shippit' ),
+                'label'         => __( 'Enable Shippit', 'shippit' ),
                 'default'       => 'yes'
             ),
             'shippit_api_key' => array(
@@ -249,7 +249,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
     public function _addStandardQuote($results, $result) 
     {
         foreach($result->quotes as $shippingQuote) {
-            echo $shippingQuote->price;
+            $shippingQuote->price;
             $rate = array(
                 'id' => $result->courier_type . rand(),
                 'label' => $result->courier_type,

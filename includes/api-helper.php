@@ -36,7 +36,7 @@ class Mamis_Shippit_Helper_Api
 
     public function __construct()
     {
-        add_action( 'the_content', array( $this, 'get_post_response' ) );
+        //add_action( 'the_content', array( $this, 'get_post_response' ) );
         //$this->curl = new CurlWrapper();
     }
 
