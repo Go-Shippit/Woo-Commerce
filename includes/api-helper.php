@@ -37,11 +37,11 @@ class Mamis_Shippit_Helper_Api
     public function __construct()
     {
         add_action( 'the_content', array( $this, 'get_post_response' ) );
+        //$this->curl = new CurlWrapper();
     }
 
-    public function get_post_response( $content ) 
+    public function get_post_response( $api_key ) 
     {
-
         $requestData = array(
             'quote' => array(
                 'order_date' => '2015-12-12', 
@@ -69,29 +69,12 @@ class Mamis_Shippit_Helper_Api
             echo $e->getMessage();
         }
 
-        $vars = array( 
-            'quote' => array(
-                'order_date' => '2015-12-12', 
-                'dropoff_suburb' => 'Melbourne ',
-                'dropoff_postcode' => '3028',
-                'dropoff_state' => 'VIC',
-                'parcel_attributes' => array(
-                    array(
-                        'qty' => 1,
-                        'length' => 0.1,
-                        'width' => 0.10,
-                        'depth' => 0.15,
-                        'weight' => 3
-                    )
-                ),
-            )
-        );
-
         $curl->addHeader('Content-Type', 'application/json');
-        $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', $encoded);
+        $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token='.$api_key.'', $encoded);
 
-        var_dump($response);
+        $apiResponseBody = json_decode($response, true);
 
+        return $apiResponseBody;
     }
 
     /**
