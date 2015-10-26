@@ -69,7 +69,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->shippit_send_orders = $this->settings['shippit_send_orders'];
         $this->shippit_title       = $this->settings['shippit_title'];
         // $this->hide_shipping       = $this->settings['hide_other_shipping'];
-
+        $this->allowedProducts   = $this->settings['shippit_allowed_products'];
 
         // Save settings in admin if you have any defined
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -188,6 +188,14 @@ class Shippit_Shipping extends WC_Shipping_Method {
                     'yes' => __( 'Yes', 'mamis' ),
                 ),
             ),
+            'shippit_allowed_products' => array(
+                'title'    => __( 'Allowed products', 'mamis' ),
+                'desc'     => '',
+                'id'       => 'shippit_allowed_methods',
+                'type'     => 'multiselect',
+                'options'  => $this->getProducts(),
+                'css'      => 'min-width:300px;',
+            ),
             'woocommerce_ship_to_countries' => array(
                 'title'    => __( 'Restrict shipping to Location(s)', 'woocommerce' ),
                 'desc'     => sprintf( __( 'Choose which countries you want to ship to, or choose to ship to all <a href="%s">locations you sell to</a>.', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=general' ) ),
@@ -223,9 +231,42 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 ),
             ),
         );
-        //return apply_filters( 'wc_'.$this->id.'_settings', $settings );
     }
 
+    public function getProducts() 
+    {
+        $args = array( 'post_type' => 'product', 'posts_per_page' => -1);
+
+        $loop = new WP_Query( $args );
+
+        $productList = array();
+
+        while ( $loop->have_posts() ) : $loop->the_post(); 
+            $productList[get_the_ID()] = __(get_the_title(), 'mamis');
+        endwhile; 
+        wp_reset_query(); 
+
+        return $productList;
+    }
+
+    public function canShip() 
+    {
+        $allowedProducts = $this->allowedProducts;
+
+        $itemInCart = WC()->cart->get_cart();
+        $test = array();
+
+        foreach($itemInCart as $item => $values) {      
+            $test[] = $values['product_id'];
+        }
+
+        if (count($allowedProducts) > 0) {
+            if ($test != array_intersect($test, $allowedProducts)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Calculate shipping.
@@ -235,10 +276,9 @@ class Shippit_Shipping extends WC_Shipping_Method {
      */
     public function calculate_shipping( $package ) {
 
-        $shipping_postcode = WC()->customer->get_shipping_postcode();
-        $shipping_state = WC()->customer->get_shipping_state();
-
-        $this->_processShippingQuotes();
+        if($this->canShip()) {
+            $this->_processShippingQuotes();
+        }
     }
 
     public function _processShippingQuotes()
