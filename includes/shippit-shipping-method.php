@@ -228,7 +228,11 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $isPremiumAvailable = in_array('premium', $allowedMethods);
         $isStandardAvailable = in_array('standard', $allowedMethods);
 
-        $results = $this->api_helper->get_post_response($api_key);
+        $customerSuburb = WC()->customer->get_shipping_city();
+        $customerPostcode = WC()->customer->get_shipping_postcode();
+        $customerState = WC()->customer->get_shipping_state();
+
+        $results = $this->api_helper->get_post_response($api_key, $customerSuburb, $customerPostcode, $customerState);
 
         foreach($results->response as $result) {
             if ($result->success) {
@@ -254,7 +258,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'id' => $result->courier_type . rand(1,1000),
                 'label' => $result->courier_type,
                 'cost' => $shippingQuote->price,
-                'calc_tax' => 'per_order',
+                'taxes' => false,
             );
             $this->add_rate($rate);
         }
@@ -283,7 +287,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'id' => $carrierTitle . rand(1,1000),
                 'label' => $methodTitle,
                 'cost' => $shippingQuote->price,
-                'calc_tax' => 'per_order',
+                'taxes' => false,
             );
             $this->add_rate($rate);
         }

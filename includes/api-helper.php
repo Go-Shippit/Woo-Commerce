@@ -40,14 +40,14 @@ class Mamis_Shippit_Helper_Api
         //$this->curl = new CurlWrapper();
     }
 
-    public function get_post_response( $api_key ) 
+    public function get_post_response($api_key, $suburb, $postcode, $state) 
     {
         $requestData = array(
             'quote' => array(
-                'order_date' => '2015-10-30', 
-                'dropoff_suburb' => 'Sydney',
-                'dropoff_postcode' => '2000',
-                'dropoff_state' => 'NSW',
+                'order_date' => '', 
+                'dropoff_suburb' => $suburb,
+                'dropoff_postcode' => $postcode,
+                'dropoff_state' => $state,
                 'parcel_attributes' => array(
                     array(
                         'qty' => 1,
