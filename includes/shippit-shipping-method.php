@@ -254,14 +254,14 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $allowedProducts = $this->allowedProducts;
 
         $itemInCart = WC()->cart->get_cart();
-        $test = array();
+        $itemIds = array();
 
         foreach($itemInCart as $item => $values) {      
-            $test[] = $values['product_id'];
+            $itemIds[] = $values['product_id'];
         }
 
         if (count($allowedProducts) > 0) {
-            if ($test != array_intersect($test, $allowedProducts)) {
+            if ($itemIds != array_intersect($itemIds, $allowedProducts)) {
                 return false;
             }
         }
