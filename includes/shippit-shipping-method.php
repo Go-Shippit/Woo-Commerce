@@ -213,10 +213,6 @@ class Shippit_Shipping extends WC_Shipping_Method {
      * @return void
      */
     public function calculate_shipping( $package ) {
-
-        $shipping_postcode = WC()->customer->get_shipping_postcode();
-        $shipping_state = WC()->customer->get_shipping_state();
-
         $this->_processShippingQuotes();
     }
 
@@ -233,20 +229,21 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $customerState = WC()->customer->get_shipping_state();
 
         $results = $this->api_helper->get_post_response($api_key, $customerSuburb, $customerPostcode, $customerState);
-
-        foreach($results->response as $result) {
-            if ($result->success) {
-                if ($result->courier_type == 'Bonds'
-                    && $isPremiumAvailable) {
-                    $this->_addPremiumQuote($results, $result);
-                }
-                elseif ($result->courier_type != 'Bonds' 
-                    && $isStandardAvailable) {
-                    $this->_addStandardQuote($results, $result);
+        //Check if results return a value)
+        if ( !$results ) {
+            foreach($results->response as $result) {
+                if ($result->success) {
+                    if ($result->courier_type == 'Bonds'
+                        && $isPremiumAvailable) {
+                        $this->_addPremiumQuote($results, $result);
+                    }
+                    elseif ($result->courier_type != 'Bonds' 
+                        && $isStandardAvailable) {
+                        $this->_addStandardQuote($results, $result);
+                    }
                 }
             }
         }
-
 
     }
 
