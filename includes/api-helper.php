@@ -40,7 +40,7 @@ class Mamis_Shippit_Helper_Api
         //$this->curl = new CurlWrapper();
     }
 
-    public function get_post_response($api_key, $suburb, $postcode, $state) 
+    public function get_post_response($api_key, $suburb, $postcode, $state, $qty, $weight) 
     {
         $requestData = array(
             'quote' => array(
@@ -50,11 +50,8 @@ class Mamis_Shippit_Helper_Api
                 'dropoff_state' => $state,
                 'parcel_attributes' => array(
                     array(
-                        'qty' => 1,
-                        'length' => 0.1,
-                        'width' => 0.10,
-                        'depth' => 0.15,
-                        'weight' => 3
+                        'qty' => $qty,
+                        'weight' => $weight
                     )
                 ),
             )

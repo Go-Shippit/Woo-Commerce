@@ -29,6 +29,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         /*
         * For testing purposes
         */
+
         // $allowedMethods = $this->allowed_methods;
         // $api_key = $this->shippit_api_key;
 
@@ -152,7 +153,27 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __( '-- No Max Timeslots --', 'mamis' ),
+                    '0' => __('-- No Max Timeslots --', 'mamis'),
+                    '1' => __('1 Timeslots', 'mamis'),
+                    '2' => __('2 Timeslots', 'mamis'),
+                    '3' => __('3 Timeslots', 'mamis'),
+                    '4' => __('4 Timeslots', 'mamis'),
+                    '5' => __('5 Timeslots', 'mamis'),
+                    '6' => __('6 Timeslots', 'mamis'),
+                    '7' => __('7 Timeslots', 'mamis'),
+                    '8' => __('8 Timeslots', 'mamis'),
+                    '9' => __('9 Timeslots', 'mamis'),
+                    '10' => __('10 Timeslots', 'mamis'),
+                    '11' => __('11 Timeslots', 'mamis'),
+                    '12' => __('12 Timeslots', 'mamis'),
+                    '13' => __('13 Timeslots', 'mamis'),
+                    '14' => __('14 Timeslots', 'mamis'),
+                    '15' => __('15 Timeslots', 'mamis'),
+                    '16' => __('16 Timeslots', 'mamis'),
+                    '17' => __('17 Timeslots', 'mamis'),
+                    '18' => __('18 Timeslots', 'mamis'),
+                    '19' => __('19 Timeslots', 'mamis'),
+                    '20' => __('20 Timeslots', 'mamis'),
                 ),
             ),
             'shippit_filter_by_enabled' => array(
@@ -213,6 +234,10 @@ class Shippit_Shipping extends WC_Shipping_Method {
      * @return void
      */
     public function calculate_shipping( $package ) {
+
+        $shipping_postcode = WC()->customer->get_shipping_postcode();
+        $shipping_state = WC()->customer->get_shipping_state();
+
         $this->_processShippingQuotes();
     }
 
@@ -227,23 +252,36 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $customerSuburb = WC()->customer->get_shipping_city();
         $customerPostcode = WC()->customer->get_shipping_postcode();
         $customerState = WC()->customer->get_shipping_state();
+        $qty =  WC()->cart->cart_contents_count;
 
-        $results = $this->api_helper->get_post_response($api_key, $customerSuburb, $customerPostcode, $customerState);
-        //Check if results return a value)
-        if ( !$results ) {
-            foreach($results->response as $result) {
-                if ($result->success) {
-                    if ($result->courier_type == 'Bonds'
-                        && $isPremiumAvailable) {
-                        $this->_addPremiumQuote($results, $result);
-                    }
-                    elseif ($result->courier_type != 'Bonds' 
-                        && $isStandardAvailable) {
-                        $this->_addStandardQuote($results, $result);
-                    }
+        $totalWeight = 1;
+
+        if ( WC()->cart->cart_contents_weight == 0) {
+            $totalWeight = 1;
+        }
+        else {
+            $totalWeight = WC()->cart->cart_contents_weight;
+        }
+
+        $results = $this->api_helper->get_post_response($api_key, $customerSuburb, $customerPostcode, $customerState, $qty, $totalWeight);
+
+        if( !$results ) {
+            return;
+        }
+
+        foreach($results->response as $result) {
+            if ($result->success) {
+                if ($result->courier_type == 'Bonds'
+                    && $isPremiumAvailable) {
+                    $this->_addPremiumQuote($results, $result);
+                }
+                elseif ($result->courier_type != 'Bonds' 
+                    && $isStandardAvailable) {
+                    $this->_addStandardQuote($results, $result);
                 }
             }
         }
+
 
     }
 
