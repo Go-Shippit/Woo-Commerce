@@ -1,4 +1,6 @@
 <?php
+require_once( plugin_dir_path( __FILE__ ) . 'api-helper.php');
+
 /**
 *  Mamis.IT
 *
@@ -24,6 +26,7 @@ class Mamis_Shippit_Order_Sync
     public function __construct() 
     {  
         $this->init();
+        $this->api_helper = new Mamis_Shippit_Helper_Api();
     }
 
     function init() {
@@ -47,15 +50,16 @@ class Mamis_Shippit_Order_Sync
         // Get all woocommerce orders that are processing
         $shopOrders = get_posts($orders);
 
-        foreach($shopOrders as $shopOrder) {
-            // Get the orders_item_id meta key shipping
+        foreach ($shopOrders as $shopOrder) {
+            // Get the orders_item_id meta with key shipping
             $order = new WC_Order($shopOrder->ID);
             $items = $order->get_items('shipping');
-            foreach($items as $key => $item) {
+
+            foreach ($items as $key => $item) {
                 // Check if the shipping method chosen was Mamis_Shippit
                 $isShippit = strpos($item['method_id'],'Mamis_Shippit');
                 if ($isShippit !== false) {
-                    // If it was Mamis_Shippit method check if mamis_shippit_sync meta key is available
+                    // If it was Mamis_Shippit method, check if mamis_shippit_sync meta key is present
                     if(get_post_meta($shopOrder->ID, 'mamis_shippit_sync', true )) {
                         echo 'true';
                     }
@@ -63,9 +67,15 @@ class Mamis_Shippit_Order_Sync
                     else {
                         add_post_meta($shopOrder->ID, 'mamis_shippit_sync', 'false', true);
                     }
-                }
+                } 
             }
+
         }
+    }
+
+    public function syncOrder()
+    {
+       var_dump($this->api_helper->sendOrder());
 
     }
 

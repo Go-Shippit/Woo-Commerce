@@ -1,5 +1,6 @@
 <?php
 require_once( plugin_dir_path( __FILE__ ) . 'api-helper.php');
+require_once( plugin_dir_path( __FILE__ ) . 'sync.php');
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -19,38 +20,16 @@ class Shippit_Shipping extends WC_Shipping_Method {
      */
     public function __construct() 
     {
-
         $this->id                   = 'mamis_shippit';
         $this->title                = __( 'Shippit', 'shippit' );
         $this->method_title         = __( 'Shippit', 'shippit' );
         $this->method_description   = __( 'Configure Shippit' ); 
         
         $this->init();
-        /*
-        * For testing purposes
-        */
+        // var_dump($this->filterEnabled);
+        $sync = new Mamis_Shippit_Order_Sync();
+        $sync->syncOrder();
 
-        // $allowedMethods = $this->allowed_methods;
-        // $api_key = $this->shippit_api_key;
-
-        // $isPremiumAvailable = in_array('premium', $allowedMethods);
-        // $isStandardAvailable = in_array('standard', $allowedMethods);
-
-        // $results = $this->api_helper->get_post_response($api_key);
-
-        // foreach($results->response as $result) {
-        //     if ($result->success) {
-        //         if ($result->courier_type == 'Bonds'
-        //             && $isPremiumAvailable) {
-        //             $this->_addPremiumQuote($result);
-
-        //         }
-        //         elseif ($result->courier_type != 'Bonds' 
-        //             && $isStandardAvailable) {
-        //             $this->_addStandardQuote($results);
-        //         }
-        //     }
-        // }
     }
 
     /**
@@ -69,8 +48,8 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->shippit_send_orders = $this->settings['shippit_send_orders'];
         $this->shippit_title       = $this->settings['shippit_title'];
         // $this->hide_shipping       = $this->settings['hide_other_shipping'];
-        $this->allowedProducts   = $this->settings['shippit_allowed_products'];
-
+        $this->allowedProducts     = $this->settings['shippit_allowed_products'];
+        $this->filterEnabled       = $this->settings['shippit_filter_by_enabled'];
         // Save settings in admin if you have any defined
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
     }
@@ -96,7 +75,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'default'       => 'yes'
             ),
             'shippit_api_key' => array(
-                'title'    => __( 'API Key', 'mamis' ),
+                'title'    => __( 'API Key', 'mamis_shippit' ),
                 'desc'     => '',
                 'id'       => 'shippit_api_key',
                 'name'     => 'shippit_api_key',
@@ -104,92 +83,92 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'css'      => 'min-width:300px;',
             ),
             'shippit_debug' => array(
-                'title'    => __( 'Debug', 'mamis' ),
+                'title'    => __( 'Debug', 'mamis_shippit' ),
                 'id'       => 'shippit_debug',
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __( 'No', 'mamis' ),
-                    'yes' => __( 'Yes', 'mamis' ),
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
                 ),
             ),
             'shippit_send_orders' => array(
-                'title'    => __( 'Send All Orders to Shippit', 'mamis' ),
+                'title'    => __( 'Send All Orders to Shippit', 'mamis_shippit' ),
                 'id'       => 'shippit_send_orders',
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __( 'No', 'mamis' ),
-                    'yes' => __( 'Yes', 'mamis' ),
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
                 ),
             ),
             'shippit_title' => array(
-                'title'    => __( 'Title', 'mamis' ),
+                'title'    => __( 'Title', 'mamis_shippit' ),
                 'desc'     => '',
                 'id'       => 'shippit_title',
                 'type'     => 'text',
                 'css'      => 'min-width:300px;',
             ),
             'shippit_allowed_methods' => array(
-                'title'    => __( 'Allowed Methods', 'mamis' ),
+                'title'    => __( 'Allowed Methods', 'mamis_shippit' ),
                 'desc'     => '',
                 'id'       => 'shippit_allowed_methods',
                 'type'     => 'multiselect',
                 'options'  => array(
-                    'standard' => __( 'Standard', 'mamis'),
-                    'premium'  => __( 'Premium', 'mamis'),
+                    'standard' => __( 'Standard', 'mamis_shippit'),
+                    'premium'  => __( 'Premium', 'mamis_shippit'),
                     ),
                 'css'      => 'min-width:300px;',
             ),
             'shippit_max_timeslots' => array(
-                'title'    => __( 'Maximum Timeslots', 'mamis' ),
+                'title'    => __( 'Maximum Timeslots', 'mamis_shippit' ),
                 'id'       => 'shippit_max_timeslots',
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    '0' => __('-- No Max Timeslots --', 'mamis'),
-                    '1' => __('1 Timeslots', 'mamis'),
-                    '2' => __('2 Timeslots', 'mamis'),
-                    '3' => __('3 Timeslots', 'mamis'),
-                    '4' => __('4 Timeslots', 'mamis'),
-                    '5' => __('5 Timeslots', 'mamis'),
-                    '6' => __('6 Timeslots', 'mamis'),
-                    '7' => __('7 Timeslots', 'mamis'),
-                    '8' => __('8 Timeslots', 'mamis'),
-                    '9' => __('9 Timeslots', 'mamis'),
-                    '10' => __('10 Timeslots', 'mamis'),
-                    '11' => __('11 Timeslots', 'mamis'),
-                    '12' => __('12 Timeslots', 'mamis'),
-                    '13' => __('13 Timeslots', 'mamis'),
-                    '14' => __('14 Timeslots', 'mamis'),
-                    '15' => __('15 Timeslots', 'mamis'),
-                    '16' => __('16 Timeslots', 'mamis'),
-                    '17' => __('17 Timeslots', 'mamis'),
-                    '18' => __('18 Timeslots', 'mamis'),
-                    '19' => __('19 Timeslots', 'mamis'),
-                    '20' => __('20 Timeslots', 'mamis'),
+                    '0' => __('-- No Max Timeslots --', 'mamis_shippit'),
+                    '1' => __('1 Timeslots', 'mamis_shippit'),
+                    '2' => __('2 Timeslots', 'mamis_shippit'),
+                    '3' => __('3 Timeslots', 'mamis_shippit'),
+                    '4' => __('4 Timeslots', 'mamis_shippit'),
+                    '5' => __('5 Timeslots', 'mamis_shippit'),
+                    '6' => __('6 Timeslots', 'mamis_shippit'),
+                    '7' => __('7 Timeslots', 'mamis_shippit'),
+                    '8' => __('8 Timeslots', 'mamis_shippit'),
+                    '9' => __('9 Timeslots', 'mamis_shippit'),
+                    '10' => __('10 Timeslots', 'mamis_shippit'),
+                    '11' => __('11 Timeslots', 'mamis_shippit'),
+                    '12' => __('12 Timeslots', 'mamis_shippit'),
+                    '13' => __('13 Timeslots', 'mamis_shippit'),
+                    '14' => __('14 Timeslots', 'mamis_shippit'),
+                    '15' => __('15 Timeslots', 'mamis_shippit'),
+                    '16' => __('16 Timeslots', 'mamis_shippit'),
+                    '17' => __('17 Timeslots', 'mamis_shippit'),
+                    '18' => __('18 Timeslots', 'mamis_shippit'),
+                    '19' => __('19 Timeslots', 'mamis_shippit'),
+                    '20' => __('20 Timeslots', 'mamis_shippit'),
                 ),
             ),
             'shippit_filter_by_enabled' => array(
-                'title'    => __( 'Filter by enabled products', 'mamis' ),
+                'title'    => __( 'Filter by enabled products', 'mamis_shippit' ),
                 'id'       => 'shippit_filter_by_enabled',
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __( 'No', 'mamis' ),
-                    'yes' => __( 'Yes', 'mamis' ),
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
                 ),
             ),
             'shippit_allowed_products' => array(
-                'title'    => __( 'Allowed products', 'mamis' ),
+                'title'    => __( 'Allowed products', 'mamis_shippit' ),
                 'desc'     => '',
                 'id'       => 'shippit_allowed_methods',
                 'type'     => 'multiselect',
@@ -219,15 +198,15 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'type'    => 'multi_select_countries'
             ),
             'shippit_show_method' => array(
-                'title'    => __( 'Show Method if Not Applicable', 'mamis' ),
+                'title'    => __( 'Show Method if Not Applicable', 'mamis_shippit' ),
                 'id'       => 'shippit_show_method',
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __( 'No', 'mamis' ),
-                    'yes' => __( 'Yes', 'mamis' ),
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
                 ),
             ),
         );
@@ -242,7 +221,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $productList = array();
 
         while ( $loop->have_posts() ) : $loop->the_post(); 
-            $productList[get_the_ID()] = __(get_the_title(), 'mamis');
+            $productList[get_the_ID()] = __(get_the_title(), 'mamis_shippit');
         endwhile; 
         wp_reset_query(); 
 
@@ -251,6 +230,10 @@ class Shippit_Shipping extends WC_Shipping_Method {
 
     public function canShip() 
     {
+        if($this->filterEnabled != 'yes') {
+            return true;
+        }
+
         $allowedProducts = $this->allowedProducts;
 
         $itemInCart = WC()->cart->get_cart();
@@ -274,8 +257,8 @@ class Shippit_Shipping extends WC_Shipping_Method {
      * @param mixed $package
      * @return void
      */
-    public function calculate_shipping( $package ) {
-
+    public function calculate_shipping( $package ) 
+    {
         if($this->canShip()) {
             $this->_processShippingQuotes();
         }
@@ -330,7 +313,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         foreach($result->quotes as $shippingQuote) {
             $shippingQuote->price;
             $rate = array(
-                'id' => $result->courier_type . rand(1,1000),
+                'id' => 'Mamis_Shippit_'.$result->courier_type.'_'.uniqid(),
                 'label' => $result->courier_type,
                 'cost' => $shippingQuote->price,
                 'taxes' => false,
@@ -359,7 +342,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 $methodTitle = 'Premium';
             }
             $rate = array(
-                'id' => $carrierTitle . rand(1,1000),
+                'id' => 'Mamis_Shippit_'.$carrierTitle .'_'. uniqid(),
                 'label' => $methodTitle,
                 'cost' => $shippingQuote->price,
                 'taxes' => false,
