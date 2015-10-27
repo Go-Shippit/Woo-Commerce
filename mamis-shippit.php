@@ -29,8 +29,8 @@ class Mamis_Shippit {
 	/**
 	 * Constructor.
 	 */
-	public function __construct() {
-
+	public function __construct() 
+	{
 		if ( ! function_exists( 'is_plugin_active_for_network' ) )
 			require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 
@@ -42,7 +42,6 @@ class Mamis_Shippit {
 		endif;
 
 		$this->init();
-
 	}
 
 
@@ -56,14 +55,12 @@ class Mamis_Shippit {
 	 *
 	 * @return object Instance of the class.
 	 */
-	public static function instance() {
-
+	public static function instance() 
+	{
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}
-
 		return self::$instance;
-
 	}
 
 
@@ -74,12 +71,12 @@ class Mamis_Shippit {
 	 *
 	 * @since 1.1.0
 	 */
-	public function init() {
-
+	public function init() 
+	{
 		// Add hooks/filters
 		$this->hooks();
-		//$this->api = Mamis_Shippit_Helper_Api::get_instance();
 	}
+
 
 	/**
 	 * Hooks.
@@ -92,7 +89,60 @@ class Mamis_Shippit {
 
 		// Add shipping method
 		add_action( 'woocommerce_shipping_methods', array( $this, 'shippit_add_shipping_method' ) );
+		
+		// Does the order need to be sync'd
+		add_action('woocommerce_order_status_processing', array($this, 'shippit_should_sync') );
 
+		// If the order is changed from any state to on-hold check if mamis_shippit_sync exists
+		add_action('woocommerce_order_status_on-hold', array($this, 'shippit_remove_sync') );
+	}
+
+	public function shippit_should_sync($order_id) 
+	{
+		// Get the orders_item_id meta with key shipping
+        $order = $this->getOrder($order_id);
+        $items = $order->get_items('shipping');
+
+        foreach ($items as $key => $item) {
+            // Check if the shipping method chosen was Mamis_Shippit
+            $isShippit = strpos($item['method_id'],'Mamis_Shippit');
+            if ($isShippit !== false) {
+                // Add mamis_shippit_sync flag if shippit method
+                add_post_meta($order_id, 'mamis_shippit_sync', 'false', true);
+            } 
+        }
+	}
+
+	public function shippit_remove_sync($order_id)
+	{
+		// Get the orders_item_id meta with key shipping
+        $order = $this->getOrder($order_id);
+        $items = $order->get_items('shipping');
+
+        foreach ($items as $key => $item) {
+            // Check if the shipping method chosen was Mamis_Shippit
+            $isShippit = strpos($item['method_id'],'Mamis_Shippit');
+            if ($isShippit !== false) {
+               // Check if mamis shippit sync exists and if it's false remove it
+                if (get_post_meta($order_id, 'mamis_shippit_sync', true) == 'false') {
+                	delete_post_meta($order_id, 'mamis_shippit_sync');
+                }
+            }  
+        }
+	}
+
+	public function getOrder($order_id) 
+	{
+		$this->order = new WC_Order($order_id);
+		return $this->order;
+	}
+
+	public function getShippitObject() 
+	{
+		require_once plugin_dir_path( __FILE__ ) . 'includes/shippit-shipping-method.php';
+		$this->shippit = new Shippit_Shipping();
+
+		return $this->shippit;
 	}
 
 	/**
@@ -102,14 +152,13 @@ class Mamis_Shippit {
 	 *
 	 * @since 1.0.0 
 	 */
-	public function shippit_shipping() {
-
+	public function shippit_shipping() 
+	{
 		/**
 		 * Shippit shipping method
 		 */
 		require_once plugin_dir_path( __FILE__ ) . 'includes/shippit-shipping-method.php';
-		$this->was_method = new Shippit_Shipping();
-
+		$this->shippit_method = new Shippit_Shipping();
 	}
 
 
@@ -119,16 +168,14 @@ class Mamis_Shippit {
 	 * Add shipping method to WooCommerce.
 	 *
 	 */
-	public function shippit_add_shipping_method( $methods ) {
-
+	public function shippit_add_shipping_method( $methods ) 
+	{
 		if ( class_exists( 'Shippit_Shipping' ) ) :
 			$methods[] = 'Shippit_Shipping';
 		endif;
 
 		return $methods;
-
 	}
-
 }
 
 
@@ -138,7 +185,8 @@ class Mamis_Shippit {
  */
 if ( ! function_exists( 'SHIPPIT' ) ) :
 
- 	function SHIPPIT() {
+ 	function SHIPPIT() 
+ 	{
 		return Mamis_Shippit::instance();
 	}
 
