@@ -28,8 +28,8 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->init();
         // var_dump($this->filterEnabled);
         $sync = new Mamis_Shippit_Order_Sync();
-        $sync->syncOrder();
-
+        //$sync->syncOrder();
+        //$sync->getCustomerDetails();
     }
 
     /**
@@ -41,15 +41,16 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->init_form_fields();
         $this->init_settings();
 
-        $this->enabled             = $this->get_option('enabled');
-        $this->shippit_api_key     = $this->settings['shippit_api_key'];
-        $this->debug               = $this->settings['shippit_debug'];
-        $this->allowed_methods     = $this->settings['shippit_allowed_methods'];
-        $this->shippit_send_orders = $this->settings['shippit_send_orders'];
-        $this->shippit_title       = $this->settings['shippit_title'];
+        $this->enabled                 = $this->get_option('enabled');
+        $this->shippit_api_key         = $this->settings['shippit_api_key'];
+        $this->debug                   = $this->settings['shippit_debug'];
+        $this->allowed_methods         = $this->settings['shippit_allowed_methods'];
+        $this->shippit_send_all_orders = $this->settings['shippit_send_orders'];
+        $this->shippit_title           = $this->settings['shippit_title'];
+        $this->max_timeslots           = $this->settings['shippit_max_timeslots'];
         // $this->hide_shipping       = $this->settings['hide_other_shipping'];
-        $this->allowedProducts     = $this->settings['shippit_allowed_products'];
-        $this->filterEnabled       = $this->settings['shippit_filter_by_enabled'];
+        $this->allowedProducts         = $this->settings['shippit_allowed_products'];
+        $this->filterEnabled           = $this->settings['shippit_filter_by_enabled'];
         // Save settings in admin if you have any defined
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
     }
@@ -230,6 +231,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
 
     public function canShip() 
     {
+        // Check filtered by enabled products is active return true (let item be shipped)
         if($this->filterEnabled != 'yes') {
             return true;
         }
@@ -244,6 +246,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         }
 
         if (count($allowedProducts) > 0) {
+            // If item is not enabled return false
             if ($itemIds != array_intersect($itemIds, $allowedProducts)) {
                 return false;
             }
@@ -259,12 +262,17 @@ class Shippit_Shipping extends WC_Shipping_Method {
      */
     public function calculate_shipping( $package ) 
     {
+        if ($this->enabled == 'no' || !$this->allowed_methods) {
+            return;
+        }
+
         if($this->canShip()) {
+            // @todo check if filtering by product attribute is enabled
             $this->_processShippingQuotes();
         }
     }
 
-    public function _processShippingQuotes()
+    private function _processShippingQuotes()
     {
         $allowedMethods = $this->allowed_methods;
         $api_key = $this->shippit_api_key;
@@ -277,10 +285,14 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $customerState = WC()->customer->get_shipping_state();
         $qty =  WC()->cart->cart_contents_count;
 
-        $totalWeight = 1;
+        /*
+        * Product weight
+        * @todo handle when weight hasn't been entered
+        */
+        $totalWeight = 0;
 
         if ( WC()->cart->cart_contents_weight == 0) {
-            $totalWeight = 1;
+            $totalWeight = 0;
         }
         else {
             $totalWeight = WC()->cart->cart_contents_weight;
@@ -304,11 +316,9 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 }
             }
         }
-
-
     }
 
-    public function _addStandardQuote($results, $result) 
+    private function _addStandardQuote($results, $result) 
     {
         foreach($result->quotes as $shippingQuote) {
             $shippingQuote->price;
@@ -322,16 +332,20 @@ class Shippit_Shipping extends WC_Shipping_Method {
         }
     }
 
-    public function _addPremiumQuote($results, $result) 
+    private function _addPremiumQuote($results, $result) 
     {
         $timeSlotCount = 0;
-        $maxTimeSlots = 10;
+        $maxTimeSlots = $this->max_timeslots;
 
         foreach($result->quotes as $shippingQuote) {
+            if(!empty($maxTimeSlots) && $maxTimeSlots <= $timeSlotCount) {
+                break;
+            }
+
             if (property_exists($shippingQuote, 'delivery_date')
                 && property_exists($shippingQuote, 'delivery_window')
                 && property_exists($shippingQuote, 'delivery_window_desc')) {
-                // $timeSlotCount++;
+                $timeSlotCount++;
                 $carrierTitle = $result->courier_type;
                 $method = $result->courier_type . '_' . $shippingQuote->delivery_date . '_' . $shippingQuote->delivery_window;
                 $methodTitle = 'Premium' . ' - Delivered ' . $shippingQuote->delivery_date. ' Between ' . $shippingQuote->delivery_window_desc;
