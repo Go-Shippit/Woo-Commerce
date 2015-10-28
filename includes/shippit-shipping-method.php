@@ -28,7 +28,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $this->init();
         // var_dump($this->filterEnabled);
         $sync = new Mamis_Shippit_Order_Sync();
-        //$sync->syncOrder();
+
         $sync->syncOrders();
     }
 
@@ -292,31 +292,36 @@ class Shippit_Shipping extends WC_Shipping_Method {
         if ($this->enabled == 'no' || !$this->allowed_methods) {
             return;
         }
+        
+        $country = $package['destination']['country'];
+        $quoteDestination = $package['destination'];
+        $quoteCart = $package['contents'];
 
-        if($this->canShip()) {
+        if($this->canShip() && $country == 'AU') {
             // @todo check if filtering by product attribute is enabled
-            $this->_processShippingQuotes();
+            $this->_processShippingQuotes($quoteDestination, $quoteCart);
         }
     }
 
-    private function _processShippingQuotes()
+    private function _processShippingQuotes($quoteDestination, $quoteCart)
     {
         $allowedMethods = $this->allowed_methods;
-        $api_key = $this->shippit_api_key;
+        $apiKey = $this->shippit_api_key;
+        $debug = $this->debug;
 
         $isPremiumAvailable = in_array('premium', $allowedMethods);
         $isStandardAvailable = in_array('standard', $allowedMethods);
 
-        $customerSuburb = WC()->customer->get_shipping_city();
-        $customerPostcode = WC()->customer->get_shipping_postcode();
-        $customerState = WC()->customer->get_shipping_state();
-        $qty =  WC()->cart->cart_contents_count;
+        $customerSuburb = $quoteDestination['city'];
+        $customerPostcode = $quoteDestination['postcode'];
+        $customerState = $quoteDestination['state'];
+        $qty =  $quoteCart['qty'];
 
         /*
         * Product weight
         * @todo handle when weight hasn't been entered
         */
-        $totalWeight = 0;
+        $totalWeight = 0.1;
 
         if ( WC()->cart->cart_contents_weight == 0) {
             $totalWeight = 0;
@@ -325,67 +330,89 @@ class Shippit_Shipping extends WC_Shipping_Method {
             $totalWeight = WC()->cart->cart_contents_weight;
         }
 
-        $results = $this->api_helper->get_post_response($api_key, $customerSuburb, $customerPostcode, $customerState, $qty, $totalWeight);
+        $requestData = array(
+            'order_date' => '',
+            'dropoff_suburb' => $customerSuburb,
+            'dropoff_postcode' => $customerPostcode,
+            'dropoff_state' => $customerState,
+            'parcel_attributes' => array(
+                array(
+                    'qty' => $qty,
+                    'weight' => $totalWeight
+                )
+            ),
+        );
 
-        if( !$results ) {
-            return;
+        try {
+            $shippingQuotes = $this->api_helper->getQuote($requestData, $apiKey, $debug);
+        }
+        catch (Exception $e) {
+            // if ($this->helper->isDebugActive() && $this->bugsnag) {
+            //     $this->bugsnag->notifyError('API - Quote Request', $e->getMessage());
+            // }       
+            error_log($e);
+            return false;
         }
 
-        foreach($results->response as $result) {
-            if ($result->success) {
-                if ($result->courier_type == 'Bonds'
-                    && $isPremiumAvailable) {
-                    $this->_addPremiumQuote($results, $result);
-                }
-                elseif ($result->courier_type != 'Bonds' 
-                    && $isStandardAvailable) {
-                    $this->_addStandardQuote($results, $result);
+        if($shippingQuotes->response) {
+            foreach($shippingQuotes->response as $shippingQuote) {
+                if ($shippingQuote->success) {
+                    if ($shippingQuote->courier_type == 'Bonds'
+                        && $isPremiumAvailable) {
+                        $this->_addPremiumQuote($shippingQuote);
+                    }
+                    elseif ($shippingQuote->courier_type != 'Bonds' 
+                        && $isStandardAvailable) {
+                        $this->_addStandardQuote($shippingQuote);
+                    }
                 }
             }
         }
+        else {
+            return false;
+        }
     }
 
-    private function _addStandardQuote($results, $result) 
+    private function _addStandardQuote($shippingQuote) 
     {
-        foreach($result->quotes as $shippingQuote) {
-            $shippingQuote->price;
+        foreach($shippingQuote->quotes as $standardQuote) {
             $rate = array(
-                'id' => 'Mamis_Shippit_'.$result->courier_type.'_'.uniqid(),
-                'label' => $result->courier_type,
-                'cost' => $shippingQuote->price,
+                'id' => 'Mamis_Shippit_'.$shippingQuote->courier_type.'_'.uniqid(),
+                'label' => 'Couriers Please',
+                'cost' => $standardQuote->price,
                 'taxes' => false,
             );
             $this->add_rate($rate);
         }
     }
 
-    private function _addPremiumQuote($results, $result) 
+    private function _addPremiumQuote($shippingQuote) 
     {
         $timeSlotCount = 0;
         $maxTimeSlots = $this->max_timeslots;
 
-        foreach($result->quotes as $shippingQuote) {
+        foreach($shippingQuote->quotes as $premiumQuote) {
             if(!empty($maxTimeSlots) && $maxTimeSlots <= $timeSlotCount) {
                 break;
             }
 
-            if (property_exists($shippingQuote, 'delivery_date')
-                && property_exists($shippingQuote, 'delivery_window')
-                && property_exists($shippingQuote, 'delivery_window_desc')) {
+            if (property_exists($premiumQuote, 'delivery_date')
+                && property_exists($premiumQuote, 'delivery_window')
+                && property_exists($premiumQuote, 'delivery_window_desc')) {
                 $timeSlotCount++;
-                $carrierTitle = $result->courier_type;
-                $method = $result->courier_type . '_' . $shippingQuote->delivery_date . '_' . $shippingQuote->delivery_window;
-                $methodTitle = 'Premium' . ' - Delivered ' . $shippingQuote->delivery_date. ' Between ' . $shippingQuote->delivery_window_desc;
+                $carrierTitle = $shippingQuote->courier_type;
+                $method = $shippingQuote->courier_type . '_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window;
+                $methodTitle = 'Premium' . ' - Delivered ' . $premiumQuote->delivery_date. ' Between ' . $premiumQuote->delivery_window_desc;
             }   
             else {
-                $carrierTitle = $result->courier_type;
-                $method = $result->courier_type;
+                $carrierTitle = $shippingQuote->courier_type;
+                $method = $shippingQuote->courier_type;
                 $methodTitle = 'Premium';
             }
             $rate = array(
-                'id' => 'Mamis_Shippit_'.$carrierTitle .'_'. uniqid(),
+                'id' => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window . '_' . uniqid(),
                 'label' => $methodTitle,
-                'cost' => $shippingQuote->price,
+                'cost' => $premiumQuote->price,
                 'taxes' => false,
             );
             $this->add_rate($rate);
