@@ -46,10 +46,25 @@ class Mamis_Shippit_Helper_Api
             $curl = new CurlWrapper();
         } 
         catch (CurlWrapperException $e) {
-            echo $e->getMessage();
+            error_log($e->getMessage());
         }
+        $curl->addHeader('Content-Type', 'application/json');
 
         return $curl;
+    }
+
+    public function syncOrder($orderData) 
+    {
+        $curl = $this->getCurl();
+        $encoded = json_encode($orderData);
+        if ($response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/orders?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', $encoded)) {
+
+            $apiResponseBody = json_decode($response, false);
+            return $apiResponseBody;
+        }
+        else {
+            return false;
+        }
     }
 
     public function get_post_response($api_key, $suburb, $postcode, $state, $qty, $weight) 
@@ -73,7 +88,6 @@ class Mamis_Shippit_Helper_Api
 
         $curl = $this->getCurl();
 
-        $curl->addHeader('Content-Type', 'application/json');
         $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token='.$api_key.'', $encoded);
 
         $apiResponseBody = json_decode($response, false);
@@ -135,7 +149,7 @@ class Mamis_Shippit_Helper_Api
                 'delivery_address' => '26-32 Pirrama Road',
                 'delivery_suburb' => 'Pyrmont',
                 'delivery_state' => 'NSW',
-                'delivery_date' => '28/10/2014',
+                'delivery_date' => '11/11/2014',
                 'delivery_window' => '07:00-10:00',
                 'delivery_instructions' => 'Test',
                 'receiver_name' => 'Robert Smith',
