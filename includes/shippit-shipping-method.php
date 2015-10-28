@@ -176,6 +176,34 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'options'  => $this->getProducts(),
                 'css'      => 'min-width:300px;',
             ),
+            'shippit_filter_by_meta' => array(
+                'title'    => __( 'Filter by product meta', 'mamis_shippit' ),
+                'id'       => 'shippit_filter_by_meta',
+                'class'    => 'wc-enhanced-select',
+                'css'      => 'min-width:300px;',
+                'default'  => '',
+                'type'     => 'select',
+                'options'  => array(
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
+                ),
+            ),
+            'shippit_allowed_meta' => array(
+                'title'    => __( 'Product meta', 'mamis_shippit' ),
+                'desc'     => '',
+                'id'       => 'shippit_allowed_methods',
+                'type'     => 'multiselect',
+                'options'  => $this->getProductMeta(),
+                'css'      => 'min-width:300px;',
+            ),
+            'shippit_meta_value' => array(
+                'title'    => __( 'Meta value', 'mamis_shippit' ),
+                'desc'     => 'Meta value to filter by',
+                'id'       => 'shippit_meta_value',
+                'name'     => 'shippit_meta_value',
+                'type'     => 'text',
+                'css'      => 'min-width:300px;',
+            ),
             'woocommerce_ship_to_countries' => array(
                 'title'    => __( 'Restrict shipping to Location(s)', 'woocommerce' ),
                 'desc'     => sprintf( __( 'Choose which countries you want to ship to, or choose to ship to all <a href="%s">locations you sell to</a>.', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=general' ) ),
@@ -198,18 +226,6 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'default' => '',
                 'type'    => 'multi_select_countries'
             ),
-            'shippit_show_method' => array(
-                'title'    => __( 'Show Method if Not Applicable', 'mamis_shippit' ),
-                'id'       => 'shippit_show_method',
-                'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
-                'default'  => '',
-                'type'     => 'select',
-                'options'  => array(
-                    'no'  => __( 'No', 'mamis_shippit' ),
-                    'yes' => __( 'Yes', 'mamis_shippit' ),
-                ),
-            ),
         );
     }
 
@@ -227,6 +243,22 @@ class Shippit_Shipping extends WC_Shipping_Method {
         wp_reset_query(); 
 
         return $productList;
+    }
+
+    public function getProductMeta()
+    {
+        $args = array( 'post_type' => 'product', 'posts_per_page' => -1 );
+        $productDetails = get_posts($args);
+
+        $productMetaList = array();
+
+        foreach($productDetails as $productDetailKey => $productDetail) {
+            $allPostMeta = get_post_meta($productDetailKey);
+            foreach($allPostMeta as $postMetaKey => $postMeta) {
+                $productMetaList[$postMetaKey] = __($postMetaKey, 'mamis_shippit');
+            }
+        }
+        return $productMetaList;
     }
 
     public function canShip() 
