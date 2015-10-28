@@ -64,6 +64,16 @@ class Mamis_Shippit_Order_Sync
             $order = new WC_Order($shopOrder->ID);
             $items = $order->get_items('shipping');
 
+            foreach ($items as $key => $item) {
+                $shippingMethod = $item['method_id'];
+                // Check if the shipping method chosen was Mamis_Shippit
+                $shippingOptions = str_replace('Mamis_Shippit' . '_', '', $shippingMethod);
+                $shippingOptions = explode('_',$shippingOptions);
+                $courierType = $shippingOptions[0];
+                $deliveryDate = $shippingOptions[1];
+                $deliveryWindow = $shippingOptions[2];
+            }
+
             // Get user attributes
             $userAttributes = array(
                 'email' => $order->billing_email,
@@ -101,39 +111,30 @@ class Mamis_Shippit_Order_Sync
                 );
 
            $orderData = array(
-                'order' => array(
-                    'user_attributes' => $userAttributes,
-                    'parcel_attributes' => $parcelData,
-                    'courier_type' => 'CouriersPlease',
-                    'delivery_postcode' => $order->shipping_postcode,
-                    'delivery_address' => $order->shipping_address_1,
-                    'delivery_suburb' => $order->shipping_city,
-                    'delivery_state' => $order->shipping_state,
-                    'delivery_instructions' => 'Delivery instructions',
-                    'receiver_name' => $order->shipping_first_name . ' ' . $order->shipping_last_name,
-                    'receiver_contact_number' => $order->receiver_contact_number,
-                    'authority_to_leave' => 'No',
-                    'retailer_invoice' => $order->get_order_number()
-                )
+                'user_attributes' => $userAttributes,
+                'parcel_attributes' => $parcelData,
+                'courier_type' => $courierType,
+                'delivery_postcode' => $order->shipping_postcode,
+                'delivery_address' => $order->shipping_address_1,
+                'delivery_suburb' => $order->shipping_city,
+                'delivery_state' => $order->shipping_state,
+                'delivery_date' => $deliveryDate,
+                'delivery_window' => $deliveryWindow,
+                'delivery_instructions' => 'Delivery instructions',
+                'receiver_name' => $order->shipping_first_name . ' ' . $order->shipping_last_name,
+                'receiver_contact_number' => $order->receiver_contact_number,
+                'authority_to_leave' => 'No',
+                'retailer_invoice' => $order->get_order_number()
             );
 
-            if ($apiResponse = $this->api_helper->syncOrder($orderData)) {
+           $apiKey = 'R6XVx2B-lXsOzOH1Z7ew6w';
+           $debug = 'No';
+
+            if ($apiResponse = $this->api_helper->syncOrder($apiKey, $debug, $orderData)) {
                 update_post_meta($shopOrder->ID, 'mamis_shippit_sync', 'true', 'false');
 
                 $orderComment = 'Order sync with Shippit successful. Tracking number: ' . $apiResponse->response->tracking_number . '.';
                 $order->add_order_note($orderComment, 0);
-            }
-
-            foreach ($items as $key => $item) {
-
-                //var_dump($test);
-                // Check if the shipping method chosen was Mamis_Shippit
-                $isShippit = strpos($item['method_id'],'Mamis_Shippit');
-                if ($isShippit !== false) {
-                    // If it was Mamis_Shippit method, check if mamis_shippit_sync meta key is present
-                    // echo $test = get_post_meta($shopOrder->ID, 'mamis_shippit_sync');
-                    // var_dump($test);
-                } 
             }
 
         }
@@ -147,46 +148,6 @@ class Mamis_Shippit_Order_Sync
     public function syncOrder()
     {
        var_dump($this->api_helper->sendOrder());
-    }
-
-    public function getCustomerDetails() 
-    {
-        $userAttributes = array();
-
-        $orders = array(
-            'post_status' => 'wc-processing',
-            'post_type' => 'shop_order',
-        ); 
-
-        // Get all woocommerce orders that are processing
-        $shopOrders = get_posts($orders);
-
-        foreach ($shopOrders as $shopOrder) {
-            // Get the orders_item_id meta with key shipping
-            $order = new WC_Order($shopOrder->ID);
-            $customer = new WC_Customer($order);
-            // loop through items and grab 
-
-            $products = $order->get_items();
-                
-            var_dump($products);
-
-            foreach($products as $product) {
-                $productDetails = new WC_Product($product['product_id']);
-
-                if ($productDetails->has_weight()){
-                    // Multiply by quantity for total weight
-                    $itemWeight = $productDetails->get_weight();
-                }
-                else {
-                    /*
-                    * @todo handle when weight hasn't been entered
-                    */
-                    $itemWeight = 0;
-                }
-            }
-            // var_dump($order->get_item_count());
-        }
     }
 
 }
