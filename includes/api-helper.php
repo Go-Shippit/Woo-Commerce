@@ -19,10 +19,8 @@ require_once( plugin_dir_path( __FILE__ ) . '../vendor/CurlWrapper.php');
 class Mamis_Shippit_Helper_Api
 {
     const API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3';
-    const API_ENDPOINT_STAGING = 'http://shippit-staging.herokuapp.com/api/3';
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
-    const API_KEY = 'R6XVx2B-lXsOzOH1Z7ew6w';
 
     protected $api;
     /**
@@ -33,67 +31,6 @@ class Mamis_Shippit_Helper_Api
      * @var      object
      */
     protected static $instance = null;
-
-    public function __construct()
-    {
-        //add_action( 'the_content', array( $this, 'get_post_response' ) );
-        //$this->curl = new CurlWrapper();
-    }
-
-    function getCurl() 
-    {
-        try {
-            $curl = new CurlWrapper();
-        } 
-        catch (CurlWrapperException $e) {
-            error_log($e->getMessage());
-        }
-        $curl->addHeader('Content-Type', 'application/json');
-
-        return $curl;
-    }
-
-    public function syncOrder($orderData) 
-    {
-        $curl = $this->getCurl();
-        $encoded = json_encode($orderData);
-        if ($response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/orders?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', $encoded)) {
-
-            $apiResponseBody = json_decode($response, false);
-            return $apiResponseBody;
-        }
-        else {
-            return false;
-        }
-    }
-
-    public function get_post_response($api_key, $suburb, $postcode, $state, $qty, $weight) 
-    {
-        $requestData = array(
-            'quote' => array(
-                'order_date' => '', 
-                'dropoff_suburb' => $suburb,
-                'dropoff_postcode' => $postcode,
-                'dropoff_state' => $state,
-                'parcel_attributes' => array(
-                    array(
-                        'qty' => $qty,
-                        'weight' => $weight
-                    )
-                ),
-            )
-        );
-
-        $encoded = json_encode($requestData);
-
-        $curl = $this->getCurl();
-
-        $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/quotes?auth_token='.$api_key.'', $encoded);
-
-        $apiResponseBody = json_decode($response, false);
-
-        return $apiResponseBody;
-    }
 
     /**
      * Return an instance of this class.
@@ -109,66 +46,78 @@ class Mamis_Shippit_Helper_Api
         return self::$instance;
     } // end get_instance
 
-    public function getApiUri($path, $authToken = null)
+    public function __construct()
     {
-        if (is_null($authToken)) {
-            $authToken = $this->helper->getApiKey();
+
+    }
+
+    public function getCurl() 
+    {
+        try {
+            $curl = new CurlWrapper();
+        } 
+        catch (CurlWrapperException $e) {
+            error_log($e->getMessage());
+        }
+        $curl->addHeader('Content-Type', 'application/json');
+        $curl->setUserAgent(self::API_USER_AGENT);
+        $curl->setTimeout(self::API_TIMEOUT); 
+
+        return $curl;
+    }
+
+    public function getApiUri($path, $apiKey)
+    {
+        return self::API_ENDPOINT . '/' . $path . '?auth_token=' . $apiKey;
+    }
+
+    public function call($uri, $apiKey, $debugActive, $requestData, $exceptionOnResponseError = true) 
+    {
+        $uri = $this->getApiUri($uri,$apiKey);
+        $jsonRequestData = json_encode($requestData);
+
+        if ($debugActive == 'Yes') {
+            error_log('-- SHIPPIT - API REQUEST: --');
+            error_log($uri);
+            error_log($requestData);
         }
 
-        return self::API_ENDPOINT . '/' . $path . '?auth_token=' . $authToken;
-    }
-
-    public function call()
-    {
-
-    }
-
-    public function getQuote($requestData)
-    {
-
-    }
-
-    public function sendOrder()
-    {
-        // $requestData = array(
-        //     'order' => $requestData;
-        // );
-        $requestData = array(
-            'order' => array(
-                'user_attributes' => array (
-                    'email' => 'giolliano@mamis.com.au',
-                    'first_name' => 'giolliano',
-                    'last_name' => 'sulit'
-                ),
-                'parcels_attributes' => array(array( 
-                    'qty' => '2',
-                    'weight' => '1'
-                )),
-                'courier_type' => 'Bonds',
-                'delivery_postcode' => '2009',
-                'delivery_address' => '26-32 Pirrama Road',
-                'delivery_suburb' => 'Pyrmont',
-                'delivery_state' => 'NSW',
-                'delivery_date' => '11/11/2014',
-                'delivery_window' => '07:00-10:00',
-                'delivery_instructions' => 'Test',
-                'receiver_name' => 'Robert Smith',
-                'receiver_contact_number' => '04040404',
-                'authority_to_leave' => 'yes',
-                'retailer_invoice' => 'invoicenumber'
-            )
-        );
-
-        $encoded = json_encode($requestData);
-        return $encoded;
         $curl = $this->getCurl();
 
-        $curl->addHeader('Content-Type', 'application/json');
-        $response = $curl->rawPost('http://goshippit.herokuapp.com/api/3/orders?auth_token=R6XVx2B-lXsOzOH1Z7ew6w', $encoded);
+        try {
+            $response = $curl->rawPost($uri, $jsonRequestData);
+        }
+        catch (Exception $e) {
+            // $this->prepareBugsnagReport($uri, $jsonRequestData, $apiResponse);
+            var_dump($e);
+            error_log('API Request Error' . $e);
+        }
+        $apiResponse = json_decode($response, false);
 
-        $apiResponseBody = json_decode($response, false);
+        if ($debugActive == 'Yes') {
+            error_log('-- SHIPPIT - API RESPONSE --');
+            error_log($apiResponse);
+        }
 
-        //return $apiResponseBody;
+        return $apiResponse;
+    }
+
+    public function getQuote($requestData, $apiKey, $debugActive)
+    {
+        $requestData = array(
+            'quote' => $requestData
+        );
+
+        return $this->call('quotes', $apiKey, $debugActive, $requestData);
+    }
+
+    public function syncOrder($apiKey, $debug, $orderData) 
+    {
+        $requestData = array(
+            'order' => $orderData
+        );
+        
+        return $this->call('orders', $apiKey, $debugActive, $requestData);
     }
 
     public function getMerchant()
