@@ -19,12 +19,10 @@ class Mamis_Shippit {
 	 */
 	public $version = '1.0.0';
 
-
 	/**
 	 * Instace of Mamis Shippit
 	 */
 	private static $instance;
-
 
 	/**
 	 * Constructor.
@@ -44,7 +42,6 @@ class Mamis_Shippit {
 		$this->init();
 	}
 
-
 	/**
 	 * Instance.
 	 *
@@ -63,7 +60,6 @@ class Mamis_Shippit {
 		return self::$instance;
 	}
 
-
 	/**
 	 * Init.
 	 *
@@ -75,8 +71,10 @@ class Mamis_Shippit {
 	{
 		// Add hooks/filters
 		$this->hooks();
-	}
 
+		global $woocommerce;
+		
+	}
 
 	/**
 	 * Hooks.
@@ -95,6 +93,44 @@ class Mamis_Shippit {
 
 		// If the order is changed from any state to on-hold check if mamis_shippit_sync exists
 		add_action('woocommerce_order_status_on-hold', array($this, 'shippit_remove_sync') );
+
+		// Add authority to leave field to checkout
+		add_action( 'woocommerce_after_order_notes', array($this,'authority_to_leave') );
+
+		// Update the order meta with authority to leave value
+		add_action( 'woocommerce_checkout_update_order_meta', array($this, 'authority_to_leave_update_order_meta' ) );
+
+		// Display the authority to leave on the orders edit page
+		// @todo move out of hooks()
+		add_action( 'woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1 );
+
+		function authority_to_leave_display_admin_order_meta($order){
+		    echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
+		}
+
+	}
+
+	function authority_to_leave( $checkout ) {
+
+	    echo '<div id="authority_to_leave"><h2>' . __('Authority to leave') . '</h2>';
+
+	    woocommerce_form_field( 'authority_to_leave', array(
+	        'type'          => 'select',
+	        'class'         => array('my-field-class form-row-wide'),
+	        'options' 		=> array(
+	        	'No' => 'No',
+	        	'Yes'  => 'Yes'
+	        	),
+	        ), 
+	    $checkout->get_value( 'authority_to_leave' ));
+
+	    echo '</div>';
+	}
+
+	function authority_to_leave_update_order_meta( $order_id ) {
+	    if ( ! empty( $_POST['authority_to_leave'] ) ) {
+	        update_post_meta( $order_id, 'authority_to_leave', sanitize_text_field( $_POST['authority_to_leave'] ) );
+	    }
 	}
 
 	public function shippit_should_sync($order_id) 
@@ -129,6 +165,25 @@ class Mamis_Shippit {
                 }
             }  
         }
+	}
+
+	public function shippit_authority_to_leave($checkout) 
+	{
+    	echo '<div id="shippit_authority_to_leave"><h2>' . __('Authority to leave') . '</h2>';
+
+    	woocommerce_form_field( 'authority_to_leave', array(
+	        'type'          => 'select',
+	        'class'         => array('my-field-class form-row-wide'),
+	        'label'         => __('Fill in this field'),
+	        'placeholder'   => __('Enter something'),
+            'options'  => array(
+                'no'  => __( 'No'),
+                'yes' => __( 'Yes'),
+            ),
+        ), 
+        $checkout->get_value( 'authority_to_leave' ));
+
+    	echo '</div>';
 	}
 
 	public function getOrder($order_id) 

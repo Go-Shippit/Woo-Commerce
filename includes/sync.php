@@ -57,6 +57,7 @@ class Mamis_Shippit_Order_Sync
         ); 
 
         // Get all woocommerce orders that are processing
+
         $shopOrders = get_posts($orders);
 
         foreach ($shopOrders as $shopOrder) {
@@ -102,7 +103,6 @@ class Mamis_Shippit_Order_Sync
                 }
             }
 
-            $totalWeight;
             $parcelData = array(
                 array(
                     'qty' => $itemQuantity,
@@ -110,7 +110,9 @@ class Mamis_Shippit_Order_Sync
                     )
                 );
 
-           $orderData = array(
+            $authorityToLeave = get_post_meta( $shopOrder->ID, 'authority_to_leave', true );
+
+            $orderData = array(
                 'user_attributes' => $userAttributes,
                 'parcel_attributes' => $parcelData,
                 'courier_type' => $courierType,
@@ -123,7 +125,7 @@ class Mamis_Shippit_Order_Sync
                 'delivery_instructions' => 'Delivery instructions',
                 'receiver_name' => $order->shipping_first_name . ' ' . $order->shipping_last_name,
                 'receiver_contact_number' => $order->receiver_contact_number,
-                'authority_to_leave' => 'No',
+                'authority_to_leave' => $authorityToLeave,
                 'retailer_invoice' => $order->get_order_number()
             );
 
@@ -132,7 +134,6 @@ class Mamis_Shippit_Order_Sync
 
             if ($apiResponse = $this->api_helper->syncOrder($apiKey, $debug, $orderData)) {
                 update_post_meta($shopOrder->ID, 'mamis_shippit_sync', 'true', 'false');
-
                 $orderComment = 'Order sync with Shippit successful. Tracking number: ' . $apiResponse->response->tracking_number . '.';
                 $order->add_order_note($orderComment, 0);
             }
