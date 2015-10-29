@@ -120,8 +120,19 @@ class Mamis_Shippit_Helper_Api
         return $this->call('orders', $apiKey, $debug, $requestData);
     }
 
-    public function getMerchant()
+    public function getMerchant($apiKey)
     {
+        $uri = $this->getApiUri('merchant',$apiKey);
+        $curl = $this->getCurl();
 
+        try {
+            $response = $curl->get($uri);
+        }
+        catch (Exception $e) {
+            error_log('API Request Error' . $e);
+        }
+        $apiResponse = json_decode($response, false);
+
+        return $apiResponse;
     }
 }
