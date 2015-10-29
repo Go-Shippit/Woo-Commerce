@@ -9,6 +9,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+register_activation_hook(__FILE__, array('Mamis_Shippit','activate_plugin'));
+register_deactivation_hook(__FILE__, array('Mamis_Shippit','deactivate_plugin'));
+
 /**
  * Class Mamis_Shippit
  */
@@ -32,6 +35,7 @@ class Mamis_Shippit {
 		if ( ! function_exists( 'is_plugin_active_for_network' ) )
 			require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 
+		
 		// Check if WooCommerce is active
 		if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) :
 			if ( ! is_plugin_active_for_network( 'woocommerce/woocommerce.php' ) ) :
@@ -69,14 +73,36 @@ class Mamis_Shippit {
 	 */
 	public function init() 
 	{
+		add_action('shippitSyncOrders', array($this,'syncOrdersCron'));
 		// Add hooks/filters
 		$this->hooks();
-
-		global $woocommerce;
-		
 	}
 
-	/**
+	public static function activate_plugin() 
+	{
+		if (!wp_next_scheduled( 'shippitSyncOrders') ) {
+			wp_schedule_event( current_time ( 'timestamp' ), 'hourly', 'shippitSyncOrders' ); 
+		}
+	}
+
+	public static function deactivate_plugin()
+	{
+		wp_clear_scheduled_hook('shippitSyncOrders');
+	}
+
+	public function syncOrdersCron() 
+	{
+		  if ( class_exists('WC_Order') ) {
+		  	require_once( plugin_dir_path( __FILE__ ) . 'includes/sync.php');
+		   	$sync = new Mamis_Shippit_Order_Sync();
+		   	$sync->syncOrders();
+		  } 
+		  else {
+		    
+		  }
+	}
+
+ 	/**
 	 * Hooks.
 	 * Initialize all class hooks.
 	 */
@@ -107,7 +133,7 @@ class Mamis_Shippit {
 		function authority_to_leave_display_admin_order_meta($order){
 		    echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
 		}
-
+		//add_action('plugins_loaded', array($this, 'syncOrdersCron'));
 	}
 
 	function authority_to_leave( $checkout ) {
@@ -231,6 +257,7 @@ class Mamis_Shippit {
 
 		return $methods;
 	}
+
 }
 
 

@@ -117,7 +117,7 @@ class Mamis_Shippit_Helper_Api
             'order' => $orderData
         );
         
-        return $this->call('orders', $apiKey, $debugActive, $requestData);
+        return $this->call('orders', $apiKey, $debug, $requestData);
     }
 
     public function getMerchant()

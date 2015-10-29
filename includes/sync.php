@@ -1,6 +1,5 @@
 <?php
 require_once( plugin_dir_path( __FILE__ ) . 'api-helper.php');
-
 /**
 *  Mamis.IT
 *
@@ -16,7 +15,11 @@ require_once( plugin_dir_path( __FILE__ ) . 'api-helper.php');
 *  @license    http://www.mamis.com.au/licencing
 */
 
-class Mamis_Shippit_Order_Sync 
+if ( ! defined( 'ABSPATH' ) ) { 
+    exit; // Exit if accessed directly
+}
+
+class Mamis_Shippit_Order_Sync
 {
     const CARRIER_CODE = 'mamis_shippit';
 
@@ -31,7 +34,7 @@ class Mamis_Shippit_Order_Sync
 
     function init() {
 
-        // Check if module is enabled
+        global $woocommerce;
 
     }
 
@@ -44,6 +47,8 @@ class Mamis_Shippit_Order_Sync
 
     public function syncOrders() 
     {
+        global $woocommerce;
+        $this->api_helper = new Mamis_Shippit_Helper_Api();
         $orders = array(
             'post_status' => 'wc-processing',
             'post_type' => 'shop_order',
@@ -72,7 +77,12 @@ class Mamis_Shippit_Order_Sync
                 $shippingOptions = explode('_',$shippingOptions);
                 $courierType = $shippingOptions[0];
                 $deliveryDate = $shippingOptions[1];
-                $deliveryWindow = $shippingOptions[2];
+                if (isset($shippingOptions[2])) {
+                    $deliveryWindow = $shippingOptions[2];
+                }
+                else {
+                    $deliveryWindow = '';
+                }
             }
 
             // Get user attributes
@@ -150,5 +160,4 @@ class Mamis_Shippit_Order_Sync
     {
        var_dump($this->api_helper->sendOrder());
     }
-
 }

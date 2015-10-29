@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 if ( class_exists( 'Shippit_Shipping' ) ) return; // Stop if the class already exists
 
-
 class Shippit_Shipping extends WC_Shipping_Method {
 
     /**
@@ -27,9 +26,9 @@ class Shippit_Shipping extends WC_Shipping_Method {
         
         $this->init();
         // var_dump($this->filterEnabled);
-        $sync = new Mamis_Shippit_Order_Sync();
+        // $sync = new Mamis_Shippit_Order_Sync();
 
-        $sync->syncOrders();
+        // $sync->syncOrders();
     }
 
     /**
@@ -292,7 +291,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         if ($this->enabled == 'no' || !$this->allowed_methods) {
             return;
         }
-        
+
         $country = $package['destination']['country'];
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
@@ -315,7 +314,9 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $customerSuburb = $quoteDestination['city'];
         $customerPostcode = $quoteDestination['postcode'];
         $customerState = $quoteDestination['state'];
-        $qty =  $quoteCart['qty'];
+        if ($quoteCart['qty']) {
+            $qty = $quoteCart['qty'];
+        }
 
         /*
         * Product weight
@@ -418,5 +419,4 @@ class Shippit_Shipping extends WC_Shipping_Method {
             $this->add_rate($rate);
         }
     }
-
 }
