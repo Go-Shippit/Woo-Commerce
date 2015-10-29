@@ -209,28 +209,6 @@ class Shippit_Shipping extends WC_Shipping_Method {
             //     'type'     => 'text',
             //     'css'      => 'min-width:300px;',
             // ),
-            'woocommerce_ship_to_countries' => array(
-                'title'    => __( 'Restrict shipping to Location(s)', 'woocommerce' ),
-                'desc'     => sprintf( __( 'Choose which countries you want to ship to, or choose to ship to all <a href="%s">locations you sell to</a>.', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=general' ) ),
-                'id'       => 'woocommerce_ship_to_countries',
-                'default'  => '',
-                'type'     => 'select',
-                'class'    => 'wc-enhanced-select',
-                'desc_tip' => false,
-                'options'  => array(
-                    ''         => __( 'Ship to all countries you sell to', 'woocommerce' ),
-                    'all'      => __( 'Ship to all countries', 'woocommerce' ),
-                    'specific' => __( 'Ship to specific countries only', 'woocommerce' )
-                )
-            ),
-            'woocommerce_specific_ship_to_countries' => array(
-                'title'   => __( 'Specific Countries', 'woocommerce' ),
-                'desc'    => '',
-                'id'      => 'woocommerce_specific_ship_to_countries',
-                'css'     => '',
-                'default' => '',
-                'type'    => 'multi_select_countries'
-            ),
         );
     }
 
