@@ -33,9 +33,28 @@ class Mamis_Shippit_Order_Sync
     }
 
     function init() {
+        //$this->init_settings();
+    }
 
-        global $woocommerce;
+    public function getShippingConfig()
+    {
+        $shippingConfig = get_option('woocommerce_mamis_shippit_settings');
 
+        return $shippingConfig;
+    }
+
+    public function getApiKey() 
+    {
+        $shippingConfig = $this->getShippingConfig();
+        $apiKey = $shippingConfig['shippit_api_key'];
+        return $apiKey;
+    }
+
+    public function getDebug() 
+    {
+        $shippingConfig = $this->getShippingConfig();
+        $debugOption = $shippingConfig['shippit_debug'];
+        return $debugOption;
     }
 
     /**
@@ -49,7 +68,7 @@ class Mamis_Shippit_Order_Sync
     {
         global $woocommerce;
         $this->api_helper = new Mamis_Shippit_Helper_Api();
-        $orders = array(
+        $orderPostArg = array(
             'post_status' => 'wc-processing',
             'post_type' => 'shop_order',
             'meta_query' => array(
@@ -63,26 +82,45 @@ class Mamis_Shippit_Order_Sync
 
         // Get all woocommerce orders that are processing
 
-        $shopOrders = get_posts($orders);
+        $orderPosts = get_posts($orderPostArg);
 
-        foreach ($shopOrders as $shopOrder) {
+        foreach ($orderPosts as $orderPost) {
+            $shippingMethodId = null;
+
             // Get the orders_item_id meta with key shipping
-            $order = new WC_Order($shopOrder->ID);
-            $items = $order->get_items('shipping');
+            $order = new WC_Order($orderPost->ID);
+            $orderItems = $order->get_items('shipping');
+            //var_dump($items);
+            foreach ($orderItems as $key => $orderItem) {
+                foreach ($orderItem['item_meta_array'] as $orderItemMeta) {
+                    if ($orderItemMeta->key == 'method_id') {
+                        $shippingMethodId = $orderItemMeta->value;
+                    }
+                }
+            }
 
-            foreach ($items as $key => $item) {
-                $shippingMethod = $item['method_id'];
-                // Check if the shipping method chosen was Mamis_Shippit
-                $shippingOptions = str_replace('Mamis_Shippit' . '_', '', $shippingMethod);
-                $shippingOptions = explode('_',$shippingOptions);
-                $courierType = $shippingOptions[0];
+            if (is_null($shippingMethodId)) {
+                continue;
+            }
+
+
+
+            // Check if the shipping method chosen was Mamis_Shippit
+            $shippingOptions = str_replace('Mamis_Shippit' . '_', '', $shippingMethodId);
+            $shippingOptions = explode('_',$shippingOptions);
+            $courierType = $shippingOptions[0];
+            var_dump($shippingOptions);
+            if(isset($shippingOptions[1])) {
                 $deliveryDate = $shippingOptions[1];
-                if (isset($shippingOptions[2])) {
-                    $deliveryWindow = $shippingOptions[2];
-                }
-                else {
-                    $deliveryWindow = '';
-                }
+            }
+            else {
+                $deliveryDate = '';
+            }
+            if (isset($shippingOptions[2])) {
+                $deliveryWindow = $shippingOptions[2];
+            }
+            else {
+                $deliveryWindow = '';
             }
 
             // Get user attributes
@@ -132,32 +170,20 @@ class Mamis_Shippit_Order_Sync
                 'delivery_state' => $order->shipping_state,
                 'delivery_date' => $deliveryDate,
                 'delivery_window' => $deliveryWindow,
-                'delivery_instructions' => 'Delivery instructions',
+                'delivery_instructions' => $order->customer_message,
                 'receiver_name' => $order->shipping_first_name . ' ' . $order->shipping_last_name,
                 'receiver_contact_number' => $order->receiver_contact_number,
                 'authority_to_leave' => $authorityToLeave,
                 'retailer_invoice' => $order->get_order_number()
             );
 
-           $apiKey = 'R6XVx2B-lXsOzOH1Z7ew6w';
-           $debug = 'No';
+            $apiKey = $this->getApiKey();
+            $debug = $this->getDebug();
 
             if ($apiResponse = $this->api_helper->syncOrder($apiKey, $debug, $orderData)) {
-                update_post_meta($shopOrder->ID, 'mamis_shippit_sync', 'true', 'false');
                 $orderComment = 'Order sync with Shippit successful. Tracking number: ' . $apiResponse->response->tracking_number . '.';
                 $order->add_order_note($orderComment, 0);
             }
-
         }
-    }
-
-    public function sendOrder($orderData)
-    {
-        
-    }
-
-    public function syncOrder()
-    {
-       var_dump($this->api_helper->sendOrder());
     }
 }
