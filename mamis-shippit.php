@@ -102,6 +102,15 @@ class Mamis_Shippit {
 		  }
 	}
 
+	public function testSync() 
+	{
+		  if ( class_exists('WC_Order') ) {
+		  	require_once( plugin_dir_path( __FILE__ ) . 'includes/sync.php');
+		   	// $sync = new Mamis_Shippit_Order_Sync();
+		   	// $sync->syncOrders();
+		  } 
+	}
+
  	/**
 	 * Hooks.
 	 * Initialize all class hooks.
@@ -133,7 +142,9 @@ class Mamis_Shippit {
 		function authority_to_leave_display_admin_order_meta($order){
 		    echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
 		}
-		//add_action('plugins_loaded', array($this, 'syncOrdersCron'));
+		// For testing purposes
+		add_action('plugins_loaded', array($this, 'testSync'));
+		//add_action( 'woocommerce_shipping_init', array( $this, 'testSync' ) );
 	}
 
 	function authority_to_leave( $checkout ) {
@@ -159,20 +170,58 @@ class Mamis_Shippit {
 	    }
 	}
 
+    public function getShippingConfig()
+    {
+        $shippingConfig = get_option('woocommerce_mamis_shippit_settings');
+
+        return $shippingConfig;
+    }
+
+    public function getSyncSettings()
+    {
+    	$shippingConfig = $this->getShippingConfig();
+    	$syncSettings = $shippingConfig['shippit_send_orders'];
+    	return $syncSettings;
+    }
+
+    public function isEnabled()
+    {
+    	$shippingConfig = $this->getShippingConfig();
+    	$isEnabled = $shippingConfig['enabled'];
+    	return $isEnabled;
+    }
+
 	public function shippit_should_sync($order_id) 
 	{
+		$isEnabled = $this->isEnabled();
+		if ($isEnabled == 'no') {
+			return;
+		}
+
 		// Get the orders_item_id meta with key shipping
         $order = $this->getOrder($order_id);
         $items = $order->get_items('shipping');
+        
+        $countryToShip = $order->shipping_country;
+        $syncAllOrders = $this->getSyncSettings();
 
-        foreach ($items as $key => $item) {
-            // Check if the shipping method chosen was Mamis_Shippit
-            $isShippit = strpos($item['method_id'],'Mamis_Shippit');
-            if ($isShippit !== false) {
-                // Add mamis_shippit_sync flag if shippit method
-                add_post_meta($order_id, 'mamis_shippit_sync', 'false', true);
-            } 
+        if ($syncAllOrders == 'yes' && $countryToShip == 'AU')
+        {
+        	add_post_meta($order_id, 'mamis_shippit_sync', 'false', true);
         }
+        else {
+	        foreach ($items as $key => $item) {
+	            // Check if the shipping method chosen was Mamis_Shippit
+	            $isShippit = strpos($item['method_id'],'Mamis_Shippit');
+	            if ($isShippit !== false) {
+	                // Add mamis_shippit_sync flag if shippit method
+	                add_post_meta($order_id, 'mamis_shippit_sync', 'false', true);
+	            } 
+	            else {
+	            	return;
+	            }
+	        }
+	    }
 	}
 
 	public function shippit_remove_sync($order_id)
