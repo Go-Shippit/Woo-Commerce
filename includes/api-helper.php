@@ -86,6 +86,13 @@ class Mamis_Shippit_Helper_Api
 
         try {
             $response = $curl->rawPost($uri, $jsonRequestData);
+
+            $transferInfo = $curl->getTransferInfo();
+
+            if ($transferInfo['http_code'] < 200 ||
+                $transferInfo['http_code'] > 299) {
+                throw new Exception('An API Request Error Occured');
+            }
         }
         catch (Exception $e) {
             // $this->prepareBugsnagReport($uri, $jsonRequestData, $apiResponse);
@@ -93,6 +100,8 @@ class Mamis_Shippit_Helper_Api
             error_log('API Request Error' . $e);
         }
         $apiResponse = json_decode($response, false);
+
+
 
         if ($debugActive == 'Yes') {
             error_log('-- SHIPPIT - API RESPONSE --');

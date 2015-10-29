@@ -103,8 +103,6 @@ class Mamis_Shippit_Order_Sync
                 continue;
             }
 
-
-
             // Check if the shipping method chosen was Mamis_Shippit
             $shippingOptions = str_replace('Mamis_Shippit' . '_', '', $shippingMethodId);
             $shippingOptions = explode('_',$shippingOptions);
@@ -158,7 +156,7 @@ class Mamis_Shippit_Order_Sync
                     )
                 );
 
-            $authorityToLeave = get_post_meta( $shopOrder->ID, 'authority_to_leave', true );
+            $authorityToLeave = get_post_meta( $orderPost->ID, 'authority_to_leave', true );
 
             $orderData = array(
                 'user_attributes' => $userAttributes,
@@ -181,6 +179,7 @@ class Mamis_Shippit_Order_Sync
             $debug = $this->getDebug();
 
             if ($apiResponse = $this->api_helper->syncOrder($apiKey, $debug, $orderData)) {
+                update_post_meta($orderPost->ID, 'mamis_shippit_sync', 'true', 'false');
                 $orderComment = 'Order sync with Shippit successful. Tracking number: ' . $apiResponse->response->tracking_number . '.';
                 $order->add_order_note($orderComment, 0);
             }
