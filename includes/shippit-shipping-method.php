@@ -179,34 +179,34 @@ class Shippit_Shipping extends WC_Shipping_Method {
                 'options'  => $this->getProducts(),
                 'css'      => 'min-width:300px;',
             ),
-            // 'shippit_filter_by_attribute' => array(
-            //     'title'    => __( 'Filter by product attributes', 'mamis_shippit' ),
-            //     'id'       => 'shippit_filter_by_attributes',
-            //     'class'    => 'wc-enhanced-select',
-            //     'css'      => 'min-width:300px;',
-            //     'default'  => '',
-            //     'type'     => 'select',
-            //     'options'  => array(
-            //         'no'  => __( 'No', 'mamis_shippit' ),
-            //         'yes' => __( 'Yes', 'mamis_shippit' ),
-            //     ),
-            // ),
-            // 'shippit_allowed_attribute_code' => array(
-            //     'title'    => __( 'Filter by attribute code', 'mamis_shippit' ),
-            //     'desc'     => '',
-            //     'id'       => 'shippit_allowed_attribute_code',
-            //     'name'     => 'shippit_allowed_attribute_code',
-            //     'type'     => 'text',
-            //     'css'      => 'min-width:300px;',
-            // ),
-            // 'shippit_allowed_attribute_value' => array(
-            //     'title'    => __( 'Filter by attribute value', 'mamis_shippit' ),
-            //     'desc'     => '',
-            //     'id'       => 'shippit_allowed_attribute_value',
-            //     'name'     => 'shippit_allowed_attribute_value',
-            //     'type'     => 'text',
-            //     'css'      => 'min-width:300px;',
-            // ),
+            'shippit_filter_by_attribute' => array(
+                'title'    => __( 'Filter by product attributes', 'mamis_shippit' ),
+                'id'       => 'shippit_filter_by_attributes',
+                'class'    => 'wc-enhanced-select',
+                'css'      => 'min-width:300px;',
+                'default'  => '',
+                'type'     => 'select',
+                'options'  => array(
+                    'no'  => __( 'No', 'mamis_shippit' ),
+                    'yes' => __( 'Yes', 'mamis_shippit' ),
+                ),
+            ),
+            'shippit_allowed_attribute_code' => array(
+                'title'    => __( 'Filter by attribute code', 'mamis_shippit' ),
+                'desc'     => '',
+                'id'       => 'shippit_allowed_attribute_code',
+                'name'     => 'shippit_allowed_attribute_code',
+                'type'     => 'text',
+                'css'      => 'min-width:300px;',
+            ),
+            'shippit_allowed_attribute_value' => array(
+                'title'    => __( 'Filter by attribute value', 'mamis_shippit' ),
+                'desc'     => '',
+                'id'       => 'shippit_allowed_attribute_value',
+                'name'     => 'shippit_allowed_attribute_value',
+                'type'     => 'text',
+                'css'      => 'min-width:300px;',
+            ),
             /*
             * @todo Filter by product attribute
             */
@@ -291,42 +291,36 @@ class Shippit_Shipping extends WC_Shipping_Method {
         return true;
     }
 
-    public function canShipEnabledAttributes()
+    public function canShipEnabledAttributes($package)
     {
         if ($this->filterByAttributes == 'no') {
             return true;
         }
+
         $allowedProducts = $this->allowedProducts;
         $attributeCode = $this->attributeCode;
         $attributeValue = $this->attributeValue;
+
         if (strpos($attributeValue, '*') !== FALSE) {
             $attributeValue = str_replace('*', '%', $attributeValue);
         }
 
         $itemInCart = WC()->cart->get_cart();
-        $itemIds = array();
-
+        // @todo use the package from calculate_shipping to grab cart contents
+        //error_log(json_encode($package));
         foreach($itemInCart as $item => $values) {  
-            $getProductArgs = array(
-                'post_status' => 'published',
-                'post_type' => 'product',
-                'ID' => $values['product_id'],
-                'meta_query' => array(
-                    array(
-                        'key' => $attributeCode,
-                        'value' => $attributeValue,
-                        'compare' => 'LIKE'
-                    )
-                ),
-            );
-            $productsWithAttribute = get_posts($getProductArgs);
-            error_log('products' . json_encode($productsWithAttribute));
-            foreach($productsWithAttribute as $productWithAttribute)
-            {   
-                error_log('enableattributes');
+
+            $productDetails = new WC_Product($values['product_id']);
+
+            $productAttributes = $productDetails->get_attribute($attributeCode);
+
+            if (strpos($productAttributes, $attributeValue) !== false) {
+                return true;
+            }
+            else {
+                return false;
             }
         }
-        //var_dump($getProductArgs);
     }
 
     /**
@@ -345,7 +339,7 @@ class Shippit_Shipping extends WC_Shipping_Method {
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
-        if($this->canShipEnabledProducts() && $country == 'AU') {
+        if($this->canShipEnabledProducts() && $this->canShipEnabledAttributes($package['contents']) && $country == 'AU') {
             // @todo check if filtering by product attribute is enabled
             $this->_processShippingQuotes($quoteDestination, $quoteCart);
         }
