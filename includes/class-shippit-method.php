@@ -151,7 +151,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $qty = WC()->cart->cart_contents_count;
         $weight = WC()->cart->cart_contents_weight;
-
+        
         if ($weight == 0) {
             // override the weight to 1kg
             $weight = 1;
@@ -293,14 +293,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $attributeCode = $this->filter_attribute_code;
         $attributeValue = $this->filter_attribute_value;
 
-        // @todo - use wp_query to get product ids matching the query
-        // if (strpos($attributeValue, '*') !== FALSE) {
-        //     $attributeValue = str_replace('*', '%', $attributeValue);
-        // }
-
         $products = $package['contents'];
 
-        // @todo use the package from calculate_shipping to grab cart contents
         foreach ($products as $itemKey => $product) {
             $productObject = new WC_Product($product['product_id']);
             $productAttributeValue = $productObject->get_attribute($attributeCode);

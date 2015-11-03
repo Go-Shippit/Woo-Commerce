@@ -58,7 +58,6 @@ class Mamis_Shippit_Order
      */
     public function addPendingSync($orderId)
     {
-        // @todo: refactor
         $isEnabled = $this->s->getSetting('enabled');
         $syncAllOrders = $this->s->getSetting('sync_all_orders');
 
