@@ -291,7 +291,19 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
 
         $attributeCode = $this->filter_attribute_code;
+
+        // Check if woocommerce has any attributes available before continuing
+        if(empty($attributeCode)) {
+            return true;
+        }
+
         $attributeValue = $this->filter_attribute_value;
+
+        // Check if admin put a valid value to check for
+        if(empty($attributeValue)) {
+            error_log('attribute value' . $attributeValue);
+            return true;
+        }
 
         $products = $package['contents'];
 
