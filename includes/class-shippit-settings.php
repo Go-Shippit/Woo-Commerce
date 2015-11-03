@@ -161,9 +161,17 @@ class Mamis_Shippit_Settings {
             'filter_attribute_code' => array(
                 'title'    => __('Filter by attribute code', 'woocommerce-shippit'),
                 'desc'     => '',
-                'type'     => 'text',
+                'type'     => 'select',
+                'options'  => self::_getAttributes(),
                 'css'      => 'min-width:300px;',
             ),
+
+            // 'filter_attribute_code' => array(
+            //     'title'    => __('Filter by attribute code', 'woocommerce-shippit'),
+            //     'desc'     => '',
+            //     'type'     => 'text',
+            //     'css'      => 'min-width:300px;',
+            // ),
 
             'filter_attribute_value' => array(
                 'title'    => __('Filter by attribute value', 'woocommerce-shippit'),
@@ -197,6 +205,17 @@ class Mamis_Shippit_Settings {
         }
 
         return $productOptions;
+    }
+
+    public static function _getAttributes()
+    {
+        $productAttributes = array();
+
+        $attributeTaxonomies = wc_get_attribute_taxonomies();
+        foreach($attributeTaxonomies as $tax) {
+            $productAttributes[$tax->attribute_name] = __($tax->attribute_name, 'woocommerce-shippit');
+        }
+        return $productAttributes;
     }
 
     public static function getSettings()
