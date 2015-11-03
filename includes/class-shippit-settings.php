@@ -166,13 +166,6 @@ class Mamis_Shippit_Settings {
                 'css'      => 'min-width:300px;',
             ),
 
-            // 'filter_attribute_code' => array(
-            //     'title'    => __('Filter by attribute code', 'woocommerce-shippit'),
-            //     'desc'     => '',
-            //     'type'     => 'text',
-            //     'css'      => 'min-width:300px;',
-            // ),
-
             'filter_attribute_value' => array(
                 'title'    => __('Filter by attribute value', 'woocommerce-shippit'),
                 'desc'     => '',
