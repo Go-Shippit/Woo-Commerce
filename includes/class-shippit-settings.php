@@ -183,21 +183,18 @@ class Mamis_Shippit_Settings {
      */
     private static function _getProducts()
     {
-        // $productArgs = array(
-        //     'post_type' => 'product',
-        //     'posts_per_page' => -1
-        // );
+        $productArgs = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1
+        );
 
-        // $products = new WP_Query($productArgs);
+        $products = get_posts($productArgs);
 
         $productOptions = array();
 
-        // while ($products->have_posts()) {
-        //     $products->the_post();
-        //     $productOptions[get_the_ID()] = __(get_the_title(), 'woocommerce-shippit');
-        // }
-
-        // wp_reset_query();
+        foreach($products as $product) {
+            $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
+        }
 
         return $productOptions;
     }
