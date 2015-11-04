@@ -33,8 +33,8 @@ class Mamis_Shippit_Settings {
                 'default' => 'No',
                 'type' => 'select',
                 'options'  => array(
-                    'no'  => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    '0'  => __('No', 'woocommerce-shippit'),
+                    '1' => __('Yes', 'woocommerce-shippit'),
                 ),
             ),
 
@@ -53,8 +53,8 @@ class Mamis_Shippit_Settings {
                 'default'  => 'No',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    '0'  => __('No', 'woocommerce-shippit'),
+                    '1' => __('Yes', 'woocommerce-shippit'),
                 ),
             ),
 
@@ -65,8 +65,8 @@ class Mamis_Shippit_Settings {
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    '0'  => __('No', 'woocommerce-shippit'),
+                    '1' => __('Yes', 'woocommerce-shippit'),
                ),
             ),
 
@@ -133,8 +133,8 @@ class Mamis_Shippit_Settings {
                 'default'  => 'No',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    '0'  => __('No', 'woocommerce-shippit'),
+                    '1' => __('Yes', 'woocommerce-shippit'),
                ),
             ),
 
@@ -153,8 +153,8 @@ class Mamis_Shippit_Settings {
                 'default'  => 'No',
                 'type'     => 'select',
                 'options'  => array(
-                    'no'  => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    '0'  => __('No', 'woocommerce-shippit'),
+                    '1' => __('Yes', 'woocommerce-shippit'),
                ),
             ),
 

@@ -20,7 +20,7 @@ class Mamis_Shippit_Api
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
-    public $apiKey = null;
+    private $apiKey = null;
     public $debug = false;
 
     public function __construct()
@@ -30,9 +30,14 @@ class Mamis_Shippit_Api
         $this->debug = $this->settings->getSetting('debug');
     }
 
-    public function getApiKey()
+    private function getApiKey()
     {
-        return $this->settings->getSetting('api_key');
+        return $this->apiKey;
+    }
+
+    public function setApiKey($apiKey)
+    {
+        return $this->apiKey = $apiKey;
     }
 
     public function getApiUrl($path, $apiKey)
@@ -42,9 +47,8 @@ class Mamis_Shippit_Api
 
     public function getApiArgs($requestData, $requestMethod)
     {
-        return array(
+        $apiArgs = array(
             'blocking'     => true,
-            'body'         => json_encode($requestData),
             'method'       => $requestMethod,
             'timeout'      => self::API_TIMEOUT,
             'user-agent'   => self::API_USER_AGENT,
@@ -52,6 +56,12 @@ class Mamis_Shippit_Api
                 'content-type' => 'application/json',
             ),
         );
+
+        if ($requestMethod == "POST") {
+            $apiArgs['body'] = json_encode($requestData);
+        } 
+
+        return $apiArgs;
     }
 
     public function call($uri, $requestData, $requestMethod = 'POST', $exceptionOnResponseError = true)
@@ -119,6 +129,6 @@ class Mamis_Shippit_Api
 
     public function getMerchant()
     {
-        return $this->call('merchant');
+        return $this->call('merchant', null, $requestMethod = 'GET');
     }
 }

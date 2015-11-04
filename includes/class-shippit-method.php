@@ -65,7 +65,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->filter_attribute          = $this->s->getSetting('filter_attribute');
         $this->filter_attribute_code     = $this->s->getSetting('filter_attribute_code');
         $this->filter_attribute_value    = $this->s->getSetting('filter_attribute_value');
-        
+    
         // *****************
         // Shipping Method
         // *****************
@@ -121,7 +121,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         error_log('calculate_shipping');
 
         // Check if the module is enabled and used for shipping quotes
-        if ($this->enabled != 'yes') {// || !$this->allowed_methods) {
+        if (!$this->enabled) {// || !$this->allowed_methods) {
             return;
         }
         
@@ -263,7 +263,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function canShipEnabledProducts($package)
     {
-        if ($this->filter_enabled == 'no') {
+        if (!$this->filter_enabled) {
             return true;
         }
 
@@ -291,7 +291,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     public function canShipEnabledAttributes($package)
     {
-        if ($this->filter_attribute == 'no') {
+        if (!$this->filter_attribute) {
             return true;
         }
 
