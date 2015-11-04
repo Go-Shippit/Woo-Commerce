@@ -28,7 +28,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->s = new Mamis_Shippit_Settings();
 
         $this->id                   = 'mamis_shippit';
-        $this->method_title         = __('Shippit', 'woocommerce-shippit');
+        $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Configure Shippit');
 
         $this->init();
@@ -151,7 +151,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $qty = WC()->cart->cart_contents_count;
         $weight = WC()->cart->cart_contents_weight;
-
+        
         if ($weight == 0) {
             // override the weight to 1kg
             $weight = 1;
@@ -291,16 +291,22 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
 
         $attributeCode = $this->filter_attribute_code;
+
+        // Check if woocommerce has any attributes available before continuing
+        if(empty($attributeCode)) {
+            return true;
+        }
+
         $attributeValue = $this->filter_attribute_value;
 
-        // @todo - use wp_query to get product ids matching the query
-        // if (strpos($attributeValue, '*') !== FALSE) {
-        //     $attributeValue = str_replace('*', '%', $attributeValue);
-        // }
+        // Check if admin put a valid value to check for
+        if(empty($attributeValue)) {
+            error_log('attribute value' . $attributeValue);
+            return true;
+        }
 
         $products = $package['contents'];
 
-        // @todo use the package from calculate_shipping to grab cart contents
         foreach ($products as $itemKey => $product) {
             $productObject = new WC_Product($product['product_id']);
             $productAttributeValue = $productObject->get_attribute($attributeCode);

@@ -94,7 +94,6 @@ class Mamis_Shippit_Core {
         add_action('woocommerce_checkout_update_order_meta', array($this, 'update_authority_to_leave_order_meta'));
 
         // Display the authority to leave on the orders edit page
-        // @todo move out of hooks()
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
         function authority_to_leave_display_admin_order_meta($order){

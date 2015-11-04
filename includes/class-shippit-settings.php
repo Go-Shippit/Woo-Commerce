@@ -161,7 +161,8 @@ class Mamis_Shippit_Settings {
             'filter_attribute_code' => array(
                 'title'    => __('Filter by attribute code', 'woocommerce-shippit'),
                 'desc'     => '',
-                'type'     => 'text',
+                'type'     => 'select',
+                'options'  => self::_getAttributes(),
                 'css'      => 'min-width:300px;',
             ),
 
@@ -183,23 +184,31 @@ class Mamis_Shippit_Settings {
      */
     private static function _getProducts()
     {
-        // $productArgs = array(
-        //     'post_type' => 'product',
-        //     'posts_per_page' => -1
-        // );
+        $productArgs = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1
+        );
 
-        // $products = new WP_Query($productArgs);
+        $products = get_posts($productArgs);
 
         $productOptions = array();
 
-        // while ($products->have_posts()) {
-        //     $products->the_post();
-        //     $productOptions[get_the_ID()] = __(get_the_title(), 'woocommerce-shippit');
-        // }
-
-        // wp_reset_query();
+        foreach($products as $product) {
+            $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
+        }
 
         return $productOptions;
+    }
+
+    public static function _getAttributes()
+    {
+        $productAttributes = array();
+
+        $attributeTaxonomies = wc_get_attribute_taxonomies();
+        foreach($attributeTaxonomies as $tax) {
+            $productAttributes[$tax->attribute_name] = __($tax->attribute_name, 'woocommerce-shippit');
+        }
+        return $productAttributes;
     }
 
     public static function getSettings()
