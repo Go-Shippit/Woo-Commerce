@@ -33,13 +33,36 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->method_description   = __('Configure Shippit');
 
         $this->init();
-
-        $validAPIKey = $this->shippit_api_key;
-
-        //$this->api->getMerchant();
-
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_api_key'));
         // Save settings in admin if you have any defined
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
+        
+    }
+
+    public function validate_api_key() 
+    {    
+        $oldApiKey = $this->shippit_api_key;
+        $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
+
+        error_log('old api key' . $oldApiKey);
+        error_log('new api key' . $newApiKey);
+
+        $this->api->setApiKey = $newApiKey;
+
+        if( strcmp($newApiKey, $oldApiKey) != 0) {
+            if ($this->api->getMerchant()->error) {
+                error_log('INVALID API');
+                add_action('admin_notices', array($this, 'invalid_api_key'));
+                error_log('INVALID APIKEY END');
+            }
+        }
+    }
+
+    public function invalid_api_key() 
+    {
+        echo "<div class='error notice'>
+        <p>_e( 'Invalid Shippit API Key detected - Shippit will not function correctly.' )</p>
+        </div>";
     }
 
     /**
@@ -121,7 +144,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         error_log('calculate_shipping');
 
         // Check if the module is enabled and used for shipping quotes
-        if (!$this->enabled) {// || !$this->allowed_methods) {
+        if ($this->enabled != 'yes') {// || !$this->allowed_methods) {
             return;
         }
         
@@ -263,7 +286,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function canShipEnabledProducts($package)
     {
-        if (!$this->filter_enabled) {
+        if ($this->filter_enabled == 'no') {
             return true;
         }
 
@@ -291,7 +314,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     public function canShipEnabledAttributes($package)
     {
-        if (!$this->filter_attribute) {
+        if ($this->filter_attribute == 'no') {
             return true;
         }
 

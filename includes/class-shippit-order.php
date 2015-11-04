@@ -61,7 +61,7 @@ class Mamis_Shippit_Order
         $isEnabled = $this->s->getSetting('enabled');
         $sendAllOrders = $this->s->getSetting('send_all_orders');
 
-        if (!$isEnabled) {
+        if ($isEnabled != 'yes') {
             return;
         }
 
@@ -73,7 +73,7 @@ class Mamis_Shippit_Order
         $order = new WC_Order($orderId);
         $isShippitShippingMethod = $order->get_shipping_methods();
         
-        if ($sendAllOrders && $order->shipping_country == 'AU') {
+        if ($sendAllOrders == 'yes' && $order->shipping_country == 'AU') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
             $this->syncOrder($orderId);
