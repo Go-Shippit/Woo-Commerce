@@ -58,7 +58,7 @@ class Mamis_Shippit_Settings {
                 ),
             ),
 
-            'send_orders' => array(
+            'send_all_orders' => array(
                 'title'    => __('Send All Orders to Shippit', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
@@ -162,6 +162,7 @@ class Mamis_Shippit_Settings {
                 'title'    => __('Filter by attribute code', 'woocommerce-shippit'),
                 'desc'     => '',
                 'type'     => 'select',
+                'class'    => 'wc-enhanced-select',
                 'options'  => self::_getAttributes(),
                 'css'      => 'min-width:300px;',
             ),

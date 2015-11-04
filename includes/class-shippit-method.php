@@ -34,6 +34,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $this->init();
 
+        $validAPIKey = $this->shippit_api_key;
+
+        //$this->api->getMerchant();
+
         // Save settings in admin if you have any defined
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
     }
@@ -53,7 +57,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->shippit_api_key           = $this->s->getSetting('api_key');
         $this->debug                     = $this->s->getSetting('debug');
         $this->allowed_methods           = $this->s->getSetting('allowed_methods');
-        $this->send_all_orders           = $this->s->getSetting('send_orders');
+        $this->send_all_orders           = $this->s->getSetting('send_all_orders');
         $this->title                     = $this->s->getSetting('title');
         $this->max_timeslots             = $this->s->getSetting('max_timeslots');
         $this->filter_enabled            = $this->s->getSetting('filter_enabled');
@@ -96,7 +100,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->shippit_api_key           = $this->s->getSetting('api_key');
         $this->debug                     = $this->s->getSetting('debug');
         $this->allowed_methods           = $this->s->getSetting('allowed_methods');
-        $this->shippit_send_all_orders   = $this->s->getSetting('send_orders');
+        $this->send_all_orders           = $this->s->getSetting('send_all_orders');
         $this->shippit_title             = $this->s->getSetting('title');
         $this->max_timeslots             = $this->s->getSetting('max_timeslots');
         $this->filter_enabled            = $this->s->getSetting('filter_enabled');
