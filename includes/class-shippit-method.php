@@ -28,7 +28,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->s = new Mamis_Shippit_Settings();
 
         $this->id                   = 'mamis_shippit';
-        $this->title                = 'Shippit';
+        $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Configure Shippit');
 
@@ -293,15 +293,15 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $attributeCode = $this->filter_attribute_code;
 
-        // Check if woocommerce has any attributes available before continuing
-        if(empty($attributeCode)) {
+        // Check if there is an attribute code set
+        if (empty($attributeCode)) {
             return true;
         }
 
         $attributeValue = $this->filter_attribute_value;
 
-        // Check if admin put a value to check for
-        if(empty($attributeValue)) {
+        // Check if there is an attribute value set
+        if (empty($attributeValue)) {
             return true;
         }
 
