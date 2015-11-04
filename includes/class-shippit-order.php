@@ -76,13 +76,14 @@ class Mamis_Shippit_Order
         
         if ($syncAllOrders == 'yes' && $order->shipping_country == 'AU') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+            // attempt to sync the order now
+            $this->syncOrder($orderId);
         }
         elseif ($this->_isShippitShippingMethod($order)) {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+            // attempt to sync the order now
+            $this->syncOrder($orderId);
         }
-
-        // attempt to sync the order now
-        $this->syncOrder($orderId);
     }
 
     private function _isShippitShippingMethod($order)
