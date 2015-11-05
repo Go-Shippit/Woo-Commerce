@@ -12,12 +12,13 @@ define('MAMIS_SHIPPIT_VERSION', '1.0.0');
 
 include_once('includes/class-shippit-settings.php');
 include_once('includes/class-shippit-core.php');
+include_once('vendor/Bugsnag/Autoload.php');
+include_once('includes/class-shippit-log.php');
 
 function init_shippit_core()
 {
     // import helper classes
     include_once('includes/class-shippit-api.php');
-    include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-order.php');
 
     $shippit = Mamis_Shippit_Core::instance();

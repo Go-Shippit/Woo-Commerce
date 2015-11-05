@@ -42,6 +42,9 @@ class Mamis_Shippit_Core {
                 return;
             }
         }
+
+        $this->s = new Mamis_Shippit_Settings();
+        $this->log = new Mamis_Shippit_Log();
         
         $this->init();
     }
@@ -101,19 +104,23 @@ class Mamis_Shippit_Core {
             echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
         }
 
-        error_log('core init called');
         // Validate the api key when the setting is changed
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_api_key'));
     }
 
     public function validate_api_key()
     {
-        $this->s = new Mamis_Shippit_Settings();
         $oldApiKey = $this->s->getSetting('api_key');
         $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
 
-        error_log('old api key' . $oldApiKey);
-        error_log('new api key' . $newApiKey);
+        $this->log->add(
+            'Validating API Key',
+            $newApiKey,
+            array(
+                'old_api_key' => $oldApiKey,
+                'new_api_key' => $newApiKey
+            )
+        );
 
         if (strcmp($newApiKey, $oldApiKey) != 0) {
             $this->api = new Mamis_Shippit_Api();
@@ -124,23 +131,31 @@ class Mamis_Shippit_Core {
                 $apiResponse = $this->api->getMerchant();
 
                 if (property_exists($apiResponse, 'error')) {
+                    $this->log->add(
+                        'Validating API Key Result',
+                        'API Key ' . $newApiKey . 'is INVALID'
+                    );
+
                     $this->show_api_notice(false);
                 }
                 
                 if (property_exists($apiResponse, 'response')) {
+                    $this->log->add(
+                        'Validating API Key Result',
+                        'API Key ' . $newApiKey . 'is VALID'
+                    );
+
                     $this->show_api_notice(true);
                 }
             }
             catch (Exception $e) {
-                error_log('API Exception');
+                $this->log->exception($e);
             }
         }
     }
 
     public function show_api_notice($isValid)
     {
-        error_log('show_admin_notices');
-
         if (!$isValid) {
             echo '<div class="error notice">'
                 . '<p>Invalid Shippit API Key detected - Shippit will not function correctly.</p>'
@@ -158,7 +173,10 @@ class Mamis_Shippit_Core {
      */
     public static function order_sync_schedule()
     {
-        error_log('order_sync_schedule called');
+        $this->log->add(
+            'SyncOrders',
+            'Added to the hourly cron'
+        );
 
         if (!wp_next_scheduled('syncOrders')) {
             wp_schedule_event(current_time('timestamp'), 'hourly', 'syncOrders');
@@ -170,7 +188,11 @@ class Mamis_Shippit_Core {
      */
     public static function order_sync_deschedule()
     {
-        error_log('order_sync_deschedule called');
+        $this->log->add(
+            'SyncOrders',
+            'Removed from the hourly cron'
+        );
+
         wp_clear_scheduled_hook('syncOrders');
     }
 

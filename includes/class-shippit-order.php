@@ -228,10 +228,9 @@ class Mamis_Shippit_Order
         $orderData['retailer_invoice']         = $order->get_order_number();
 
         // Send the API request
-        error_log(json_encode($orderData));
         $apiResponse = $this->api->sendOrder($orderData);
 
-        if ($apiResponse->tracking_number) {
+        if ($apiResponse && $apiResponse->tracking_number) {
             update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
             $orderComment = 'Order Synced with Shippit. Tracking number: ' . $apiResponse->tracking_number . '.';
             $order->add_order_note($orderComment, 0);

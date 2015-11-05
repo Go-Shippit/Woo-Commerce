@@ -1,91 +1,59 @@
 <?php
 /**
- * Mamis_Shippit_Log class
- *
- * @class 		Mamis_Shippit_Log
- * @author 		Mamis.IT
- */
+*  Mamis.IT
+*
+*  NOTICE OF LICENSE
+*
+*  This source file is subject to the EULA
+*  that is available through the world-wide-web at this URL:
+*  http://www.mamis.com.au/licencing
+*
+*  @category   Mamis
+*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+*  @author     Matthew Muscat <matthew@mamis.com.au>
+*  @license    http://www.mamis.com.au/licencing
+*/
 
-class Mamis_Shippit_Log {
-    
-    /* The domain handler used to name the log */
-    private $_domain = 'woocommerce-shippit';
-    
-    
-    /* The WC_Logger instance */
-    private $_logger;
-    
-    
-    /**
-	* __construct.
-	*
-	* @access public
-	* @return void
-	*/
+class Mamis_Shippit_Log
+{
+    public $s;
+    public $bugsnag;
+
     public function __construct()
     {
-        $this->_logger = new WC_Logger();
+        $this->s = new Mamis_Shippit_Settings();
+        $this->bugsnag = new Bugsnag_Client('b2873ea2ae95a3c9f2cb63ca1557abb5');
+        $this->bugnsag->setAppVersion(MAMIS_SHIPPIT_VERSION);
     }
-
     
-    /**
-	* add function.
-	*
-	* Uses the build in logging method in WooCommerce.
-	* Logs are available inside the System status tab
-	*
-	* @access public
-	* @param  string|array|object
-	* @return void
-	*/
-    public function add($param)
+    public function add($errorType, $message, $metaData = null, $severity = 'info')
     {
-        if (is_array($param)) {
-            $param = print_r($param, TRUE);
+        // If debug mode is active, log all info serverities, otherwise log only errors
+        if ($this->s->getSetting('debug') == 'yes' || $severity == 'error') {
+            error_log('-- ' . $errorType . ' --');
+            error_log($message);
+
+            if (!is_null($metaData)) {
+                error_log(json_encode($metaData));
+            }
+
+            $this->bugsnag->notifyError($errorType, $message, $metaData, $severity);
         }
-        
-        $this->_logger->add($this->_domain, $param);
-    }
-    
-    
-    /**
-	* clear function.
-	*
-	* Clears the entire log file
-	*
-	* @access public
-	* @return void
-	*/
-    public function clear()
-    {
-        $this->_logger->clear($this->_domain);
-    }
- 
-    
-    /**
-	* separator function.
-	*
-	* Inserts a separation line for better overview in the logs.
-	*
-	* @access public
-	* @return void
-	*/
-    public function separator()
-    {
-        $this->add('--------------------');
     }
 
-
     /**
-	* get_domain function.
-	*
-	* Returns the log text domain
-	*
-	* @access public
-	* @return string
-	*/
-    public function get_domain()
+    * add function.
+    *
+    * Uses the build in logging method in WooCommerce.
+    * Logs are available inside the System status tab
+    *
+    * @access public
+    * @param  string|array|object
+    * @return void
+    */
+    public function exception($exception)
     {
-    	return $this->_domain;
+        error_log($exception->getMessage());
+        $this->bugsnag->notifyException($exception);
     }
 }

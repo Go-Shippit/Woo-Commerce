@@ -26,6 +26,7 @@ class Mamis_Shippit_Api
     public function __construct()
     {
         $this->settings = new Mamis_Shippit_Settings();
+        $this->log = new Mamis_Shippit_Log();
         $this->apiKey = $this->settings->getSetting('api_key');
         $this->debug = $this->settings->getSetting('debug');
     }
@@ -71,11 +72,14 @@ class Mamis_Shippit_Api
         $url = $this->getApiUrl($uri, $apiKey);
         $args = $this->getApiArgs($requestData, $requestMethod);
 
-        // if ($this->debug == 'Yes') {
-            error_log('-- SHIPPIT - API REQUEST: --');
-            error_log($url);
-            error_log(json_encode($requestData));
-        // }
+        $this->log->add(
+            'SHIPPIT - API REQUEST',
+            $uri,
+            array(
+                'url' => $url,
+                'requestData' => $requestData
+            )
+        );
 
         try {
             $response = wp_remote_request(
@@ -93,17 +97,23 @@ class Mamis_Shippit_Api
             }
         }
         catch (Exception $e) {
-            error_log('API Request Error' . $e);
+            $this->log->exception($e);
+
+            return false;
         }
 
         $jsonResponseData = wp_remote_retrieve_body($response);
 
         $responseData = json_decode($jsonResponseData);
 
-        // if ($this->debug == 'Yes') {
-            error_log('-- SHIPPIT - API RESPONSE --');
-            error_log($jsonResponseData);
-        // }
+        $this->log->add(
+            'SHIPPIT - API RESPONSE',
+            $uri,
+            array(
+                'url' => $url,
+                'requestData' => $responseData
+            )
+        );
 
         return $responseData;
     }

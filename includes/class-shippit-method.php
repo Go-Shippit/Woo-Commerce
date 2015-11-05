@@ -26,6 +26,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         $this->api = new Mamis_Shippit_Api();
         $this->s = new Mamis_Shippit_Settings();
+        $this->log = new Mamis_Shippit_Log();
 
         $this->id                   = 'mamis_shippit';
         $this->title                = $this->s->getSetting('title');
@@ -90,8 +91,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function calculate_shipping($package)
     {
-        error_log('calculate_shipping');
-
         // Check if the module is enabled and used for shipping quotes
         if ($this->enabled != 'yes') {// || !$this->s->getSetting('allowed_methods')) {
             return;
@@ -143,17 +142,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             ),
         );
 
-        try {
-            $shippingQuotes = $this->api->getQuote($quoteData);
-        }
-        catch (Exception $e) {
-            // if ($this->helper->isDebugActive() && $this->bugsnag) {
-            //     $this->bugsnag->notifyError('API - Quote Request', $e->getMessage());
-            // }
-            error_log($e);
-
-            return false;
-        }
+        $shippingQuotes = $this->api->getQuote($quoteData);
 
         if ($shippingQuotes) {
             foreach($shippingQuotes as $shippingQuote) {
@@ -249,13 +238,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         if (count($allowedProducts) > 0) {
             // If item is not enabled return false
             if ($productIds != array_intersect($productIds, $allowedProducts)) {
-                error_log('canShipEnabledProducts is passing false');
+                $this->log->add(
+                    'Can Ship Enabled Products',
+                    'Returning false'
+                );
+
                 return false;
             }
         }
 
-        error_log('canShipEnabledProducts is passing true');
-
+        $this->log->add(
+            'Can Ship Enabled Products',
+            'Returning true'
+        );
+        
         return true;
     }
 
@@ -285,15 +281,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $productObject = new WC_Product($product['product_id']);
             $productAttributeValue = $productObject->get_attribute($attributeCode);
 
-            error_log($productAttributeValue);
-
             if (strpos($productAttributeValue, $attributeValue) === false) {
-                error_log('canShipEnabledAttributes is passing false');
+                $this->log->add(
+                    'Can Ship Enabled Attributes',
+                    'Returning false'
+                );
+
                 return false;
             }
         }
 
-        error_log('canShipEnabledAttributes is passing true');
+        $this->log->add(
+            'Can Ship Enabled Attributes',
+            'Returning true'
+        );
 
         return true;
     }
