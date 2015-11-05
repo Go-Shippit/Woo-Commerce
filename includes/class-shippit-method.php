@@ -28,41 +28,11 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->s = new Mamis_Shippit_Settings();
 
         $this->id                   = 'mamis_shippit';
-        $this->title                = __('Shippit', 'woocommerce-shippit');
+        $this->title                = $this->s->getSetting('title');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Configure Shippit');
 
         $this->init();
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_api_key'));
-        // Save settings in admin if you have any defined
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
-        
-    }
-
-    public function validate_api_key() 
-    {    
-        $oldApiKey = $this->shippit_api_key;
-        $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
-
-        error_log('old api key' . $oldApiKey);
-        error_log('new api key' . $newApiKey);
-
-        $this->api->setApiKey = $newApiKey;
-
-        if( strcmp($newApiKey, $oldApiKey) != 0) {
-            if ($this->api->getMerchant()->error) {
-                error_log('INVALID API');
-                add_action('admin_notices', array($this, 'invalid_api_key'));
-                error_log('INVALID APIKEY END');
-            }
-        }
-    }
-
-    public function invalid_api_key() 
-    {
-        echo "<div class='error notice'>
-        <p>_e( 'Invalid Shippit API Key detected - Shippit will not function correctly.' )</p>
-        </div>";
     }
 
     /**
@@ -75,19 +45,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         // Load the settings API
         $this->init_form_fields();
         $this->init_settings();
-
-        // Define user set variables
-        $this->shippit_api_key           = $this->s->getSetting('api_key');
-        $this->debug                     = $this->s->getSetting('debug');
-        $this->allowed_methods           = $this->s->getSetting('allowed_methods');
-        $this->send_all_orders           = $this->s->getSetting('send_all_orders');
-        $this->title                     = $this->s->getSetting('title');
-        $this->max_timeslots             = $this->s->getSetting('max_timeslots');
-        $this->filter_enabled            = $this->s->getSetting('filter_enabled');
-        $this->filter_enabled_products   = $this->s->getSetting('filter_enabled_products');
-        $this->filter_attribute          = $this->s->getSetting('filter_attribute');
-        $this->filter_attribute_code     = $this->s->getSetting('filter_attribute_code');
-        $this->filter_attribute_value    = $this->s->getSetting('filter_attribute_value');
     
         // *****************
         // Shipping Method
@@ -95,6 +52,19 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         // add shipping method
         add_filter('woocommerce_shipping_methods', array($this, 'add_shipping_method'));
+
+        // *****************
+        // Shipping Method Save Event
+        // *****************
+
+        // Save settings in admin if you have any defined
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
+    }
+
+    public function init_form_fields()
+    {
+        // parent::init_form_fields();
+        $this->form_fields = Mamis_Shippit_Settings::getFields();
     }
 
     /**
@@ -112,27 +82,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         return $methods;
     }
 
-    public function init_form_fields()
-    {
-        // parent::init_form_fields();
-        $this->form_fields = Mamis_Shippit_Settings::getFields();
-    }
-
-    public function init_shippit_settings()
-    {
-        $this->shippit_api_key           = $this->s->getSetting('api_key');
-        $this->debug                     = $this->s->getSetting('debug');
-        $this->allowed_methods           = $this->s->getSetting('allowed_methods');
-        $this->send_all_orders           = $this->s->getSetting('send_all_orders');
-        $this->shippit_title             = $this->s->getSetting('title');
-        $this->max_timeslots             = $this->s->getSetting('max_timeslots');
-        $this->filter_enabled            = $this->s->getSetting('filter_enabled');
-        $this->filter_enabled_products   = $this->s->getSetting('filter_enabled_products');
-        $this->filter_attribute          = $this->s->getSetting('filter_attribute');
-        $this->filter_attribute_code     = $this->s->getSetting('filter_attribute_code');
-        $this->filter_attribute_value    = $this->s->getSetting('filter_attribute_value');
-    }
-
     /**
      * Calculate shipping.
      *
@@ -144,7 +93,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         error_log('calculate_shipping');
 
         // Check if the module is enabled and used for shipping quotes
-        if ($this->enabled != 'yes') {// || !$this->allowed_methods) {
+        if ($this->enabled != 'yes') {// || !$this->s->getSetting('allowed_methods')) {
             return;
         }
         
@@ -152,12 +101,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quoteCart = $package['contents'];
 
         // Check if we can ship the products by enabled filtering
-        if (!$this->canShipEnabledProducts($package)) {
+        if (!$this->_canShipEnabledProducts($package)) {
             return;
         }
 
         // Check if we can ship the products by attribute filtering
-        if (!$this->canShipEnabledAttributes($package)) {
+        if (!$this->_canShipEnabledAttributes($package)) {
             return;
         }
 
@@ -166,16 +115,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     private function _processShippingQuotes($quoteDestination, $quoteCart)
     {
-        $allowedMethods = $this->allowed_methods;
-        $apiKey = $this->shippit_api_key;
-        $debug = $this->debug;
+        $isPremiumAvailable = in_array('premium', $this->s->getSetting('allowed_methods'));
+        $isStandardAvailable = in_array('standard', $this->s->getSetting('allowed_methods'));
 
-        $isPremiumAvailable = in_array('premium', $this->allowed_methods);
-        $isStandardAvailable = in_array('standard', $this->allowed_methods);
-
-        $dropoff_suburb = $quoteDestination['city'];
-        $dropoff_postcode = $quoteDestination['postcode'];
-        $dropoff_state = $quoteDestination['state'];
+        $dropoffSuburb = $quoteDestination['city'];
+        $dropoffPostcode = $quoteDestination['postcode'];
+        $dropoffState = $quoteDestination['state'];
 
         $qty = WC()->cart->cart_contents_count;
         $weight = WC()->cart->cart_contents_weight;
@@ -187,9 +132,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $quoteData = array(
             'order_date' => '', // get all available dates
-            'dropoff_suburb' => $dropoff_suburb,
-            'dropoff_postcode' => $dropoff_postcode,
-            'dropoff_state' => $dropoff_state,
+            'dropoff_suburb' => $dropoffSuburb,
+            'dropoff_postcode' => $dropoffPostcode,
+            'dropoff_state' => $dropoffState,
             'parcel_attributes' => array(
                 array(
                     'qty' => $qty,
@@ -246,7 +191,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _addPremiumQuote($shippingQuote)
     {
         $timeSlotCount = 0;
-        $maxTimeSlots = $this->max_timeslots;
+        $maxTimeSlots = $this->s->getSetting('max_timeslots');
 
         foreach ($shippingQuote->quotes as $premiumQuote) {
             if (!empty($maxTimeSlots) && $maxTimeSlots <= $timeSlotCount) {
@@ -286,13 +231,13 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      * Checks if we can ship the products in the cart
      * @return [type] [description]
      */
-    public function canShipEnabledProducts($package)
+    private function _canShipEnabledProducts($package)
     {
-        if ($this->filter_enabled == 'no') {
+        if ($this->s->getSetting('filter_enabled') == 'no') {
             return true;
         }
 
-        $allowedProducts = $this->filter_enabled_products;
+        $allowedProducts = $this->s->getSetting('filter_enabled_products');
 
         $products = $package['contents'];
         $productIds = array();
@@ -314,20 +259,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         return true;
     }
 
-    public function canShipEnabledAttributes($package)
+    private function _canShipEnabledAttributes($package)
     {
-        if ($this->filter_attribute == 'no') {
+        if ($this->s->getSetting('filter_attribute') == 'no') {
             return true;
         }
 
-        $attributeCode = $this->filter_attribute_code;
+        $attributeCode = $this->s->getSetting('filter_attribute_code');
 
         // Check if there is an attribute code set
         if (empty($attributeCode)) {
             return true;
         }
 
-        $attributeValue = $this->filter_attribute_value;
+        $attributeValue = $this->s->getSetting('filter_attribute_value');
 
         // Check if there is an attribute value set
         if (empty($attributeValue)) {

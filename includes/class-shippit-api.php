@@ -59,7 +59,7 @@ class Mamis_Shippit_Api
 
         if ($requestMethod == "POST") {
             $apiArgs['body'] = json_encode($requestData);
-        } 
+        }
 
         return $apiArgs;
     }
@@ -85,10 +85,11 @@ class Mamis_Shippit_Api
 
             $responseCode = wp_remote_retrieve_response_code($response);
 
-
-            if ($responseCode < 200 ||
-                $responseCode > 299) {
-                throw new Exception('An API Request Error Occured');
+            if ($exceptionOnResponseError) {
+                if ($responseCode < 200 ||
+                    $responseCode > 299) {
+                    throw new Exception('An API Request Error Occured');
+                }
             }
         }
         catch (Exception $e) {
@@ -129,6 +130,6 @@ class Mamis_Shippit_Api
 
     public function getMerchant()
     {
-        return $this->call('merchant', null, $requestMethod = 'GET');
+        return $this->call('merchant', null, $requestMethod = 'GET', false);
     }
 }

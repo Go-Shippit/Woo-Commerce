@@ -20,6 +20,7 @@ class Mamis_Shippit_Core {
      * Version.
      */
     public $version = '1.0.0';
+    public $id = 'mamis_shippit';
 
     /**
      * Instace of Mamis Shippit
@@ -98,6 +99,57 @@ class Mamis_Shippit_Core {
 
         function authority_to_leave_display_admin_order_meta($order){
             echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
+        }
+
+        error_log('core init called');
+        // Validate the api key when the setting is changed
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_api_key'));
+    }
+
+    public function validate_api_key()
+    {
+        $this->s = new Mamis_Shippit_Settings();
+        $oldApiKey = $this->s->getSetting('api_key');
+        $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
+
+        error_log('old api key' . $oldApiKey);
+        error_log('new api key' . $newApiKey);
+
+        if (strcmp($newApiKey, $oldApiKey) != 0) {
+            $this->api = new Mamis_Shippit_Api();
+            // Set the api key temporarily to the requested key
+            $this->api->setApiKey($newApiKey);
+
+            try {
+                $apiResponse = $this->api->getMerchant();
+
+                if (property_exists($apiResponse, 'error')) {
+                    $this->show_api_notice(false);
+                }
+                
+                if (property_exists($apiResponse, 'response')) {
+                    $this->show_api_notice(true);
+                }
+            }
+            catch (Exception $e) {
+                error_log('API Exception');
+            }
+        }
+    }
+
+    public function show_api_notice($isValid)
+    {
+        error_log('show_admin_notices');
+
+        if (!$isValid) {
+            echo '<div class="error notice">'
+                . '<p>Invalid Shippit API Key detected - Shippit will not function correctly.</p>'
+                . '</div>';
+        }
+        else {
+            echo '<div class="updated notice">'
+                . '<p>Shippit API Key is Valid</p>'
+                . '</div>';
         }
     }
 
