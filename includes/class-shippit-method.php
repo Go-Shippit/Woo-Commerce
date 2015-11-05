@@ -259,12 +259,14 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 $timeSlotCount++;
                 $carrierTitle = $shippingQuote->courier_type;
                 $method = $shippingQuote->courier_type . '_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window;
-                $methodTitle = 'Premium' . ' - Delivered ' . $premiumQuote->delivery_date. ' Between ' . $premiumQuote->delivery_window_desc;
+                $premiumQuoteDeliveryDate = $premiumQuote->delivery_date;
+                $premiumQuoteDeliveryDate = date('d/m/Y',strtotime($premiumQuoteDeliveryDate));
+                $methodTitle = 'Scheduled' . ' - Delivered ' . $premiumQuoteDeliveryDate. ' between ' . $premiumQuote->delivery_window_desc;
             }
             else {
                 $carrierTitle = $shippingQuote->courier_type;
                 $method = $shippingQuote->courier_type;
-                $methodTitle = 'Premium';
+                $methodTitle = 'Scheduled';
             }
 
             $rate = array(
