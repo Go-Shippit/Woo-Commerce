@@ -23,7 +23,10 @@ class Mamis_Shippit_Log
     {
         $this->s = new Mamis_Shippit_Settings();
         $this->bugsnag = new Bugsnag_Client('b2873ea2ae95a3c9f2cb63ca1557abb5');
-        $this->bugnsag->setAppVersion(MAMIS_SHIPPIT_VERSION);
+
+        if ($this->bugnsag) {
+            $this->bugnsag->setAppVersion(MAMIS_SHIPPIT_VERSION);
+        }
     }
     
     public function add($errorType, $message, $metaData = null, $severity = 'info')

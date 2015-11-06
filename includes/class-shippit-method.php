@@ -29,7 +29,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->log = new Mamis_Shippit_Log();
 
         $this->id                   = 'mamis_shippit';
-        $this->title                = $this->s->getSetting('title');
+        $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Configure Shippit');
 

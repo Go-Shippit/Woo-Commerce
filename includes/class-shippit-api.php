@@ -91,7 +91,7 @@ class Mamis_Shippit_Api
 
             if ($exceptionOnResponseError) {
                 if ($responseCode < 200 ||
-                    $responseCode > 299) {
+                    $responseCode > 300) {
                     throw new Exception('An API Request Error Occured');
                 }
             }

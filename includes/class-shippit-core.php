@@ -173,11 +173,6 @@ class Mamis_Shippit_Core {
      */
     public static function order_sync_schedule()
     {
-        $this->log->add(
-            'SyncOrders',
-            'Added to the hourly cron'
-        );
-
         if (!wp_next_scheduled('syncOrders')) {
             wp_schedule_event(current_time('timestamp'), 'hourly', 'syncOrders');
         }
@@ -188,11 +183,6 @@ class Mamis_Shippit_Core {
      */
     public static function order_sync_deschedule()
     {
-        $this->log->add(
-            'SyncOrders',
-            'Removed from the hourly cron'
-        );
-
         wp_clear_scheduled_hook('syncOrders');
     }
 
