@@ -223,8 +223,10 @@ class Mamis_Shippit_Settings {
 
     public static function getSetting($key)
     {
-        if ( isset(self::getSettings()[$key]) ) {
-            return self::getSettings()[$key];
+        $settings = self::getSettings();
+
+        if ( isset($settings[$key]) ) {
+            return $settings[$key];
         }
 
         return null;
