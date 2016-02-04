@@ -92,7 +92,14 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function calculate_shipping($package)
     {
         // Check if the module is enabled and used for shipping quotes
-        if ($this->enabled != 'yes') {// || !$this->s->getSetting('allowed_methods')) {
+        if ($this->enabled != 'yes') {
+            return;
+        }
+
+        $allowedMethods = $this->s->getSetting('allowed_methods');
+
+        // Ensure we have a shipping method available for use 
+        if (empty($allowedMethods)) {
             return;
         }
         
