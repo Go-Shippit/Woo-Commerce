@@ -137,10 +137,10 @@ class Mamis_Shippit_Core {
         $posted_api_key = $wp->query_vars['shippit_api_key'];
 
         // if there is no shippit api key set, exit
-        if (isset($wp->query_vars['shippit_api_key'])) {
-
+        if (isset($posted_api_key)) {
+            
             // If the current API key matches the one stored, keep processing
-            if( strcmp($stored_api_key, $posted_api_key) == 0 ) {
+            if( strcmp( $stored_api_key, $posted_api_key) == 0 ) {
               
                 // Grab the posted JSON object
                 $shippit_post_data = json_decode(file_get_contents('php://input'));
@@ -161,8 +161,14 @@ class Mamis_Shippit_Core {
                     $order = new WC_Order($posted_order_id);
                     $order->update_status('completed', 'order_note'); 
                     add_action( 'woocommerce_order_status_completed_notification', 'action_woocommerce_order_status_completed_notification', 10, 2 );
-                    echo 'Order Status has been updated to wc-complete';
+                    header('content-type: application/json; charset=utf-8');
+                    http_response_code(200);
                 }
+                exit;
+            }
+            else {
+                header('content-type: application/json; charset=utf-8');
+                http_response_code(400);
                 exit;
             }
         }
@@ -180,14 +186,16 @@ class Mamis_Shippit_Core {
         // Get all woocommerce orders that are processing
         $orders_to_be_updated = get_posts($order_post_arguments);
 
+        if(!$orders_to_be_updated) {
+            header('content-type: application/json; charset=utf-8');
+            http_response_code(400);
+            exit;
+        }
+
         // Check if order exists, return true if it does
         foreach ($orders_to_be_updated as $order_to_be_updated) {
             if( strcmp($order_to_be_updated->ID, $posted_order_id) == 0) {
                 return true;
-            }
-            else {
-                echo 'No orders match';
-                return false;
             }
         }
 
