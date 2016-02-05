@@ -47,6 +47,7 @@ class Mamis_Shippit_Core {
         $this->log = new Mamis_Shippit_Log();
         
         $this->init();
+
     }
 
     /**
@@ -105,10 +106,99 @@ class Mamis_Shippit_Core {
         }
 
         // Validate the api key when the setting is changed
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_api_key'));
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_shippit_request'));
+
+        //**********************/
+        // Webhook functionality
+        //**********************/
+        // create filter to get $_GET['shippit_api_key'] 
+        add_filter('query_vars', array($this, 'add_query_vars'), 0);
+        // handle API request if 'shippit_api_key' is set
+        add_action('parse_request', array($this, 'shippit_endpoint_request'), 0);
+        // create 'shippit/shipment_create' endpoint
+        add_action('init', array($this, 'shippit_endpoint'), 0);
+
     }
 
-    public function validate_api_key()
+    public function add_query_vars($vars){
+        $vars[] = 'shippit_api_key';
+        return $vars;
+    }
+
+    // Validate api key, validate order id and validate the state
+    public function shippit_endpoint_request() 
+    {
+        global $wp;
+
+        // Grab the stored api key
+        $stored_api_key = $this->s->getSetting('api_key');
+
+        // Grab the posted shippit API key
+        $posted_api_key = $wp->query_vars['shippit_api_key'];
+
+        // if there is no shippit api key set, exit
+        if (isset($wp->query_vars['shippit_api_key'])) {
+
+            // If the current API key matches the one stored, keep processing
+            if( strcmp($stored_api_key, $posted_api_key) == 0 ) {
+              
+                // Grab the posted JSON object
+                $shippit_post_data = json_decode(file_get_contents('php://input'));
+
+                if($shippit_post_data == NULL) {
+                    exit;
+                }
+                        
+                // Grab the values from the posted JSON object
+                $posted_order_id = $shippit_post_data->retailer_order_number;        
+                $posted_order_status = $shippit_post_data->current_state;
+
+                // Check if order exists
+                $should_order_sync = $this->does_order_exist($posted_order_id);
+
+               // If order exists and the current state is completed, update the woocommerce status to complete
+                if( $should_order_sync && (strcmp($posted_order_status, 'completed') == 0) ) {
+                    $order = new WC_Order($posted_order_id);
+                    $order->update_status('completed', 'order_note'); 
+                    add_action( 'woocommerce_order_status_completed_notification', 'action_woocommerce_order_status_completed_notification', 10, 2 );
+                    echo 'Order Status has been updated to wc-complete';
+                }
+                exit;
+            }
+        }
+    }
+
+    public function does_order_exist($posted_order_id) {
+        global $woocommerce;
+        global $post;
+
+        $order_post_arguments = array(
+            'post_type' => 'shop_order',
+            'post_status' => 'wc-processing'
+        );
+
+        // Get all woocommerce orders that are processing
+        $orders_to_be_updated = get_posts($order_post_arguments);
+
+        // Check if order exists, return true if it does
+        foreach ($orders_to_be_updated as $order_to_be_updated) {
+            if( strcmp($order_to_be_updated->ID, $posted_order_id) == 0) {
+                return true;
+            }
+            else {
+                echo 'No orders match';
+                return false;
+            }
+        }
+
+    }
+
+    public function shippit_endpoint() 
+    {
+        add_rewrite_rule('^shippit/shipment_create/?([0-9]+)?/?','index.php?shippit_api_key=$matches[1],','top');
+    }
+
+    public function validate_shippit_request()
     {
         $oldApiKey = $this->s->getSetting('api_key');
         $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
@@ -147,6 +237,8 @@ class Mamis_Shippit_Core {
 
                     $this->show_api_notice(true);
                 }
+
+
             }
             catch (Exception $e) {
                 $this->log->exception($e);
