@@ -47,7 +47,6 @@ class Mamis_Shippit_Core {
         $this->log = new Mamis_Shippit_Log();
         
         $this->init();
-
     }
 
     /**
@@ -111,99 +110,140 @@ class Mamis_Shippit_Core {
         //**********************/
         // Webhook functionality
         //**********************/
+        
         // create filter to get $_GET['shippit_api_key'] 
         add_filter('query_vars', array($this, 'add_query_vars'), 0);
+
         // handle API request if 'shippit_api_key' is set
-        add_action('parse_request', array($this, 'shippit_endpoint_request'), 0);
+        add_action('parse_request', array($this, 'handle_request'), 0);
+        
         // create 'shippit/shipment_create' endpoint
-        add_action('init', array($this, 'shippit_endpoint'), 0);
+        add_action('init', array($this, 'add_endpoint'), 0);
 
     }
 
-    public function add_query_vars($vars){
+    public function add_endpoint()
+    {
+        add_rewrite_rule('^shippit/shipment_create/?([0-9]+)?/?', 'index.php?shippit_api_key=$matches[1],', 'top');
+    }
+
+    public function add_query_vars($vars)
+    {
         $vars[] = 'shippit_api_key';
         return $vars;
     }
 
     // Validate api key, validate order id and validate the state
-    public function shippit_endpoint_request() 
+    public function handle_request()
+    {
+        global $wp;
+        
+        if (isset($wp->query_vars['shippit_api_key'])) {
+            $this->create_shipment();
+            exit;
+        }
+    }
+
+    public function create_shipment()
     {
         global $wp;
 
-        // Grab the stored api key
-        $stored_api_key = $this->s->getSetting('api_key');
+        // Get the configured api key
+        $apiKey = $this->s->getSetting('api_key');
 
         // Grab the posted shippit API key
-        $posted_api_key = $wp->query_vars['shippit_api_key'];
+        $requestApiKey = $wp->query_vars['shippit_api_key'];
 
-        // if there is no shippit api key set, exit
-        if (isset($posted_api_key)) {
-            
-            // If the current API key matches the one stored, keep processing
-            if( strcmp( $stored_api_key, $posted_api_key) == 0 ) {
-              
-                // Grab the posted JSON object
-                $shippit_post_data = json_decode(file_get_contents('php://input'));
+        // Get the JSON data posted
+        $requestData = json_decode(file_get_contents('php://input'));
 
-                if($shippit_post_data == NULL) {
-                    exit;
-                }
-                        
-                // Grab the values from the posted JSON object
-                $posted_order_id = $shippit_post_data->retailer_order_number;        
-                $posted_order_status = $shippit_post_data->current_state;
-
-                // Check if order exists
-                $should_order_sync = $this->does_order_exist($posted_order_id);
-
-               // If order exists and the current state is completed, update the woocommerce status to complete
-                if( $should_order_sync && (strcmp($posted_order_status, 'completed') == 0) ) {
-                    $order = new WC_Order($posted_order_id);
-                    $order->update_status('completed', 'order_note'); 
-                    add_action( 'woocommerce_order_status_completed_notification', 'action_woocommerce_order_status_completed_notification', 10, 2 );
-                    header('content-type: application/json; charset=utf-8');
-                    http_response_code(200);
-                }
-                exit;
-            }
-            else {
-                header('content-type: application/json; charset=utf-8');
-                http_response_code(400);
-                exit;
-            }
+        // ensure an api key has been retrieved in the request
+        if (!empty($requestApiKey)) {
+            // header('content-type: application/json; charset=utf-8');
+            // http_response_code(400);
+            // exit;
+            wp_send_json_error(array(
+                'message' => 'An API Key is required'
+            ));
         }
+
+        // check that the request api key matches the stored api key
+        if ($apiKey != $requestApiKey) {
+            wp_send_json_error(array(
+                'message' => 'The API Key entered is incorrect'
+            ));
+        }
+
+        if (empty($requestData)) {
+            wp_send_json_error(array(
+                'message' => 'An invalid request was recieved'
+            ));
+        }
+
+        // Grab the values from the posted JSON object
+        $orderId = $requestData->retailer_order_number;
+        $orderStatus = $requestData->current_state;
+
+        if (empty($orderId)) {
+            wp_send_json_error(array(
+                'message' => 'An order id was not recieved'
+            ));
+        }
+
+        if (empty($orderStatus) || $orderStatus != 'complete') {
+            wp_send_json_success(array(
+                'message' => 'Ignoring order status update, as we only look for completed state'
+            ));
+        }
+
+        // Get the order by the request order id passed,
+        // ensure it's status is processing
+        $order = $this->get_order($orderId, 'wc-processing');
+
+        // Check if an order was found
+        if (!$order) {
+            wp_send_json_error(array(
+                'message' => 'The order was not found or is not in a processing state'
+            ));
+        }
+
+        $order->update_status('completed', 'Item has been shipped with Shippit');
+
+        add_action(
+            'woocommerce_order_status_completed_notification',
+            'action_woocommerce_order_status_completed_notification',
+            10,
+            2
+        );
+
+        wp_send_json_success(array(
+            'message' => 'Successfully updated the order'
+        ));
     }
 
-    public function does_order_exist($posted_order_id) {
+    public function get_order($orderId, $orderStatus = null)
+    {
         global $woocommerce;
         global $post;
 
-        $order_post_arguments = array(
+        $queryArgs = array(
             'post_type' => 'shop_order',
-            'post_status' => 'wc-processing'
+            'posts_per_page' => 1,
+            'p' => $orderId
         );
 
-        // Get all woocommerce orders that are processing
-        $orders_to_be_updated = get_posts($order_post_arguments);
-
-        if(!$orders_to_be_updated) {
-            header('content-type: application/json; charset=utf-8');
-            http_response_code(400);
-            exit;
+        if (!empty($orderStatus)) {
+            $queryArgs['post_status'] = $orderStatus;
         }
 
-        // Check if order exists, return true if it does
-        foreach ($orders_to_be_updated as $order_to_be_updated) {
-            if( strcmp($order_to_be_updated->ID, $posted_order_id) == 0) {
-                return true;
-            }
+        // Get the woocommerce order if it's processing
+        $order = get_posts($queryArgs);
+
+        if (!empty($order)) {
+            return $order;
         }
 
-    }
-
-    public function shippit_endpoint() 
-    {
-        add_rewrite_rule('^shippit/shipment_create/?([0-9]+)?/?','index.php?shippit_api_key=$matches[1],','top');
+        return false;
     }
 
     public function validate_shippit_request()
