@@ -58,7 +58,7 @@ class Mamis_Shippit_Api
             ),
         );
 
-        if ($requestMethod == "POST") {
+        if (!empty($requestData)) {
             $apiArgs['body'] = json_encode($requestData);
         }
 
@@ -84,7 +84,7 @@ class Mamis_Shippit_Api
         try {
             $response = wp_remote_request(
                 $url,
-                $this->getApiArgs($requestData, $requestMethod)
+                $args
             );
 
             $responseCode = wp_remote_retrieve_response_code($response);
@@ -141,5 +141,14 @@ class Mamis_Shippit_Api
     public function getMerchant()
     {
         return $this->call('merchant', null, $requestMethod = 'GET', false);
+    }
+
+    public function putMerchant($merchantData)
+    {
+        $requestData = array(
+            'merchant' => $merchantData
+        );
+
+        return $this->call('merchant', $requestData, $requestMethod = 'PUT');
     }
 }

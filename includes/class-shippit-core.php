@@ -105,7 +105,7 @@ class Mamis_Shippit_Core {
         }
 
         // Validate the api key when the setting is changed
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'validate_shippit_request'));
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
 
         //**********************/
         // Webhook functionality
@@ -158,10 +158,7 @@ class Mamis_Shippit_Core {
         $requestData = json_decode(file_get_contents('php://input'));
 
         // ensure an api key has been retrieved in the request
-        if (!empty($requestApiKey)) {
-            // header('content-type: application/json; charset=utf-8');
-            // http_response_code(400);
-            // exit;
+        if (empty($requestApiKey)) {
             wp_send_json_error(array(
                 'message' => 'An API Key is required'
             ));
@@ -190,7 +187,7 @@ class Mamis_Shippit_Core {
             ));
         }
 
-        if (empty($orderStatus) || $orderStatus != 'complete') {
+        if (empty($orderStatus) || $orderStatus != 'completed') {
             wp_send_json_success(array(
                 'message' => 'Ignoring order status update, as we only look for completed state'
             ));
@@ -207,6 +204,7 @@ class Mamis_Shippit_Core {
             ));
         }
 
+        $order = new WC_Order($orderId);
         $order->update_status('completed', 'Item has been shipped with Shippit');
 
         add_action(
@@ -246,10 +244,45 @@ class Mamis_Shippit_Core {
         return false;
     }
 
-    public function validate_shippit_request()
+    public function after_options_save()
     {
-        $oldApiKey = $this->s->getSetting('api_key');
+        // Get key after the options have saved
+        $currentApiKey = $this->s->getSetting('api_key');
         $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
+
+        if (strcmp($newApiKey, $oldApiKey) != 0) {
+            $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey);
+        }
+
+        if ($isValidApiKey) {
+            $this->register_webhook($newApiKey);
+        }
+    }
+
+    private function register_webhook($newApiKey)
+    {
+        $this->api = new Mamis_Shippit_Api();
+
+        // Set the api key temporarily to the requested key
+        $this->api->setApiKey($newApiKey);
+
+        $requestData = array(
+            'webhook_url' => get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $newApiKey
+        );
+
+        try {
+            $response = $this->api->putMerchant($requestData);
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+    }
+
+    private function validate_apikey($newApiKey, $oldApiKey = null)
+    {
+        if (is_null($oldApiKey)) {
+            $oldApiKey = $this->s->getSetting('api_key');
+        }
 
         $this->log->add(
             'Validating API Key',
@@ -260,37 +293,36 @@ class Mamis_Shippit_Core {
             )
         );
 
-        if (strcmp($newApiKey, $oldApiKey) != 0) {
-            $this->api = new Mamis_Shippit_Api();
-            // Set the api key temporarily to the requested key
-            $this->api->setApiKey($newApiKey);
+        $this->api = new Mamis_Shippit_Api();
+        // Set the api key temporarily to the requested key
+        $this->api->setApiKey($newApiKey);
 
-            try {
-                $apiResponse = $this->api->getMerchant();
+        try {
+            $apiResponse = $this->api->getMerchant();
 
-                if (property_exists($apiResponse, 'error')) {
-                    $this->log->add(
-                        'Validating API Key Result',
-                        'API Key ' . $newApiKey . 'is INVALID'
-                    );
+            if (property_exists($apiResponse, 'error')) {
+                $this->log->add(
+                    'Validating API Key Result',
+                    'API Key ' . $newApiKey . 'is INVALID'
+                );
 
-                    $this->show_api_notice(false);
-                }
-                
-                if (property_exists($apiResponse, 'response')) {
-                    $this->log->add(
-                        'Validating API Key Result',
-                        'API Key ' . $newApiKey . 'is VALID'
-                    );
-
-                    $this->show_api_notice(true);
-                }
-
-
+                $this->show_api_notice(false);
+                return false;
             }
-            catch (Exception $e) {
-                $this->log->exception($e);
+            
+            if (property_exists($apiResponse, 'response')) {
+                $this->log->add(
+                    'Validating API Key Result',
+                    'API Key ' . $newApiKey . 'is VALID'
+                );
+                                
+                $this->show_api_notice(true);
+                return true;
             }
+
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
         }
     }
 
