@@ -19,7 +19,7 @@ class Mamis_Shippit_Core {
     /**
      * Version.
      */
-    public $version = '1.0.0';
+    public $version = '1.1.0';
     public $id = 'mamis_shippit';
 
     /**
@@ -204,8 +204,8 @@ class Mamis_Shippit_Core {
             ));
         }
 
-        $order = new WC_Order($orderId);
-        $order->update_status('completed', 'Item has been shipped with Shippit');
+        $wcOrder = wc_get_order($orderId);
+        $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
 
         add_action(
             'woocommerce_order_status_completed_notification',
@@ -226,7 +226,6 @@ class Mamis_Shippit_Core {
 
         $queryArgs = array(
             'post_type' => 'shop_order',
-            'posts_per_page' => 1,
             'p' => $orderId
         );
 
@@ -266,12 +265,44 @@ class Mamis_Shippit_Core {
         // Set the api key temporarily to the requested key
         $this->api->setApiKey($newApiKey);
 
+        $webhookUrl = get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $newApiKey;
+
         $requestData = array(
-            'webhook_url' => get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $newApiKey
+            'webhook_url' => $webhookUrl
+        );
+
+        $this->log->add(
+            'Registering Webhook Url',
+            $newApiKey,
+            array(
+                'webhook_url' => $webhookUrl
+            )
         );
 
         try {
-            $response = $this->api->putMerchant($requestData);
+            $apiResponse = $this->api->putMerchant($requestData);
+
+            if (property_exists($apiResponse, 'error')) {
+                $this->log->add(
+                    'Registering Web Hook Response',
+                    'An error occurred during webhook register'
+                );
+
+                $this->show_webhook_notice(false);
+                
+                return false;
+            }
+            
+            if (property_exists($apiResponse, 'response')) {
+                $this->log->add(
+                    'Registering Web Hook Response',
+                    'Webhook Registration Successful'
+                );
+                                
+                $this->show_webhook_notice(true);
+
+                return true;
+            }
         }
         catch (Exception $e) {
             $this->log->exception($e);
@@ -307,6 +338,7 @@ class Mamis_Shippit_Core {
                 );
 
                 $this->show_api_notice(false);
+
                 return false;
             }
             
@@ -317,6 +349,7 @@ class Mamis_Shippit_Core {
                 );
                                 
                 $this->show_api_notice(true);
+
                 return true;
             }
 
@@ -336,6 +369,20 @@ class Mamis_Shippit_Core {
         else {
             echo '<div class="updated notice">'
                 . '<p>Shippit API Key is Valid</p>'
+                . '</div>';
+        }
+    }
+
+    public function show_webhook_notice($isValid)
+    {
+        if (!$isValid) {
+            echo '<div class="error notice">'
+                . '<p>Shippit Webhook /shippit/shipment_create was not registered</p>'
+                . '</div>';
+        }
+        else {
+            echo '<div class="updated notice">'
+                . '<p>Shippit Webhook /shippit/shipment_create has now been registered</p>'
                 . '</div>';
         }
     }
