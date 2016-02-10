@@ -16,7 +16,8 @@
 
 class Mamis_Shippit_Api
 {
-    const API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3';
+    const API_ENDPOINT_LIVE = 'http://goshippit.herokuapp.com/api/3';
+    const API_ENDPOINT_STAGING = 'http://shippit-staging.herokuapp.com/api/3';
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
@@ -29,6 +30,7 @@ class Mamis_Shippit_Api
         $this->log = new Mamis_Shippit_Log();
         $this->apiKey = $this->settings->getSetting('api_key');
         $this->debug = $this->settings->getSetting('debug');
+        $this->environment = $this->settings->getSetting('environment');
     }
 
     private function getApiKey()
@@ -43,7 +45,13 @@ class Mamis_Shippit_Api
 
     public function getApiUrl($path, $apiKey)
     {
-        return self::API_ENDPOINT . '/' . $path . '?auth_token=' . $apiKey;
+        if ( strcmp($this->environment, 'staging') == 0 ) {
+            return self::API_ENDPOINT_STAGING . '/' . $path . '?auth_token=' . $apiKey;
+        }
+
+        else {
+            return self::API_ENDPOINT_LIVE . '/' . $path . '?auth_token=' . $apiKey;
+        }
     }
 
     public function getApiArgs($requestData, $requestMethod)

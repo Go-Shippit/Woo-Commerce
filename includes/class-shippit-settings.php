@@ -58,6 +58,18 @@ class Mamis_Shippit_Settings {
                 ),
             ),
 
+            'environment' => array(
+                'title'    => __('Environment', 'woocommerce-shippit'),
+                'class'    => 'wc-enhanced-select',
+                'css'      => 'min-width:300px;',
+                'default'  => 'Live',
+                'type'     => 'select',
+                'options'  => array(
+                    'staging'  => __('Staging', 'woocommerce-shippit'),
+                    'live' => __('Live', 'woocommerce-shippit'),
+                ),
+            ),
+
             'send_all_orders' => array(
                 'title'    => __('Send All Orders to Shippit', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
