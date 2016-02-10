@@ -43,12 +43,16 @@ class Mamis_Shippit_Api
         return $this->apiKey = $apiKey;
     }
 
+    public function setEnvironment($environment)
+    {
+        return $this->environment = $environment;
+    }
+
     public function getApiUrl($path, $apiKey)
     {
-        if ( strcmp($this->environment, 'staging') == 0 ) {
+        if ( $this->environment == 'sandbox' ) {
             return self::API_ENDPOINT_STAGING . '/' . $path . '?auth_token=' . $apiKey;
         }
-
         else {
             return self::API_ENDPOINT_LIVE . '/' . $path . '?auth_token=' . $apiKey;
         }

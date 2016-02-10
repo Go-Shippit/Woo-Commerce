@@ -248,22 +248,28 @@ class Mamis_Shippit_Core {
         // Get key after the options have saved
         $currentApiKey = $this->s->getSetting('api_key');
         $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
+        $environment = $_POST['woocommerce_mamis_shippit_environment'];
 
         if (strcmp($newApiKey, $oldApiKey) != 0) {
-            $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey);
+            $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
         }
 
         if ($isValidApiKey) {
-            $this->register_webhook($newApiKey);
+            $this->register_webhook($newApiKey, $environment);
         }
     }
 
-    private function register_webhook($newApiKey)
+    private function register_webhook($newApiKey, $environment = null)
     {
         $this->api = new Mamis_Shippit_Api();
 
         // Set the api key temporarily to the requested key
         $this->api->setApiKey($newApiKey);
+
+        if (!empty($environment)) {
+            // use the environment passed
+            $this->api->setEnvironment($environment);
+        }
 
         $webhookUrl = get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $newApiKey;
 
@@ -309,7 +315,7 @@ class Mamis_Shippit_Core {
         }
     }
 
-    private function validate_apikey($newApiKey, $oldApiKey = null)
+    private function validate_apikey($newApiKey, $oldApiKey = null, $environment = null)
     {
         if (is_null($oldApiKey)) {
             $oldApiKey = $this->s->getSetting('api_key');
@@ -327,6 +333,11 @@ class Mamis_Shippit_Core {
         $this->api = new Mamis_Shippit_Api();
         // Set the api key temporarily to the requested key
         $this->api->setApiKey($newApiKey);
+
+        if (!empty($environment)) {
+            // use the environment passed
+            $this->api->setEnvironment($environment);
+        }
 
         try {
             $apiResponse = $this->api->getMerchant();
