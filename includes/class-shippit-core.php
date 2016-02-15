@@ -19,8 +19,19 @@ class Mamis_Shippit_Core {
     /**
      * Version.
      */
-    public $version = '1.1.0';
+    public $version = '1.1.1';
     public $id = 'mamis_shippit';
+
+    /**
+     * Webhook Error Messages.
+     */
+    const ERROR_API_KEY_MISSING = 'An API Key is required';
+    const ERROR_API_KEY_MISMATCH = 'The API Key provided does not match the configured API Key';
+    const ERROR_BAD_REQUEST = 'An invalid request was recieved';
+    const ERROR_ORDER_MISSING = 'The order id requested was not found or has an status that is not available for shipping';
+    const NOTICE_SHIPMENT_STATUS = 'Ignoring the order status update, as we only respond to ready_for_pickup state';
+    const ERROR_SHIPMENT_FAILED = 'The shipment record was not able to be created at this time, please try again.';
+    const SUCCESS_SHIPMENT_CREATED = 'The shipment record was created successfully.';
 
     /**
      * Instace of Mamis Shippit
@@ -160,20 +171,20 @@ class Mamis_Shippit_Core {
         // ensure an api key has been retrieved in the request
         if (empty($requestApiKey)) {
             wp_send_json_error(array(
-                'message' => 'An API Key is required'
+                'message' => self::ERROR_API_KEY_MISSING
             ));
         }
 
         // check that the request api key matches the stored api key
         if ($apiKey != $requestApiKey) {
             wp_send_json_error(array(
-                'message' => 'The API Key entered is incorrect'
+                'message' => self::ERROR_API_KEY_MISMATCH
             ));
         }
 
         if (empty($requestData)) {
             wp_send_json_error(array(
-                'message' => 'An invalid request was recieved'
+                'message' => self::ERROR_BAD_REQUEST
             ));
         }
 
@@ -183,13 +194,13 @@ class Mamis_Shippit_Core {
 
         if (empty($orderId)) {
             wp_send_json_error(array(
-                'message' => 'An order id was not recieved'
+                'message' => self::ERROR_ORDER_MISSING
             ));
         }
 
-        if (empty($orderStatus) || $orderStatus != 'completed') {
+        if (empty($orderStatus) || $orderStatus != 'ready_for_pickup') {
             wp_send_json_success(array(
-                'message' => 'Ignoring order status update, as we only look for completed state'
+                'message' => self::NOTICE_SHIPMENT_STATUS
             ));
         }
 
@@ -200,7 +211,7 @@ class Mamis_Shippit_Core {
         // Check if an order was found
         if (!$order) {
             wp_send_json_error(array(
-                'message' => 'The order was not found or is not in a processing state'
+                'message' => self::ERROR_ORDER_MISSING
             ));
         }
 
@@ -215,7 +226,7 @@ class Mamis_Shippit_Core {
         );
 
         wp_send_json_success(array(
-            'message' => 'Successfully updated the order'
+            'message' => self::SUCCESS_SHIPMENT_CREATED
         ));
     }
 
@@ -249,12 +260,13 @@ class Mamis_Shippit_Core {
         $currentApiKey = $this->s->getSetting('api_key');
         $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
         $environment = $_POST['woocommerce_mamis_shippit_environment'];
+        $isValidApiKey = null;
 
-        if (strcmp($newApiKey, $oldApiKey) != 0) {
+        if ($newApiKey != $oldApiKey) {
             $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
         }
 
-        if ($isValidApiKey) {
+        if ($isValidApiKey == true || is_null($isValidApiKey)) {
             $this->register_webhook($newApiKey, $environment);
         }
     }
