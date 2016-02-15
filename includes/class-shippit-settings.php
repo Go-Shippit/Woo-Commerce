@@ -30,7 +30,7 @@ class Mamis_Shippit_Settings {
             'enabled' => array(
                 'title' => __('Enabled', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'default' => 'No',
+                'default' => 'no',
                 'type' => 'select',
                 'options'  => array(
                     'no'  => __('No', 'woocommerce-shippit'),
@@ -46,11 +46,23 @@ class Mamis_Shippit_Settings {
                 'css'    => 'min-width:300px;',
             ),
 
+            'environment' => array(
+                'title'    => __('Environment', 'woocommerce-shippit'),
+                'class'    => 'wc-enhanced-select',
+                'css'      => 'min-width:300px;',
+                'default'  => 'live',
+                'type'     => 'select',
+                'options'  => array(
+                    'sandbox' => __('Sandbox', 'woocommerce-shippit'),
+                    'live' => __('Live', 'woocommerce-shippit'),
+                ),
+            ),
+
             'debug' => array(
                 'title'    => __('Debug', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
-                'default'  => 'No',
+                'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
                     'no'  => __('No', 'woocommerce-shippit'),
@@ -62,7 +74,7 @@ class Mamis_Shippit_Settings {
                 'title'    => __('Send All Orders to Shippit', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
-                'default'  => '',
+                'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
                     'no'  => __('No', 'woocommerce-shippit'),
@@ -130,7 +142,7 @@ class Mamis_Shippit_Settings {
                 'title'    => __('Filter by enabled products', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
-                'default'  => 'No',
+                'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
                     'no'  => __('No', 'woocommerce-shippit'),
@@ -150,7 +162,7 @@ class Mamis_Shippit_Settings {
                 'title'    => __('Filter by product attributes', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
                 'css'      => 'min-width:300px;',
-                'default'  => 'No',
+                'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
                     'no'  => __('No', 'woocommerce-shippit'),

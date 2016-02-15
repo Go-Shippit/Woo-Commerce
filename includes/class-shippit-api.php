@@ -16,7 +16,8 @@
 
 class Mamis_Shippit_Api
 {
-    const API_ENDPOINT = 'http://goshippit.herokuapp.com/api/3';
+    const API_ENDPOINT_LIVE = 'http://goshippit.herokuapp.com/api/3';
+    const API_ENDPOINT_STAGING = 'http://shippit-staging.herokuapp.com/api/3';
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
@@ -29,6 +30,7 @@ class Mamis_Shippit_Api
         $this->log = new Mamis_Shippit_Log();
         $this->apiKey = $this->settings->getSetting('api_key');
         $this->debug = $this->settings->getSetting('debug');
+        $this->environment = $this->settings->getSetting('environment');
     }
 
     private function getApiKey()
@@ -41,9 +43,19 @@ class Mamis_Shippit_Api
         return $this->apiKey = $apiKey;
     }
 
+    public function setEnvironment($environment)
+    {
+        return $this->environment = $environment;
+    }
+
     public function getApiUrl($path, $apiKey)
     {
-        return self::API_ENDPOINT . '/' . $path . '?auth_token=' . $apiKey;
+        if ( $this->environment == 'sandbox' ) {
+            return self::API_ENDPOINT_STAGING . '/' . $path . '?auth_token=' . $apiKey;
+        }
+        else {
+            return self::API_ENDPOINT_LIVE . '/' . $path . '?auth_token=' . $apiKey;
+        }
     }
 
     public function getApiArgs($requestData, $requestMethod)
@@ -58,7 +70,7 @@ class Mamis_Shippit_Api
             ),
         );
 
-        if ($requestMethod == "POST") {
+        if (!empty($requestData)) {
             $apiArgs['body'] = json_encode($requestData);
         }
 
@@ -84,7 +96,7 @@ class Mamis_Shippit_Api
         try {
             $response = wp_remote_request(
                 $url,
-                $this->getApiArgs($requestData, $requestMethod)
+                $args
             );
 
             $responseCode = wp_remote_retrieve_response_code($response);
@@ -141,5 +153,14 @@ class Mamis_Shippit_Api
     public function getMerchant()
     {
         return $this->call('merchant', null, $requestMethod = 'GET', false);
+    }
+
+    public function putMerchant($merchantData)
+    {
+        $requestData = array(
+            'merchant' => $merchantData
+        );
+
+        return $this->call('merchant', $requestData, $requestMethod = 'PUT');
     }
 }
