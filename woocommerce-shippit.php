@@ -2,13 +2,13 @@
 /*
  * Plugin Name:     WooCommerce Shippit
  * Description:     WooCommerce Shippit
- * Version:         1.1.1
- * Author:          Mamis
+ * Version:         1.1.2
+ * Author:          Shippit Pty Ltd
  * Author URL:      http://www.shippit.com
  * Text Domain:     woocommerce-shippit
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.1.1');
+define('MAMIS_SHIPPIT_VERSION', '1.1.2');
 
 include_once('includes/class-shippit-settings.php');
 include_once('includes/class-shippit-core.php');
