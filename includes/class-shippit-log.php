@@ -24,8 +24,8 @@ class Mamis_Shippit_Log
         $this->s = new Mamis_Shippit_Settings();
         $this->bugsnag = new Bugsnag_Client('b2873ea2ae95a3c9f2cb63ca1557abb5');
 
-        if ($this->bugnsag) {
-            $this->bugnsag->setAppVersion(MAMIS_SHIPPIT_VERSION);
+        if ($this->bugsnag) {
+            $this->bugsnag->setAppVersion(MAMIS_SHIPPIT_VERSION);
         }
     }
     

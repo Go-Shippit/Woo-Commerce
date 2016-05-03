@@ -14,12 +14,12 @@
 *  @license    http://www.mamis.com.au/licencing
 */
 
-class Mamis_Shippit_Core {
-
+class Mamis_Shippit_Core
+{
     /**
      * Version.
      */
-    public $version = '1.1.2';
+    public $version = '1.1.3';
     public $id = 'mamis_shippit';
 
     /**

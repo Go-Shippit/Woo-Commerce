@@ -109,7 +109,19 @@ class Mamis_Shippit_Api
             }
         }
         catch (Exception $e) {
-            $this->log->exception($e);
+            $metaData = array(
+                'url' => $url,
+                'requestData' => $requestData,
+                'responseData' => wp_remote_retrieve_body($response)
+            );
+
+            $this->log->exception($e, $metaData);
+            $this->log->add(
+                'SHIPPIT - API REQUEST ERROR',
+                $uri,
+                $metaData,
+                'error'
+            );
 
             return false;
         }
