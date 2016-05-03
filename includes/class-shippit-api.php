@@ -148,8 +148,13 @@ class Mamis_Shippit_Api
             'quote' => $quoteData
         );
 
-        return $this->call('quotes', $requestData)
-            ->response;
+        $quote = $this->call('quotes', $requestData);
+
+        if (!$quote) {
+            return false;
+        }
+            
+        return $quote->response;
     }
 
     public function sendOrder($orderData)
@@ -157,9 +162,14 @@ class Mamis_Shippit_Api
         $requestData = array(
             'order' => $orderData
         );
-        
-        return $this->call('orders', $requestData)
-            ->response;
+
+        $order = $this->call('orders', $requestData);
+
+        if (!$order) {
+            return false;
+        }
+            
+        return $order->response;
     }
 
     public function getMerchant()

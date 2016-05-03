@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.3';
+    public $version = '1.1.4';
     public $id = 'mamis_shippit';
 
     /**
@@ -122,7 +122,7 @@ class Mamis_Shippit_Core
         // Webhook functionality
         //**********************/
         
-        // create filter to get $_GET['shippit_api_key'] 
+        // create filter to get $_GET['shippit_api_key']
         add_filter('query_vars', array($this, 'add_query_vars'), 0);
 
         // handle API request if 'shippit_api_key' is set
@@ -400,12 +400,12 @@ class Mamis_Shippit_Core
     {
         if (!$isValid) {
             echo '<div class="error notice">'
-                . '<p>Shippit Webhook /shippit/shipment_create was not registered</p>'
+                . '<p>Shippit Webhook ' . get_site_url() . '/shippit/shipment_create was not registered</p>'
                 . '</div>';
         }
         else {
             echo '<div class="updated notice">'
-                . '<p>Shippit Webhook /shippit/shipment_create has now been registered</p>'
+                . '<p>Shippit Webhook ' . get_site_url() . '/shippit/shipment_create has now been registered</p>'
                 . '</div>';
         }
     }
