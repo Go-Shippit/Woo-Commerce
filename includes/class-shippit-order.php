@@ -72,7 +72,7 @@ class Mamis_Shippit_Order
         // Get the orders_item_id meta with key shipping
         $order = new WC_Order($orderId);
         $isShippitShippingMethod = $order->get_shipping_methods();
-        
+
         if ($sendAllOrders == 'yes' && $order->shipping_country == 'AU') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
@@ -88,8 +88,19 @@ class Mamis_Shippit_Order
     private function _isShippitShippingMethod($order)
     {
         $shippingMethods = $order->get_shipping_methods();
+        $mappedStandardShipping = $this->getShippingMethodMapping();
+        $mappedExpressShipping = $this->getShippingMethodMapping('express');
 
         foreach ($shippingMethods as $shippingMethod) {
+
+            if ( !empty($mappedStandardShipping) && in_array($shippingMethod['method_id'], $mappedStandardShipping) ) {
+                return true;
+            }
+
+            if ( !empty($mappedExpressShipping) && in_array($shippingMethod['method_id'], $mappedExpressShipping) ) {
+                return true;
+            }
+
             // Check if the shipping method chosen is Mamis_Shippit
             if ( strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE ) {
                 return true;
@@ -102,8 +113,21 @@ class Mamis_Shippit_Order
     private function _getShippingMethodId($order)
     {
         $shippingMethods = $order->get_shipping_methods();
+        $mappedStandardShipping = $this->getShippingMethodMapping();
+        $mappedExpressShipping = $this->getShippingMethodMapping('express');
 
         foreach ($shippingMethods as $shippingMethod) {
+
+            // Check if shipping method is mapped to standard
+            if ( !empty($mappedStandardShipping) && in_array($shippingMethod['method_id'], $mappedStandardShipping) ) {
+                return $shippingMethod['method_id'];
+            }
+
+            // Check if shipping method is mapped to express
+            if ( !empty($mappedExpressShipping) && in_array($shippingMethod['method_id'], $mappedExpressShipping) ) {
+                return $shippingMethod['method_id'];
+            }
+
             // Check if the shipping method chosen is Mamis_Shippit
             if ( strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE ) {
                 return $shippingMethod['method_id'];
@@ -155,6 +179,8 @@ class Mamis_Shippit_Order
         $order = new WC_Order($orderId);
         $orderItems = $order->get_items();
         $orderData = array();
+        $mappedStandardShipping = $this->getShippingMethodMapping();
+        $mappedExpressShipping = $this->getShippingMethodMapping('express');
 
         $isShippitShippingMethod = $this->_isShippitShippingMethod($order);
         $shippingMethodId = $this->_getShippingMethodId($order);
@@ -165,7 +191,17 @@ class Mamis_Shippit_Order
             $shippingOptions = explode('_', $shippingOptions);
 
             $orderData['courier_type'] = $shippingOptions[0];
-            
+
+            // If non shippit shipping method but mapped to standard
+            if (in_array($shippingMethodId, $mappedStandardShipping)) {
+                $orderData['courier_type'] = 'CouriersPlease';
+            }
+
+            // If non shippit shipping method but mapped to express
+            if (in_array($shippingMethodId, $mappedExpressShipping)) {
+               $orderData['courier_type'] = 'eparcelexpress';
+            }
+
             if (isset($shippingOptions[1])) {
                 $orderData['delivery_date'] = $shippingOptions[1];
             }
@@ -235,5 +271,29 @@ class Mamis_Shippit_Order
             $orderComment = 'Order Synced with Shippit. Tracking number: ' . $apiResponse->tracking_number . '.';
             $order->add_order_note($orderComment, 0);
         }
+    }
+
+    public function getShippingMethodMapping($type = null)
+    {
+        $mappings = array();
+
+        // Default to standard mapping
+        $values = $this->s->getSetting('standard_shipping_mapping');
+
+        if ($type == 'express') {
+            if(empty($this->s->getSetting('express_shipping_mapping'))) {
+                return $mappings;                
+            }
+
+            $values = $this->s->getSetting('express_shipping_mapping');
+        }
+
+        if (empty($values)) {
+            return $mappings;
+        }
+
+        $mappings = explode(',', $values);
+
+        return $mappings;
     }
 }

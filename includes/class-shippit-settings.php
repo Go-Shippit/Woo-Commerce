@@ -185,9 +185,73 @@ class Mamis_Shippit_Settings {
                 'type'     => 'text',
                 'css'      => 'min-width:300px;',
             ),
+
+            // @TODO: Figure out how to populate options using WC->Shipping
+
+            // 'standard_shipping_mapping' => array(
+            //     'title'    => __('Standard Shipping Method Mapping', 'woocommerce-shippit'),
+            //     'desc'     => '',
+            //     'type'     => 'multiselect',
+            //     'options'  => self::_getShippingMethods(),
+            //     'css'      => 'min-width:300px;',
+            // ),
+
+            // @TODO: Figure out how to populate options using WC->Shipping
+
+            // 'express_shipping_mapping1' => array(
+            //     'title'    => __('Express Shipping Method Mapping', 'woocommerce-shippit'),
+            //     'desc'     => '',
+            //     'type'     => 'multiselect',
+            //     'options'  => self::_getShippingMethods(),
+            //     'css'      => 'min-width:300px;',
+            // ),
+            'standard_shipping_mapping' => array(
+                'title'    => __('Standard Shipping Method Mapping', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'text',
+                'css'      => 'min-width:300px;',
+            ),
+            'express_shipping_mapping' => array(
+                'title'    => __('Express Shipping Method Mapping', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'text',
+                'css'      => 'min-width:300px;',
+            ),
+
         );
 
         return $fields;
+    }
+
+    // @TODO: Figure out how to populate options using WC->Shipping
+    private static function _getShippingMethods()
+    {
+        // $methods = array();
+
+        // $methods['free'] = 'Free Shipping';
+        // @TODO: ensure wc shipping is available
+        // if (!property_exists(WC(), 'shipping')) {
+        //     var_dump( get_object_vars( WC() ) );
+        //     return $methods;
+        //     throw new Exception('WC Shipping does not exist');
+        // }
+        
+        // $methods['free_shipping'] = 'Free';
+        
+        // $wooShipping = WC()->shipping->get_shipping_methods();
+
+        // $shipping_methods = WC()->shipping->get_shipping_methods();
+
+        // foreach ( $shipping_methods as $method ) {
+        //     if ( !$method->has_settings() ) {
+        //         continue;
+        //     }
+
+        //     $title = empty( $method->method_title ) ? ucfirst( $method->id ) : $method->method_title;
+        //     $methods[$method] = esc_html($title);
+        // }
+        
+        return $methods;
     }
 
     /**
