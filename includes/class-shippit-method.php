@@ -175,7 +175,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         foreach ($shippingQuote->quotes as $standardQuote) {
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,// . '_' . uniqid(),
-                'label' => 'Couriers Please',
+                'label' => 'Standard',
                 'cost'  => $standardQuote->price,
                 'taxes' => false,
             );
