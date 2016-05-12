@@ -190,28 +190,20 @@ class Mamis_Shippit_Order
 
         $orderData['receiver_contact_number'] = get_post_meta($orderId, '_billing_phone', true);
 
-        $itemsWeight = 0;
-        $itemsQty = 0;
-        
         if (sizeof($orderItems) > 0) {
             foreach ($orderItems as $orderItem) {
                 if ($orderItem['product_id'] > 0) {
                     $product = $order->get_product_from_item($orderItem);
 
                     if (!$product->is_virtual()) {
-                        $itemsWeight += $product->get_weight() * $orderItem['qty'];
-                        $itemsQty += $orderItem['qty'];
+                        $orderData['parcel_attributes'][] = array(
+                            'qty' => $orderItem['qty'],
+                            'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
+                        );
                     }
                 }
             }
         }
-
-        $orderData['parcel_attributes'] = array(
-            array(
-                'qty'     => $itemsQty,
-                'weight'  => $itemsWeight
-            )
-        );
 
         $authorityToLeave = get_post_meta($orderId, 'authority_to_leave', true);
         

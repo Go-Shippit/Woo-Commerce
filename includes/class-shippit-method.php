@@ -98,7 +98,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $allowedMethods = $this->s->getSetting('allowed_methods');
 
-        // Ensure we have a shipping method available for use 
+        // Ensure we have a shipping method available for use
         if (empty($allowedMethods)) {
             return;
         }
@@ -128,13 +128,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $dropoffPostcode = $quoteDestination['postcode'];
         $dropoffState = $quoteDestination['state'];
 
-        $qty = WC()->cart->cart_contents_count;
         $weight = WC()->cart->cart_contents_weight;
-        
-        if ($weight == 0) {
-            // override the weight to 1kg
-            $weight = 1;
-        }
 
         $quoteData = array(
             'order_date' => '', // get all available dates
@@ -143,8 +137,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'dropoff_state' => $dropoffState,
             'parcel_attributes' => array(
                 array(
-                    'qty' => $qty,
-                    'weight' => $weight
+                    'qty' => 1,
+                    'weight' => ($weight == 0 ? 0.2 : $weight)
                 )
             ),
         );

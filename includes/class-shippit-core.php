@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.5';
+    public $version = '1.1.6';
     public $id = 'mamis_shippit';
 
     /**
