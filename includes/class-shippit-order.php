@@ -124,9 +124,9 @@ class Mamis_Shippit_Order
             }
 
             // Check if shipping method is mapped to express
-            if (!empty($mappedExpressShipping)
-                && in_array($shippingMethod['method_id'], $mappedExpressShipping)) {
-                return 'eParcelExpress';
+            if (!empty($expressShippingMethods)
+                && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
+                return 'eparcelexpress';
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
