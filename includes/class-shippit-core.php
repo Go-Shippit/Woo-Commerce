@@ -19,8 +19,11 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.6';
+    public $version = '1.1.7';
     public $id = 'mamis_shippit';
+
+    // The shipping methods
+    protected static $shipping_methods;
 
     /**
      * Webhook Error Messages.
@@ -56,7 +59,7 @@ class Mamis_Shippit_Core
 
         $this->s = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
-        
+
         $this->init();
     }
 
@@ -130,7 +133,6 @@ class Mamis_Shippit_Core
         
         // create 'shippit/shipment_create' endpoint
         add_action('init', array($this, 'add_endpoint'), 0);
-
     }
 
     public function add_endpoint()
@@ -262,7 +264,7 @@ class Mamis_Shippit_Core
         $environment = $_POST['woocommerce_mamis_shippit_environment'];
         $isValidApiKey = null;
 
-        if ($newApiKey != $oldApiKey) {
+        if ($newApiKey != $currentApiKey) {
             $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
         }
 

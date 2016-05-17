@@ -14,9 +14,10 @@
 *  @license    http://www.mamis.com.au/licencing
 */
 
-class Mamis_Shippit_Settings {
-
+class Mamis_Shippit_Settings
+{
     private static $_settingsCache = null;
+    private static $_methodMappings = array();
 
     /**
      * Init fields.
@@ -43,13 +44,11 @@ class Mamis_Shippit_Settings {
                 'desc'   => '',
                 'name'   => 'api_key',
                 'type'   => 'text',
-                'css'    => 'min-width:300px;',
             ),
 
             'environment' => array(
                 'title'    => __('Environment', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => 'live',
                 'type'     => 'select',
                 'options'  => array(
@@ -61,7 +60,6 @@ class Mamis_Shippit_Settings {
             'debug' => array(
                 'title'    => __('Debug', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
@@ -73,7 +71,6 @@ class Mamis_Shippit_Settings {
             'send_all_orders' => array(
                 'title'    => __('Send All Orders to Shippit', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
@@ -87,13 +84,13 @@ class Mamis_Shippit_Settings {
                 'desc'     => '',
                 'type'     => 'text',
                 'default'  => 'Shippit',
-                'css'      => 'min-width:300px;',
             ),
 
             'allowed_methods' => array(
                 'title'    => __('Allowed Methods', 'woocommerce-shippit'),
                 'desc'     => '',
                 'id'       => 'allowed_methods',
+                'class'    => 'wc-enhanced-select',
                 'type'     => 'multiselect',
                 'default'  => array(
                     'standard',
@@ -103,14 +100,12 @@ class Mamis_Shippit_Settings {
                     'standard' => __('Standard', 'woocommerce-shippit'),
                     'premium'  => __('Premium', 'woocommerce-shippit'),
                 ),
-                'css'      => 'min-width:300px;',
             ),
 
             'max_timeslots' => array(
                 'title'    => __('Maximum Timeslots', 'woocommerce-shippit'),
                 'id'       => 'max_timeslots',
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => '',
                 'type'     => 'select',
                 'options'  => array(
@@ -141,7 +136,6 @@ class Mamis_Shippit_Settings {
             'filter_enabled' => array(
                 'title'    => __('Filter by enabled products', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
@@ -152,16 +146,15 @@ class Mamis_Shippit_Settings {
 
             'filter_enabled_products' => array(
                 'title'    => __('Enabled Products', 'woocommerce-shippit'),
+                'class'    => 'wc-enhanced-select',
                 'desc'     => '',
                 'type'     => 'multiselect',
                 'options'  => self::_getProducts(),
-                'css'      => 'min-width:300px;',
             ),
 
             'filter_attribute' => array(
                 'title'    => __('Filter by product attributes', 'woocommerce-shippit'),
                 'class'    => 'wc-enhanced-select',
-                'css'      => 'min-width:300px;',
                 'default'  => 'no',
                 'type'     => 'select',
                 'options'  => array(
@@ -176,87 +169,23 @@ class Mamis_Shippit_Settings {
                 'type'     => 'select',
                 'class'    => 'wc-enhanced-select',
                 'options'  => self::_getAttributes(),
-                'css'      => 'min-width:300px;',
             ),
 
             'filter_attribute_value' => array(
                 'title'    => __('Filter by attribute value', 'woocommerce-shippit'),
                 'desc'     => '',
                 'type'     => 'text',
-                'css'      => 'min-width:300px;',
             ),
-
-            // @TODO: Figure out how to populate options using WC->Shipping
-
-            // 'standard_shipping_mapping' => array(
-            //     'title'    => __('Standard Shipping Method Mapping', 'woocommerce-shippit'),
-            //     'desc'     => '',
-            //     'type'     => 'multiselect',
-            //     'options'  => self::_getShippingMethods(),
-            //     'css'      => 'min-width:300px;',
-            // ),
-
-            // @TODO: Figure out how to populate options using WC->Shipping
-
-            // 'express_shipping_mapping1' => array(
-            //     'title'    => __('Express Shipping Method Mapping', 'woocommerce-shippit'),
-            //     'desc'     => '',
-            //     'type'     => 'multiselect',
-            //     'options'  => self::_getShippingMethods(),
-            //     'css'      => 'min-width:300px;',
-            // ),
-            'standard_shipping_mapping' => array(
-                'title'    => __('Standard Shipping Method Mapping', 'woocommerce-shippit'),
-                'desc'     => '',
-                'type'     => 'text',
-                'css'      => 'min-width:300px;',
-            ),
-            'express_shipping_mapping' => array(
-                'title'    => __('Express Shipping Method Mapping', 'woocommerce-shippit'),
-                'desc'     => '',
-                'type'     => 'text',
-                'css'      => 'min-width:300px;',
-            ),
-
         );
+
+        self::loadMethodMappingSettings();
 
         return $fields;
     }
 
-    // @TODO: Figure out how to populate options using WC->Shipping
-    private static function _getShippingMethods()
-    {
-        // $methods = array();
-
-        // $methods['free'] = 'Free Shipping';
-        // @TODO: ensure wc shipping is available
-        // if (!property_exists(WC(), 'shipping')) {
-        //     var_dump( get_object_vars( WC() ) );
-        //     return $methods;
-        //     throw new Exception('WC Shipping does not exist');
-        // }
-        
-        // $methods['free_shipping'] = 'Free';
-        
-        // $wooShipping = WC()->shipping->get_shipping_methods();
-
-        // $shipping_methods = WC()->shipping->get_shipping_methods();
-
-        // foreach ( $shipping_methods as $method ) {
-        //     if ( !$method->has_settings() ) {
-        //         continue;
-        //     }
-
-        //     $title = empty( $method->method_title ) ? ucfirst( $method->id ) : $method->method_title;
-        //     $methods[$method] = esc_html($title);
-        // }
-        
-        return $methods;
-    }
-
     /**
      * Get products with id/name for a multiselect
-     * 
+     *
      * @return array     An associative array of product ids and name
      */
     private static function _getProducts()
@@ -306,5 +235,52 @@ class Mamis_Shippit_Settings {
         }
 
         return null;
+    }
+
+    public static function loadMethodMappingSettings() {
+        // Add a setting field to all shipping method setting pages
+        add_filter(
+            'woocommerce_settings_api_form_fields_mamis_shippit',
+            array('Mamis_Shippit_Settings', 'addMethodMappingSettings' ),
+            80
+        );
+    }
+     
+    public static function addMethodMappingSettings($fields)
+    {
+        $fields['standard_shipping_methods'] = array(
+            'title'    => __('Standard Shipping Methods', 'woocommerce-shippit'),
+            'desc'     => '',
+            'type'     => 'multiselect',
+            'options'  => self::_getShippingMethods(),
+            'class'    => 'wc-enhanced-select',
+        );
+
+        $fields['express_shipping_methods'] = array(
+            'title'    => __('Express Shipping Methods', 'woocommerce-shippit'),
+            'desc'     => '',
+            'type'     => 'multiselect',
+            'options'  => self::_getShippingMethods(),
+            'class'    => 'wc-enhanced-select',
+        );
+
+        return $fields;
+    }
+
+    private static function _getShippingMethods()
+    {
+        if (empty(self::$_methodMappings)) {
+            $shippingMethods = WC()->shipping()->load_shipping_methods();
+
+            foreach ($shippingMethods as $shippingMethod) {
+                if ($shippingMethod->id == 'mamis_shippit') {
+                    continue;
+                }
+
+                self::$_methodMappings[$shippingMethod->id] = $shippingMethod->title;
+            }
+        }
+
+        return self::$_methodMappings;
     }
 }

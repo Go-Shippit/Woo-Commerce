@@ -40,7 +40,9 @@ class Mamis_Shippit_Log
                 error_log(json_encode($metaData));
             }
 
-            $this->bugsnag->notifyError($errorType, $message, $metaData, $severity);
+            if ($this->bugsnag) {
+                $this->bugsnag->notifyError($errorType, $message, $metaData, $severity);
+            }
         }
     }
 
@@ -57,6 +59,9 @@ class Mamis_Shippit_Log
     public function exception($exception)
     {
         error_log($exception->getMessage());
-        $this->bugsnag->notifyException($exception);
+
+        if ($this->bugsnag) {
+            $this->bugsnag->notifyException($exception);
+        }
     }
 }

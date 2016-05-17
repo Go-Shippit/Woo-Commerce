@@ -45,6 +45,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         // Load the settings API
         $this->init_form_fields();
+        
         $this->init_settings();
     
         // *****************
@@ -64,8 +65,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     public function init_form_fields()
     {
-        // parent::init_form_fields();
-        $this->form_fields = Mamis_Shippit_Settings::getFields();
+
+        $this->form_fields = $this->s->getFields();
     }
 
     /**
