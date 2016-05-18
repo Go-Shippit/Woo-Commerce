@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.8';
+    public $version = '1.1.9';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -302,18 +302,8 @@ class Mamis_Shippit_Core
         try {
             $apiResponse = $this->api->putMerchant($requestData);
 
-            if (property_exists($apiResponse, 'error')) {
-                $this->log->add(
-                    'Registering Web Hook Response',
-                    'An error occurred during webhook register'
-                );
-
-                $this->show_webhook_notice(false);
-                
-                return false;
-            }
-            
-            if (property_exists($apiResponse, 'response')) {
+            if (!property_exists($apiResponse, 'error')
+                && property_exists($apiResponse, 'response')) {
                 $this->log->add(
                     'Registering Web Hook Response',
                     'Webhook Registration Successful'
@@ -322,6 +312,16 @@ class Mamis_Shippit_Core
                 $this->show_webhook_notice(true);
 
                 return true;
+            }
+            else {
+                $this->log->add(
+                    'Registering Web Hook Response',
+                    'An error occurred during webhook register'
+                );
+
+                $this->show_webhook_notice(false);
+                
+                return false;
             }
         }
         catch (Exception $e) {
