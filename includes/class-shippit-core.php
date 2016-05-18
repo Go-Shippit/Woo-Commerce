@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.7';
+    public $version = '1.1.8';
     public $id = 'mamis_shippit';
 
     // The shipping methods

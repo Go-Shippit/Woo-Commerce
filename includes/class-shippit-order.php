@@ -236,9 +236,10 @@ class Mamis_Shippit_Order
             $authorityToLeave = 'No';
         }
 
-        $orderData['delivery_postcode']        = $order->shipping_postcode;
+        $orderData['delivery_company']         = $order->shipping_company;
         $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
         $orderData['delivery_suburb']          = $order->shipping_city;
+        $orderData['delivery_postcode']        = $order->shipping_postcode;
         $orderData['delivery_state']           = $order->shipping_state;
         $orderData['delivery_instructions']    = $order->customer_message;
         $orderData['authority_to_leave']       = $authorityToLeave;

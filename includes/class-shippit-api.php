@@ -16,8 +16,8 @@
 
 class Mamis_Shippit_Api
 {
-    const API_ENDPOINT_LIVE = 'http://goshippit.herokuapp.com/api/3';
-    const API_ENDPOINT_STAGING = 'http://shippit-staging.herokuapp.com/api/3';
+    const API_ENDPOINT_LIVE = 'https://www.shippit.com/api/3';
+    const API_ENDPOINT_STAGING = 'http://staging.shippit.com/api/3';
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
@@ -64,7 +64,7 @@ class Mamis_Shippit_Api
             'blocking'     => true,
             'method'       => $requestMethod,
             'timeout'      => self::API_TIMEOUT,
-            'user-agent'   => self::API_USER_AGENT,
+            'user-agent'   => self::API_USER_AGENT . 'v' . MAMIS_SHIPPIT_VERSION,
             'headers'      => array(
                 'content-type' => 'application/json',
             ),
