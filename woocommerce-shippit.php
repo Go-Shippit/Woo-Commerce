@@ -2,20 +2,20 @@
 /*
  * Plugin Name:     WooCommerce Shippit
  * Description:     WooCommerce Shippit
- * Version:         1.1.9
+ * Version:         1.1.10
  * Author:          Shippit Pty Ltd
  * Author URL:      http://www.shippit.com
  * Text Domain:     woocommerce-shippit
  */
 
+define('MAMIS_SHIPPIT_VERSION', '1.1.10');
+
+// import core classes
+include_once('includes/class-shippit-settings.php');
+include_once('includes/class-shippit-core.php');
+
 function init_shippit_core()
 {
-    define('MAMIS_SHIPPIT_VERSION', '1.1.9');
-
-    // import core classes
-    include_once('includes/class-shippit-settings.php');
-    include_once('includes/class-shippit-core.php');
-    
     // import helper classes
     include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
