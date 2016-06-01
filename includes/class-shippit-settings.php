@@ -251,17 +251,19 @@ class Mamis_Shippit_Settings
         $fields['standard_shipping_methods'] = array(
             'title'    => __('Standard Shipping Methods', 'woocommerce-shippit'),
             'desc'     => '',
-            'type'     => 'multiselect',
-            'options'  => self::_getShippingMethods(),
-            'class'    => 'wc-enhanced-select',
+            'type'     => 'text',
+            // 'type'     => 'multiselect',
+            // 'options'  => self::_getShippingMethods(),
+            // 'class'    => 'wc-enhanced-select',
         );
 
         $fields['express_shipping_methods'] = array(
             'title'    => __('Express Shipping Methods', 'woocommerce-shippit'),
             'desc'     => '',
-            'type'     => 'multiselect',
-            'options'  => self::_getShippingMethods(),
-            'class'    => 'wc-enhanced-select',
+            'type'     => 'text',
+            // 'type'     => 'multiselect',
+            // 'options'  => self::_getShippingMethods(),
+            // 'class'    => 'wc-enhanced-select',
         );
 
         return $fields;
