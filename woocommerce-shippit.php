@@ -2,13 +2,13 @@
 /*
  * Plugin Name:     WooCommerce Shippit
  * Description:     WooCommerce Shippit
- * Version:         1.1.11
+ * Version:         1.1.12
  * Author:          Shippit Pty Ltd
  * Author URL:      http://www.shippit.com
  * Text Domain:     woocommerce-shippit
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.1.11');
+define('MAMIS_SHIPPIT_VERSION', '1.1.12');
 
 // import core classes
 include_once('includes/class-shippit-settings.php');
@@ -16,6 +16,8 @@ include_once('includes/class-shippit-core.php');
 
 function init_shippit_core()
 {
+    global $shippitOtherShippingMethods;
+
     // import helper classes
     include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
@@ -23,6 +25,16 @@ function init_shippit_core()
     include_once('includes/class-shippit-order.php');
 
     $shippit = Mamis_Shippit_Core::instance();
+
+    $shippingMethods = WC()->shipping()->load_shipping_methods();
+
+    foreach ($shippingMethods as $shippingMethod) {
+        if ($shippingMethod->id == 'mamis_shippit') {
+            continue;
+        }
+
+        $shippitOtherShippingMethods[$shippingMethod->id] = $shippingMethod->title;
+    }
 }
 
 // add shippit core functionality

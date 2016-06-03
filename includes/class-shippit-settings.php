@@ -16,8 +16,7 @@
 
 class Mamis_Shippit_Settings
 {
-    private static $_settingsCache = null;
-    private static $_methodMappings = array();
+    private $_settingsCache = null;
 
     /**
      * Init fields.
@@ -25,8 +24,11 @@ class Mamis_Shippit_Settings
      * Add fields to the Shippit settings page.
      *
      */
-    public static function getFields()
+    public function getFields()
     {
+        // @TODO: Review if possible to remove global var for php5.5 support
+        global $shippitOtherShippingMethods;
+
         $fields = array(
             'enabled' => array(
                 'title' => __('Enabled', 'woocommerce-shippit'),
@@ -149,7 +151,7 @@ class Mamis_Shippit_Settings
                 'class'    => 'wc-enhanced-select',
                 'desc'     => '',
                 'type'     => 'multiselect',
-                'options'  => self::_getProducts(),
+                'options'  => $this->_getProducts(),
             ),
 
             'filter_attribute' => array(
@@ -168,7 +170,7 @@ class Mamis_Shippit_Settings
                 'desc'     => '',
                 'type'     => 'select',
                 'class'    => 'wc-enhanced-select',
-                'options'  => self::_getAttributes(),
+                'options'  => $this->_getAttributes(),
             ),
 
             'filter_attribute_value' => array(
@@ -176,9 +178,23 @@ class Mamis_Shippit_Settings
                 'desc'     => '',
                 'type'     => 'text',
             ),
-        );
 
-        self::loadMethodMappingSettings();
+            'standard_shipping_methods' => array(
+                'title'    => __('Standard Shipping Methods', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'multiselect',
+                'options'  => $shippitOtherShippingMethods,
+                'class'    => 'wc-enhanced-select',
+            ),
+
+            'express_shipping_methods' => array(
+                'title'    => __('Express Shipping Methods', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'multiselect',
+                'options'  => $shippitOtherShippingMethods,
+                'class'    => 'wc-enhanced-select',
+            )
+        );
 
         return $fields;
     }
@@ -188,7 +204,7 @@ class Mamis_Shippit_Settings
      *
      * @return array     An associative array of product ids and name
      */
-    private static function _getProducts()
+    private function _getProducts()
     {
         $productArgs = array(
             'post_type' => 'product',
@@ -206,83 +222,36 @@ class Mamis_Shippit_Settings
         return $productOptions;
     }
 
-    public static function _getAttributes()
+    public function _getAttributes()
     {
         $productAttributes = array();
 
         $attributeTaxonomies = wc_get_attribute_taxonomies();
-        foreach($attributeTaxonomies as $tax) {
+
+        foreach ($attributeTaxonomies as $tax) {
             $productAttributes[$tax->attribute_name] = __($tax->attribute_name, 'woocommerce-shippit');
         }
+
         return $productAttributes;
     }
 
-    public static function getSettings()
+    public function getSettings()
     {
-        if (is_null(self::$_settingsCache)) {
-            self::$_settingsCache = get_option('woocommerce_mamis_shippit_settings');
+        if (is_null($this->_settingsCache)) {
+            $this->_settingsCache = get_option('woocommerce_mamis_shippit_settings');
         }
 
-        return self::$_settingsCache;
+        return $this->_settingsCache;
     }
 
-    public static function getSetting($key)
+    public function getSetting($key)
     {
-        $settings = self::getSettings();
+        $settings = $this->getSettings();
 
         if ( isset($settings[$key]) ) {
             return $settings[$key];
         }
 
         return null;
-    }
-
-    public static function loadMethodMappingSettings() {
-        // Add a setting field to all shipping method setting pages
-        add_filter(
-            'woocommerce_settings_api_form_fields_mamis_shippit',
-            array('Mamis_Shippit_Settings', 'addMethodMappingSettings' ),
-            80
-        );
-    }
-     
-    public static function addMethodMappingSettings($fields)
-    {
-        $fields['standard_shipping_methods'] = array(
-            'title'    => __('Standard Shipping Methods', 'woocommerce-shippit'),
-            'desc'     => '',
-            'type'     => 'text',
-            // 'type'     => 'multiselect',
-            // 'options'  => self::_getShippingMethods(),
-            // 'class'    => 'wc-enhanced-select',
-        );
-
-        $fields['express_shipping_methods'] = array(
-            'title'    => __('Express Shipping Methods', 'woocommerce-shippit'),
-            'desc'     => '',
-            'type'     => 'text',
-            // 'type'     => 'multiselect',
-            // 'options'  => self::_getShippingMethods(),
-            // 'class'    => 'wc-enhanced-select',
-        );
-
-        return $fields;
-    }
-
-    private static function _getShippingMethods()
-    {
-        if (empty(self::$_methodMappings)) {
-            $shippingMethods = WC()->shipping()->load_shipping_methods();
-
-            foreach ($shippingMethods as $shippingMethod) {
-                if ($shippingMethod->id == 'mamis_shippit') {
-                    continue;
-                }
-
-                self::$_methodMappings[$shippingMethod->id] = $shippingMethod->title;
-            }
-        }
-
-        return self::$_methodMappings;
     }
 }

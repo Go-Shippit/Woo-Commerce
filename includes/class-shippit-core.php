@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.11';
+    public $version = '1.1.12';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -302,7 +302,8 @@ class Mamis_Shippit_Core
         try {
             $apiResponse = $this->api->putMerchant($requestData);
 
-            if (!property_exists($apiResponse, 'error')
+            if ($apiResponse
+                && !property_exists($apiResponse, 'error')
                 && property_exists($apiResponse, 'response')) {
                 $this->log->add(
                     'Registering Web Hook Response',
