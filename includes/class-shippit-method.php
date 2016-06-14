@@ -43,8 +43,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function init()
     {
-        // Load the settings API
-        $this->init_form_fields();
+        // Load the settings form, but only when the settings form fields is required
+        add_filter('woocommerce_settings_api_form_fields_mamis_shippit', array($this, 'init_form_fields'));
         
         $this->init_settings();
     
@@ -65,8 +65,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     public function init_form_fields()
     {
-
         $this->form_fields = $this->s->getFields();
+
+        return $this->form_fields;
     }
 
     /**
@@ -226,6 +227,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         if ($this->s->getSetting('filter_enabled') == 'no') {
             return true;
+        }
+
+        if ($this->s->getSetting('filter_enabled_products') == null) {
+            return false;
         }
 
         $allowedProducts = $this->s->getSetting('filter_enabled_products');

@@ -215,7 +215,7 @@ class Mamis_Shippit_Settings
 
         $productOptions = array();
 
-        foreach($products as $product) {
+        foreach ($products as $product) {
             $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
         }
 
