@@ -89,6 +89,7 @@ class Mamis_Shippit_Order
         $shippingMethods = $order->get_shipping_methods();
         $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
         $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
+        $internationalShippingMethods = $this->s->getSetting('international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -98,6 +99,11 @@ class Mamis_Shippit_Order
 
             if (!empty($expressShippingMethods)
                 && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
+                return true;
+            }
+
+            if (!empty($internationalShippingMethods)
+                && in_array($shippingMethod['method_id'], $internationalShippingMethods)) {
                 return true;
             }
 
@@ -115,6 +121,7 @@ class Mamis_Shippit_Order
         $shippingMethods = $order->get_shipping_methods();
         $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
         $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
+        $internationalShippingMethods = $this->s->getSetting('international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             // Check if shipping method is mapped to standard
@@ -127,6 +134,12 @@ class Mamis_Shippit_Order
             if (!empty($expressShippingMethods)
                 && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
                 return 'eparcelexpress';
+            }
+
+            // Check if shipping method is mapped to international shipping
+            if (!empty($internationalShippingMethods)
+                && in_array($shippingMethod['method_id'], $internationalShippingMethods)) {
+                return 'Dhl';
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
@@ -222,7 +235,11 @@ class Mamis_Shippit_Order
 
                     if (!$product->is_virtual()) {
                         $orderData['parcel_attributes'][] = array(
+                            'sku' => $product->get_sku(),
+                            'title' => $product->get_title(),
                             'qty' => $orderItem['qty'],
+                            // @TODO: Check post meta to see if price / sale price / discount
+                            'price' => $product->get_sale_price(),
                             'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
                         );
                     }
@@ -238,6 +255,7 @@ class Mamis_Shippit_Order
 
         $orderData['delivery_company']         = $order->shipping_company;
         $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
+        $orderData['delivery_country_code']    = $order->shipping_country;
         $orderData['delivery_suburb']          = $order->shipping_city;
         $orderData['delivery_postcode']        = $order->shipping_postcode;
         $orderData['delivery_state']           = $order->shipping_state;
