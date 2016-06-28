@@ -72,7 +72,7 @@ class Mamis_Shippit_Order
         $order = new WC_Order($orderId);
         $isShippitShippingMethod = $order->get_shipping_methods();
 
-        if ($sendAllOrders == 'yes' && $order->shipping_country == 'AU') {
+        if ($sendAllOrders == 'yes') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
             $this->syncOrder($orderId);
