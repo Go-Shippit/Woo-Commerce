@@ -245,6 +245,19 @@ class Mamis_Shippit_Core
             $totalQty = $totalQty + $orderItem['qty'];
         }
 
+        // Remove any refunded items from shippable count
+        $totalQty = $totalQty - $wcOrder->get_total_qty_refunded();
+
+        // If mamis_shippit_shippable_items exist, update value to account for any refunded items
+        if (get_post_meta($orderId, '_mamis_shippit_shippable_items', true)) {
+            update_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty);
+        }
+
+        // If no items have been shipped previously set count to totalQty
+        else {
+            add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty, true);
+        }
+
         // Add count for how many items should be shippped
         add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty, true);
         $totalItemsShippable = get_post_meta($orderId, '_mamis_shippit_shippable_items', true);
@@ -265,11 +278,12 @@ class Mamis_Shippit_Core
 
         foreach ($requestItems as $requestItem) {
             foreach($orderItemsData as $orderItemData) {
-                // @TODO: Figure out how to check against variation products
                 // @TODO: Variation products need to have variation_id passed
                 if (property_exists($requestItem, 'variation_id')) {
+                    // If variation_id exists match against the sku and variation_id
                     if ($requestItem->sku == $orderItemData['sku'] && 
                         $requestItem->variation_id == $orderItemData['variation_id']) {
+                        // Check if a qty is being passed and is greater than 0
                         if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
                             $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
                             $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
@@ -277,10 +291,11 @@ class Mamis_Shippit_Core
                     }
                 }
 
-                // If there is no variation_id present do a check against the sku
+                // If there is no variation_id present match against the sku only
                 else {
                     if ($requestItem->sku == $orderItemData['sku']) {
-                        if (property_exists($requestItem, 'qty') && $requestItem->qty) {
+                        // Check if a qty is being passed and is greater than 0
+                        if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
                             $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
                             $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
                         }
@@ -299,14 +314,14 @@ class Mamis_Shippit_Core
         // If all items have been shipped, change the order status to completed
         // @TODO: Should be checking for exact amount shipped ? or greater than
         if ($totalItemsShippable >= $totalItemsShipped) {
-            $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
+            // $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
 
-            add_action(
-                'woocommerce_order_status_completed_notification',
-                'action_woocommerce_order_status_completed_notification',
-                10,
-                2
-            );
+            // add_action(
+            //     'woocommerce_order_status_completed_notification',
+            //     'action_woocommerce_order_status_completed_notification',
+            //     10,
+            //     2
+            // );
 
             wp_send_json_success(array(
                 'message' => self::SUCCESS_SHIPMENT_CREATED
