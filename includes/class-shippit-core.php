@@ -220,15 +220,16 @@ class Mamis_Shippit_Core
         $wcOrder = wc_get_order($orderId);
 
         // Don't update status unless all items are shipped
-        // $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
-
+        
         // Grab item details from order
         $orderItems = $wcOrder->get_items();
         $orderItemsData = array();
         
         // Grab item details from request data
         $requestItems = $requestData->products;
-       
+        
+        $totalQty = 0;
+
         // Create new array that holds the products in the order with required data
         foreach ($orderItems as $orderItem) {
             // SKU not stored in get_items so need to create new WC_Product
@@ -238,34 +239,63 @@ class Mamis_Shippit_Core
                 'sku' => $product->get_sku(),
                 'qty' => $orderItem['qty']
             );
+
+            // Count how many total items have been ordered
+            $totalQty = $totalQty + $orderItem['qty'];
         }
+
+        // Add count for how many items should be shippped
+        add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty, true);
+        $totalItemsShippable = get_post_meta($orderId, '_mamis_shippit_shippable_items', true);
 
         // Add order comment when items are shipped
         $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';       
         
+        // Check for count of items that have been shipped
+        if (get_post_meta($orderId, '_mamis_shippit_shipped_items', true)) {
+            $totalItemsShipped = get_post_meta($orderId, '_mamis_shippit_shipped_items', true);
+        }
+
+        // If no items have been shipped previously set count to 0
+        else {
+            add_post_meta($orderId, '_mamis_shippit_shipped_items', 0, true);
+            $totalItemsShipped = 0;
+        }
+
         foreach ($requestItems as $requestItem) {
             foreach($orderItemsData as $orderItemData) {
                 if ($requestItem->sku == $orderItemData['sku']) {
-                    if(property_exists($requestItem, 'qty') && $requestItem->qty) {
+                    if (property_exists($requestItem, 'qty') && $requestItem->qty) {
                         $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
+                        $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
                     }
                 }
             }
         }
 
+        // Update items shipped total
+        update_post_meta($orderId, '_mamis_shippit_shipped_items', $totalItemsShipped);
+
+        // Add order comment for shipped items
         $order = new WC_Order($orderId);
         $order->add_order_note($orderComment, 0);
 
-        add_action(
-            'woocommerce_order_status_completed_notification',
-            'action_woocommerce_order_status_completed_notification',
-            10,
-            2
-        );
+        // If all items have been shipped, change the order status to completed
+        // @TODO: Should be checking for exact amount shipped ? or greater than
+        if ($totalItemsShippable >= $totalItemsShipped) {
+            $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
 
-        wp_send_json_success(array(
-            'message' => self::SUCCESS_SHIPMENT_CREATED
-        ));
+            add_action(
+                'woocommerce_order_status_completed_notification',
+                'action_woocommerce_order_status_completed_notification',
+                10,
+                2
+            );
+
+            wp_send_json_success(array(
+                'message' => self::SUCCESS_SHIPMENT_CREATED
+            ));
+        }
     }
 
     public function get_order($orderId, $orderStatus = null)
