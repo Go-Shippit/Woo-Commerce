@@ -237,7 +237,8 @@ class Mamis_Shippit_Core
             $orderItemsData[] = array (
                 'name' => $orderItem['name'],
                 'sku' => $product->get_sku(),
-                'qty' => $orderItem['qty']
+                'qty' => $orderItem['qty'],
+                'variation_id' => $orderItem['variation_id']
             );
 
             // Count how many total items have been ordered
@@ -264,10 +265,25 @@ class Mamis_Shippit_Core
 
         foreach ($requestItems as $requestItem) {
             foreach($orderItemsData as $orderItemData) {
-                if ($requestItem->sku == $orderItemData['sku']) {
-                    if (property_exists($requestItem, 'qty') && $requestItem->qty) {
-                        $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
-                        $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
+                // @TODO: Figure out how to check against variation products
+                // @TODO: Variation products need to have variation_id passed
+                if (property_exists($requestItem, 'variation_id')) {
+                    if ($requestItem->sku == $orderItemData['sku'] && 
+                        $requestItem->variation_id == $orderItemData['variation_id']) {
+                        if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
+                            $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
+                            $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
+                        }
+                    }
+                }
+
+                // If there is no variation_id present do a check against the sku
+                else {
+                    if ($requestItem->sku == $orderItemData['sku']) {
+                        if (property_exists($requestItem, 'qty') && $requestItem->qty) {
+                            $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
+                            $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
+                        }
                     }
                 }
             }

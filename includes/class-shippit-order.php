@@ -236,6 +236,7 @@ class Mamis_Shippit_Order
                     if (!$product->is_virtual()) {
                         $orderData['parcel_attributes'][] = array(
                             'sku' => $product->get_sku(),
+                            'variation_id' => $product->get_variation_id(),
                             'title' => $product->get_title(),
                             'qty' => $orderItem['qty'],
                             // Price paid for item = get_item_subtotal
