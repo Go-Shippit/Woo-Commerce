@@ -233,8 +233,17 @@ class Mamis_Shippit_Core
 
         // Create new array that holds the products in the order with required data
         foreach ($orderItems as $orderItem) {
+
             // SKU not stored in get_items so need to create new WC_Product
-            $product = new WC_Product($orderItem['product_id']);
+            // If item is a variation use variation_id in product call
+            if ($orderItem['variation_id']) {
+                $product = new WC_Product($orderItem['variation_id']);
+            }
+
+            else {        
+                $product = new WC_Product($orderItem['product_id']);
+            }
+
             $orderItemsData[] = array (
                 'name' => $orderItem['name'],
                 'sku' => $product->get_sku(),
@@ -274,14 +283,24 @@ class Mamis_Shippit_Core
         $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';       
 
         foreach ($requestItems as $requestItem) {
+            $skuData = explode('|', $requestItem->sku);
+
+            // Grab the variation_id at the end of the sku name
+            $productVariationId = end($skuData);
+
+            // Remove variation id from sku name
+            array_pop($skuData);
+
+            // Implode sku name back together
+            $productSku = array(implode('|',$skuData));
+
             foreach($orderItemsData as $orderItemData) {
 
-                // @TODO: Variation products need to have variation_id passed
-                if (property_exists($requestItem, 'variation_id')) {
-
-                    // If variation_id exists match against the sku and variation_id
-                    if ($requestItem->sku == $orderItemData['sku'] && 
-                        $requestItem->variation_id == $orderItemData['variation_id']) {
+                // If product is a variation, match sku and variation_id
+                if ($productVariationId) {
+                    
+                    if ($productSku[0] == $orderItemData['sku'] &&
+                        $productVariationId == $orderItemData['variation_id']) {
 
                         // Check if a qty is being passed and is greater than 0
                         if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
@@ -291,15 +310,12 @@ class Mamis_Shippit_Core
                     }
                 }
 
-                // If there is no variation_id present match against the sku only
-                else {
-                    if ($requestItem->sku == $orderItemData['sku']) {
-
-                        // Check if a qty is being passed and is greater than 0
-                        if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
-                            $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
-                            $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
-                        }
+                // Else match only against the sku
+                elseif ($requestItem->sku == $orderItemData['sku']) {
+                    // Check if a qty is being passed and is greater than 0
+                    if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
+                        $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
+                        $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
                     }
                 }
             }

@@ -234,9 +234,18 @@ class Mamis_Shippit_Order
                     $product = $order->get_product_from_item($orderItem);
 
                     if (!$product->is_virtual()) {
+
+                        // Append sku with variation_id if it exists
+                        if($product->get_variation_id()) {
+                            $productSku = $product->get_sku() . '|' . $product->get_variation_id();
+                        }
+
+                        else {
+                            $productSku = $product->get_sku();
+                        }
+
                         $orderData['parcel_attributes'][] = array(
-                            'sku' => $product->get_sku(),
-                            'variation_id' => $product->get_variation_id(),
+                            'sku' => $productSku,
                             'title' => $product->get_title(),
                             'qty' => $orderItem['qty'],
                             // Price paid for item = get_item_subtotal
