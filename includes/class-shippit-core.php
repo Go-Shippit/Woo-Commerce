@@ -218,7 +218,43 @@ class Mamis_Shippit_Core
         }
 
         $wcOrder = wc_get_order($orderId);
-        $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
+
+        // Don't update status unless all items are shipped
+        // $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
+
+        // Grab item details from order
+        $orderItems = $wcOrder->get_items();
+        $orderItemsData = array();
+        
+        // Grab item details from request data
+        $requestItems = $requestData->products;
+       
+        // Create new array that holds the products in the order with required data
+        foreach ($orderItems as $orderItem) {
+            // SKU not stored in get_items so need to create new WC_Product
+            $product = new WC_Product($orderItem['product_id']);
+            $orderItemsData[] = array (
+                'name' => $orderItem['name'],
+                'sku' => $product->get_sku(),
+                'qty' => $orderItem['qty']
+            );
+        }
+
+        // Add order comment when items are shipped
+        $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';       
+        
+        foreach ($requestItems as $requestItem) {
+            foreach($orderItemsData as $orderItemData) {
+                if ($requestItem->sku == $orderItemData['sku']) {
+                    if(property_exists($requestItem, 'qty') && $requestItem->qty) {
+                        $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
+                    }
+                }
+            }
+        }
+
+        $order = new WC_Order($orderId);
+        $order->add_order_note($orderComment, 0);
 
         add_action(
             'woocommerce_order_status_completed_notification',

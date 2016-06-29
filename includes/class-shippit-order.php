@@ -238,8 +238,8 @@ class Mamis_Shippit_Order
                             'sku' => $product->get_sku(),
                             'title' => $product->get_title(),
                             'qty' => $orderItem['qty'],
-                            // @TODO: Check post meta to see if price / sale price / discount
-                            'price' => $product->get_sale_price(),
+                            // Price paid for item = get_item_subtotal
+                            'price' => $order->get_item_subtotal($orderItem),
                             'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
                         );
                     }
