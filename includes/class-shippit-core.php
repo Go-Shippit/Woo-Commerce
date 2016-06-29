@@ -228,7 +228,8 @@ class Mamis_Shippit_Core
         // Grab item details from request data
         $requestItems = $requestData->products;
         
-        $totalQty = 0;
+        // Store how many items are shippable
+        $totalItemsShippable = 0;
 
         // Create new array that holds the products in the order with required data
         foreach ($orderItems as $orderItem) {
@@ -242,29 +243,22 @@ class Mamis_Shippit_Core
             );
 
             // Count how many total items have been ordered
-            $totalQty = $totalQty + $orderItem['qty'];
+            $totalItemsShippable = $totalItemsShippable + $orderItem['qty'];
         }
 
         // Remove any refunded items from shippable count
-        $totalQty = $totalQty - $wcOrder->get_total_qty_refunded();
+        $totalItemsShippable = $totalItemsShippable - $wcOrder->get_total_qty_refunded();
 
-        // If mamis_shippit_shippable_items exist, update value to account for any refunded items
+        // If mamis_shippit_shippable_items exists, update value to account for any refunded items
         if (get_post_meta($orderId, '_mamis_shippit_shippable_items', true)) {
-            update_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty);
+            update_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable);
         }
 
-        // If no items have been shipped previously set count to totalQty
+        // If no items have been shipped previously set count to totalItemsShippable
         else {
-            add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty, true);
+            add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable, true);
         }
-
-        // Add count for how many items should be shippped
-        add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalQty, true);
-        $totalItemsShippable = get_post_meta($orderId, '_mamis_shippit_shippable_items', true);
-
-        // Add order comment when items are shipped
-        $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';       
-        
+   
         // Check for count of items that have been shipped
         if (get_post_meta($orderId, '_mamis_shippit_shipped_items', true)) {
             $totalItemsShipped = get_post_meta($orderId, '_mamis_shippit_shipped_items', true);
@@ -276,13 +270,19 @@ class Mamis_Shippit_Core
             $totalItemsShipped = 0;
         }
 
+        // Add order comment for when items are shipped
+        $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';       
+
         foreach ($requestItems as $requestItem) {
             foreach($orderItemsData as $orderItemData) {
+
                 // @TODO: Variation products need to have variation_id passed
                 if (property_exists($requestItem, 'variation_id')) {
+
                     // If variation_id exists match against the sku and variation_id
                     if ($requestItem->sku == $orderItemData['sku'] && 
                         $requestItem->variation_id == $orderItemData['variation_id']) {
+
                         // Check if a qty is being passed and is greater than 0
                         if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
                             $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
@@ -294,6 +294,7 @@ class Mamis_Shippit_Core
                 // If there is no variation_id present match against the sku only
                 else {
                     if ($requestItem->sku == $orderItemData['sku']) {
+
                         // Check if a qty is being passed and is greater than 0
                         if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
                             $orderComment .= $requestItem->qty . ' of ' . $requestItem->title . '<br>';
@@ -313,7 +314,7 @@ class Mamis_Shippit_Core
 
         // If all items have been shipped, change the order status to completed
         // @TODO: Should be checking for exact amount shipped ? or greater than
-        if ($totalItemsShippable >= $totalItemsShipped) {
+        if ($totalItemsShipped >= $totalItemsShippable) {
             $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
 
             add_action(
@@ -327,6 +328,11 @@ class Mamis_Shippit_Core
                 'message' => self::SUCCESS_SHIPMENT_CREATED
             ));
         }
+
+        // @TODO: Create partially shipped message
+        wp_send_json_success(array(
+            'message' => 'Partial shipment created successfully'
+        ));
     }
 
     public function get_order($orderId, $orderStatus = null)
