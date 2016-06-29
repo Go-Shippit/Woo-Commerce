@@ -314,14 +314,14 @@ class Mamis_Shippit_Core
         // If all items have been shipped, change the order status to completed
         // @TODO: Should be checking for exact amount shipped ? or greater than
         if ($totalItemsShippable >= $totalItemsShipped) {
-            // $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
+            $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
 
-            // add_action(
-            //     'woocommerce_order_status_completed_notification',
-            //     'action_woocommerce_order_status_completed_notification',
-            //     10,
-            //     2
-            // );
+            add_action(
+                'woocommerce_order_status_completed_notification',
+                'action_woocommerce_order_status_completed_notification',
+                10,
+                2
+            );
 
             wp_send_json_success(array(
                 'message' => self::SUCCESS_SHIPMENT_CREATED
