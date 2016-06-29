@@ -236,7 +236,7 @@ class Mamis_Shippit_Order
                     if (!$product->is_virtual()) {
 
                         // Append sku with variation_id if it exists
-                        if($product->get_variation_id()) {
+                        if($product->product_type == 'variation') {
                             $productSku = $product->get_sku() . '|' . $product->get_variation_id();
                         }
 
