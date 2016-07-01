@@ -184,7 +184,6 @@ class Mamis_Shippit_Order
         );
 
         // Get all woocommerce orders that are processing
-
         $orderPosts = get_posts($orderPostArg);
 
         foreach ($orderPosts as $orderPost) {
@@ -211,6 +210,7 @@ class Mamis_Shippit_Order
             if (isset($shippingOptions[1])) {
                 $orderData['delivery_date'] = $shippingOptions[1];
             }
+
             if (isset($shippingOptions[2])) {
                 $orderData['delivery_window'] = $shippingOptions[2];
             }
@@ -239,12 +239,10 @@ class Mamis_Shippit_Order
                     $product = $order->get_product_from_item($orderItem);
 
                     if (!$product->is_virtual()) {
-
                         // Append sku with variation_id if it exists
-                        if($product->product_type == 'variation') {
+                        if ($product->product_type == 'variation') {
                             $productSku = $product->get_sku() . '|' . $product->get_variation_id();
                         }
-
                         else {
                             $productSku = $product->get_sku();
                         }
@@ -253,7 +251,6 @@ class Mamis_Shippit_Order
                             'sku' => $productSku,
                             'title' => $product->get_title(),
                             'qty' => $orderItem['qty'],
-                            // Price paid for item = get_item_subtotal
                             'price' => $order->get_item_subtotal($orderItem),
                             'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
                         );
@@ -271,9 +268,9 @@ class Mamis_Shippit_Order
         $orderData['delivery_company']         = $order->shipping_company;
         $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
         $orderData['delivery_country_code']    = $order->shipping_country;
-        $orderData['delivery_suburb']          = $order->shipping_city;
-        $orderData['delivery_postcode']        = $order->shipping_postcode;
         $orderData['delivery_state']           = $order->shipping_state;
+        $orderData['delivery_postcode']        = $order->shipping_postcode;
+        $orderData['delivery_suburb']          = $order->shipping_city;
         $orderData['delivery_instructions']    = $order->customer_message;
         $orderData['authority_to_leave']       = $authorityToLeave;
         $orderData['retailer_invoice']         = $order->get_order_number();
