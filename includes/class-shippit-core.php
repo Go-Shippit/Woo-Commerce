@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.1.13';
+    public $version = '1.2.0';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -218,14 +218,121 @@ class Mamis_Shippit_Core
         }
 
         $wcOrder = wc_get_order($orderId);
-        $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
 
-        add_action(
-            'woocommerce_order_status_completed_notification',
-            'action_woocommerce_order_status_completed_notification',
-            10,
-            2
-        );
+        // Don't update status unless all items are shipped
+        
+        // Grab item details from order
+        $orderItems = $wcOrder->get_items();
+        $orderItemsData = array();
+        
+        // Grab item details from request data
+        $requestItems = $requestData->products;
+        
+        // Store how many items are shippable
+        $totalItemsShippable = 0;
+
+        // Create new array that holds the products in the order with required data
+        foreach ($orderItems as $orderItem) {
+            // SKU not stored in get_items so need to create new WC_Product
+            // If item is a variation use variation_id in product call
+            if ($orderItem['variation_id']) {
+                $product = new WC_Product($orderItem['variation_id']);
+            }
+            else {
+                $product = new WC_Product($orderItem['product_id']);
+            }
+
+            $orderItemsData[] = array (
+                'name' => $orderItem['name'],
+                'sku' => $product->get_sku(),
+                'qty' => $orderItem['qty'],
+                'variation_id' => $orderItem['variation_id']
+            );
+
+            // Count how many total items have been ordered
+            $totalItemsShippable = $totalItemsShippable + $orderItem['qty'];
+        }
+
+        // Remove any refunded items from shippable count
+        $totalItemsShippable = $totalItemsShippable - $wcOrder->get_total_qty_refunded();
+
+        // If mamis_shippit_shippable_items exists, update value to account for any refunded items
+        if (get_post_meta($orderId, '_mamis_shippit_shippable_items', true)) {
+            update_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable);
+        }
+        // If no items have been shipped previously set count to totalItemsShippable
+        else {
+            add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable, true);
+        }
+   
+        // Check for count of items that have been shipped
+        if (get_post_meta($orderId, '_mamis_shippit_shipped_items', true)) {
+            $totalItemsShipped = get_post_meta($orderId, '_mamis_shippit_shipped_items', true);
+        }
+
+        // If no items have been shipped previously set count to 0
+        else {
+            add_post_meta($orderId, '_mamis_shippit_shipped_items', 0, true);
+            $totalItemsShipped = 0;
+        }
+
+        // Add order comment for when items are shipped
+        $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';
+
+        foreach ($requestItems as $requestItem) {
+            $skuData = explode('|', $requestItem->sku);
+
+            // Grab the variation_id at the end of the sku name
+            $productVariationId = end($skuData);
+
+            // Remove variation id from sku name
+            array_pop($skuData);
+
+            // Implode sku name back together
+            $productSku = array(implode('|',$skuData));
+
+            foreach ($orderItemsData as $orderItemData) {
+                // If the product is a variation, match sku and variation_id
+                if ($productVariationId) {
+                    if ($productSku[0] == $orderItemData['sku'] &&
+                        $productVariationId == $orderItemData['variation_id']) {
+
+                        // Check if a qty is being passed and is greater than 0
+                        if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
+                            $orderComment .= $requestItem->qty . 'x of ' . $requestItem->title . '<br>';
+                            $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
+                        }
+                    }
+                }
+                // Else match only against the sku
+                elseif ($requestItem->sku == $orderItemData['sku']) {
+                    // Check if a qty is being passed and is greater than 0
+                    if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
+                        $orderComment .= $requestItem->qty . 'x of ' . $requestItem->title . '<br>';
+                        $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
+                    }
+                }
+            }
+        }
+
+        // Update items shipped total
+        update_post_meta($orderId, '_mamis_shippit_shipped_items', $totalItemsShipped);
+
+        // Add order comment for shipped items
+        $order = new WC_Order($orderId);
+        $order->add_order_note($orderComment, 0);
+
+        // If all items have been shipped, change the order status to completed
+        if ($totalItemsShipped >= $totalItemsShippable) {
+            $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
+
+            add_action(
+                'woocommerce_order_status_completed_notification',
+                'action_woocommerce_order_status_completed_notification',
+                10,
+                2
+            );
+        }
 
         wp_send_json_success(array(
             'message' => self::SUCCESS_SHIPMENT_CREATED

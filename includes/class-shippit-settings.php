@@ -193,6 +193,14 @@ class Mamis_Shippit_Settings
                 'type'     => 'multiselect',
                 'options'  => $shippitOtherShippingMethods,
                 'class'    => 'wc-enhanced-select',
+            ),
+
+            'international_shipping_methods' => array(
+                'title'    => __('International Shipping Methods', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'multiselect',
+                'options'  => $shippitOtherShippingMethods,
+                'class'    => 'wc-enhanced-select',
             )
         );
 
