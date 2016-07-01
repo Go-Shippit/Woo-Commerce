@@ -118,6 +118,11 @@ class Mamis_Shippit_Order
 
     private function _getShippingMethodId($order)
     {
+        // If the country is other than AU, use international
+        if ($order->shipping_country != 'AU') {
+            return 'Dhl';
+        }
+
         $shippingMethods = $order->get_shipping_methods();
         $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
         $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
@@ -272,6 +277,11 @@ class Mamis_Shippit_Order
         $orderData['delivery_instructions']    = $order->customer_message;
         $orderData['authority_to_leave']       = $authorityToLeave;
         $orderData['retailer_invoice']         = $order->get_order_number();
+
+        // If no state has been provided, use the suburb
+        if (empty($orderData['delivery_state'])) {
+            $orderData['delivery_state'] = $orderData['delivery_suburb'];
+        }
 
         // Send the API request
         $apiResponse = $this->api->sendOrder($orderData);
