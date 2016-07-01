@@ -60,6 +60,14 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.0 =
+
+* Enables international orders to be sent to Shippit
+* Allow for shipping methods to be mapped to "international"
+* Add item level details to the order sync data (name, qty, price, weight)
+* Add item level receive logic to the webhook sync logic
+** Includes support for partial shipping and product variations
+
 = 1.1.13 =
 
 * Fix an issue whereby the settings form fields logic would load whenever the page being loaded involved the shippit shipping method, settings are now loaded only on the settings page
