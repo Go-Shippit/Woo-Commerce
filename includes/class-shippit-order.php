@@ -50,8 +50,6 @@ class Mamis_Shippit_Order
 
     /**
      * Add a pending sync
-     *
-     * Called when an order moves into the "processing" state
      * 
      * @param  int     $orderId    The Order Id
      * @return boolean              True or false
@@ -70,6 +68,12 @@ class Mamis_Shippit_Order
 
         // Get the orders_item_id meta with key shipping
         $order = new WC_Order($orderId);
+
+        // Only add the order as pending when it's in a "processing" status
+        if (!$order->has_status('processing')) {
+            return;
+        }
+
         $isShippitShippingMethod = $order->get_shipping_methods();
 
         if ($sendAllOrders == 'yes') {

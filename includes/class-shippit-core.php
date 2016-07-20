@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.2.0';
+    public $version = '1.2.1';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -96,9 +96,11 @@ class Mamis_Shippit_Core
         // *****************
         
         $order = new Mamis_Shippit_Order;
-        // add order processing event
+        // If a new order is recieved, add pending sync
+        add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
+        // If a order transitions into "processing", add pending sync
         add_action('woocommerce_order_status_processing', array($order, 'addPendingSync'));
-        // If the order is changed from any state to on-hold check if mamis_shippit_sync exists
+        // If the order transition into "on-hold", remove pending sync
         add_action('woocommerce_order_status_on-hold', array($order, 'removePendingSync'));
 
         // *****************
