@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.2 =
+
+* Update staging to use secure staging api endpoint
+
 = 1.2.1 =
 
 * Adds support for orders initially created in a processing state to be synced

@@ -1,25 +1,25 @@
 <?php
 /**
-*  Mamis.IT
-*
-*  NOTICE OF LICENSE
-*
-*  This source file is subject to the EULA
-*  that is available through the world-wide-web at this URL:
-*  http://www.mamis.com.au/licencing
-*
-*  @category   Mamis
-*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
-*  @author     Matthew Muscat <matthew@mamis.com.au>
-*  @license    http://www.mamis.com.au/licencing
-*/
+ * Mamis.IT
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is available through the world-wide-web at this URL:
+ * http://www.mamis.com.au/licencing
+ *
+ * @category   Mamis
+ * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @author     Matthew Muscat <matthew@mamis.com.au>
+ * @license    http://www.mamis.com.au/licencing
+ */
 
 class Mamis_Shippit_Core
 {
     /**
      * Version.
      */
-    public $version = '1.2.1';
+    public $version = '1.2.2';
     public $id = 'mamis_shippit';
 
     // The shipping methods

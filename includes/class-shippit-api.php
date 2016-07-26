@@ -1,23 +1,23 @@
 <?php
 /**
-*  Mamis.IT
-*
-*  NOTICE OF LICENSE
-*
-*  This source file is subject to the EULA
-*  that is available through the world-wide-web at this URL:
-*  http://www.mamis.com.au/licencing
-*
-*  @category   Mamis
-*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
-*  @author     Matthew Muscat <matthew@mamis.com.au>
-*  @license    http://www.mamis.com.au/licencing
-*/
+ * Mamis.IT
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is available through the world-wide-web at this URL:
+ * http://www.mamis.com.au/licencing
+ *
+ * @category   Mamis
+ * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @author     Matthew Muscat <matthew@mamis.com.au>
+ * @license    http://www.mamis.com.au/licencing
+ */
 
 class Mamis_Shippit_Api
 {
     const API_ENDPOINT_LIVE = 'https://www.shippit.com/api/3';
-    const API_ENDPOINT_STAGING = 'http://staging.shippit.com/api/3';
+    const API_ENDPOINT_STAGING = 'https://staging.shippit.com/api/3';
     const API_TIMEOUT = 5;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
