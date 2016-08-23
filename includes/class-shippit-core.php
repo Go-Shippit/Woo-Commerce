@@ -19,7 +19,7 @@ class Mamis_Shippit_Core
     /**
      * Version.
      */
-    public $version = '1.2.2';
+    public $version = '1.2.3';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -172,6 +172,15 @@ class Mamis_Shippit_Core
         // Get the JSON data posted
         $requestData = json_decode(file_get_contents('php://input'));
 
+        $this->log->add(
+            'SHIPPIT - WEBHOOK REQUEST',
+            'Webhook Request Received',
+            array(
+                'url' => get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $requestApiKey,
+                'requestData' => $requestData
+            )
+        );
+
         // ensure an api key has been retrieved in the request
         if (empty($requestApiKey)) {
             wp_send_json_error(array(
@@ -252,26 +261,25 @@ class Mamis_Shippit_Core
             );
 
             // Count how many total items have been ordered
-            $totalItemsShippable = $totalItemsShippable + $orderItem['qty'];
+            $totalItemsShippable += $orderItem['qty'];
         }
 
         // Remove any refunded items from shippable count
-        $totalItemsShippable = $totalItemsShippable - $wcOrder->get_total_qty_refunded();
+        $totalItemsShippable -= $wcOrder->get_total_qty_refunded();
+  
+        $this->log->add(
+            'SHIPPIT - WEBHOOK REQUEST',
+            'Order Contents',
+            array(
+                'orderItems' => $orderItemsData,
+                'totalItemsShippable' => $totalItemsShippable
+            )
+        );
 
-        // If mamis_shippit_shippable_items exists, update value to account for any refunded items
-        if (get_post_meta($orderId, '_mamis_shippit_shippable_items', true)) {
-            update_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable);
-        }
-        // If no items have been shipped previously set count to totalItemsShippable
-        else {
-            add_post_meta($orderId, '_mamis_shippit_shippable_items', $totalItemsShippable, true);
-        }
-   
         // Check for count of items that have been shipped
         if (get_post_meta($orderId, '_mamis_shippit_shipped_items', true)) {
             $totalItemsShipped = get_post_meta($orderId, '_mamis_shippit_shipped_items', true);
         }
-
         // If no items have been shipped previously set count to 0
         else {
             add_post_meta($orderId, '_mamis_shippit_shipped_items', 0, true);
@@ -280,44 +288,67 @@ class Mamis_Shippit_Core
 
         // Add order comment for when items are shipped
         $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';
+        $orderItemsShipped = '';
 
         foreach ($requestItems as $requestItem) {
-            $skuData = explode('|', $requestItem->sku);
+            // skip requests for quantities not present or less than or equal to 0
+            if (!property_exists($requestItem, 'quantity') || $requestItem->quantity <= 0) {
+                continue;
+            }
 
-            // Grab the variation_id at the end of the sku name
-            $productVariationId = end($skuData);
+            $skuData = null;
+            $productVariationId = null;
 
-            // Remove variation id from sku name
-            array_pop($skuData);
+            if (strpos($requestItem->sku, '|') !== false) {
+                $skuData = explode('|', $requestItem->sku);
+                $productVariationId = end($skuData);
 
-            // Implode sku name back together
-            $productSku = array(implode('|',$skuData));
+                // remove the variation id
+                array_pop($skuData);
+
+                $productSku = implode('|', $skuData);
+            }
+            else {
+                $productSku = $requestItem->sku;
+            }
 
             foreach ($orderItemsData as $orderItemData) {
-                // If the product is a variation, match sku and variation_id
-                if ($productVariationId) {
-                    if ($productSku[0] == $orderItemData['sku'] &&
-                        $productVariationId == $orderItemData['variation_id']) {
-
-                        // Check if a qty is being passed and is greater than 0
-                        if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
-                            $orderComment .= $requestItem->qty . 'x of ' . $requestItem->title . '<br>';
-                            $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
-                        }
-                    }
-                }
-                // Else match only against the sku
-                elseif ($requestItem->sku == $orderItemData['sku']) {
-                    // Check if a qty is being passed and is greater than 0
-                    if (property_exists($requestItem, 'qty') && $requestItem->qty > 0) {
-                        $orderComment .= $requestItem->qty . 'x of ' . $requestItem->title . '<br>';
-                        $totalItemsShipped = $totalItemsShipped + $requestItem->qty;
-                    }
+                if (
+                    // If the product is a variation, match sku and variation_id
+                    (!is_null($productVariationId)
+                        && $productSku == $orderItemData['sku']
+                        && $productVariationId == $orderItemData['variation_id'])
+                    // Otherwise, match by the sku only
+                    || $productSku == $orderItemData['sku']
+                ) {
+                    $orderComment .= $requestItem->quantity . 'x of ' . $requestItem->title . '<br>';
+                    $totalItemsShipped += $requestItem->quantity;
+                    $orderItemsShipped[] = array(
+                        'sku' => $requestItem->sku,
+                        'quantity' => $requestItem->quantity,
+                        'title' => $requestItem->title
+                    );
                 }
             }
         }
 
-        // Update items shipped total
+        if ($totalItemsShipped == 0) {
+            wp_send_json_error(array(
+                'message' => self::ERROR_BAD_REQUEST
+            ));
+        }
+
+        $this->log->add(
+            'SHIPPIT - WEBHOOK REQUEST',
+            'Items Shipped',
+            array(
+                'orderItems' => $orderItemsData,
+                'orderItemsShipped' => $orderItemsShipped,
+                'totalItemsShipped' => $totalItemsShipped
+            )
+        );
+
+        // Update the total of all items shipped
         update_post_meta($orderId, '_mamis_shippit_shipped_items', $totalItemsShipped);
 
         // Add order comment for shipped items

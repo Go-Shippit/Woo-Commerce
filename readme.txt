@@ -60,6 +60,12 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.3 =
+
+* Fix a bug in marking orders as shipped on some webhook requests
+* Improve logging information on webhook activity
+* Improve logging information on api response activity
+
 = 1.2.2 =
 
 * Update staging to use secure staging api endpoint

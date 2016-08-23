@@ -55,7 +55,8 @@ class Mamis_Shippit_Order
      * @return boolean              True or false
      */
     public function addPendingSync($orderId)
-    {   $isEnabled = $this->s->getSetting('enabled');
+    {
+        $isEnabled = $this->s->getSetting('enabled');
         $sendAllOrders = $this->s->getSetting('send_all_orders');
 
         if ($isEnabled != 'yes') {
@@ -180,9 +181,9 @@ class Mamis_Shippit_Order
             'post_type' => 'shop_order',
             'meta_query' => array(
                 array(
-                'key' => '_mamis_shippit_sync',
-                'value' => 'false',
-                'compare' => '='
+                    'key' => '_mamis_shippit_sync',
+                    'value' => 'false',
+                    'compare' => '='
                 )
             ),
         );
