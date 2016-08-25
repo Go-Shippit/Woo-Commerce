@@ -201,7 +201,41 @@ class Mamis_Shippit_Settings
                 'type'     => 'multiselect',
                 'options'  => $shippitOtherShippingMethods,
                 'class'    => 'wc-enhanced-select',
-            )
+            ),
+
+            'fixed_dollar_amount_increase' => array(
+                'title'    => __('Enable Fixed Dollar Amount Increase', 'woocommerce-shippit'),
+                'class'    => 'wc-enhanced-select',
+                'default'  => 'no',
+                'type'     => 'select',
+                'options'  => array(
+                    'no'  => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+               ),
+            ),
+
+            'fixed_dollar_amount_increase_value' => array(
+                'title'    => __('Dollar Amount To Increase By', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'text',
+            ),
+
+            'percentage_increase' => array(
+                'title'    => __('Enabled Percentage Based Increase', 'woocommerce-shippit'),
+                'class'    => 'wc-enhanced-select',
+                'default'  => 'no',
+                'type'     => 'select',
+                'options'  => array(
+                    'no'  => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+               ),
+            ),
+
+            'percentage_increase_value' => array(
+                'title'    => __('Percentage To Increase By', 'woocommerce-shippit'),
+                'desc'     => '',
+                'type'     => 'text',
+            ),
         );
 
         return $fields;

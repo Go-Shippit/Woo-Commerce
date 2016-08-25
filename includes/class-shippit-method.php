@@ -169,10 +169,26 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _addStandardQuote($shippingQuote)
     {
         foreach ($shippingQuote->quotes as $standardQuote) {
+
+            $quotePrice = $standardQuote->price;
+            
+            if ($this->s->getSetting('fixed_dollar_amount_increase') == 'yes' &&
+                $this->s->getSetting('percentage_increase') == 'no') {
+                $quotePrice = $quotePrice + $this->s->getSetting('fixed_dollar_amount_increase_value');
+            }
+
+            if ($this->s->getSetting('percentage_increase') == 'yes' &&
+                $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
+                error_log('percentage increase');
+                error_log($this->s->getSetting('percentage_increase_value'));
+                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
+                error_log($quotePrice);
+            }
+
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,// . '_' . uniqid(),
                 'label' => 'Standard',
-                'cost'  => $standardQuote->price,
+                'cost'  => $quotePrice,
                 'taxes' => false,
             );
 
@@ -206,10 +222,23 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 $methodTitle = 'Scheduled';
             }
 
+            $quotePrice = $standardQuote->price;
+
+            if ($this->s->getSetting('fixed_dollar_amount_increase') == 'yes' &&
+                $this->s->getSetting('percentage_increase') == 'no') {
+                $quotePrice = $quotePrice + $this->s->getSetting('fixed_dollar_amount_increase_value');
+            }
+
+            if ($this->s->getSetting('percentage_increase') == 'yes' &&
+                $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
+                error_log($this->s->getSetting('perentage_increase_value'));
+                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
+            }
+
             $rate = array(
                 'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,// . '_' . uniqid(),
                 'label' => $methodTitle,
-                'cost'  => $premiumQuote->price,
+                'cost'  => $quotePrice,
                 'taxes' => false,
             );
 
