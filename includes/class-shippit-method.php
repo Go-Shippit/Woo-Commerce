@@ -179,10 +179,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             if ($this->s->getSetting('percentage_increase') == 'yes' &&
                 $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
-                error_log('percentage increase');
-                error_log($this->s->getSetting('percentage_increase_value'));
                 $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
-                error_log($quotePrice);
             }
 
             $rate = array(
@@ -231,7 +228,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             if ($this->s->getSetting('percentage_increase') == 'yes' &&
                 $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
-                error_log($this->s->getSetting('perentage_increase_value'));
                 $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
             }
 
