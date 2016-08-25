@@ -172,14 +172,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $quotePrice = $standardQuote->price;
             
-            if ($this->s->getSetting('fixed_dollar_amount_increase') == 'yes' &&
-                $this->s->getSetting('percentage_increase') == 'no') {
-                $quotePrice = $quotePrice + $this->s->getSetting('fixed_dollar_amount_increase_value');
+            if ($this->s->getSetting('amount_increase') == 'yes-fixed') {
+                $quotePrice = $quotePrice + $this->s->getSetting('amount_increase_value');
             }
 
-            if ($this->s->getSetting('percentage_increase') == 'yes' &&
-                $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
-                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
+            if ($this->s->getSetting('amount_increase') == 'yes-percentage') {
+                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('amount_increase_value') / 100);
             }
 
             $rate = array(
@@ -221,14 +219,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $quotePrice = $standardQuote->price;
 
-            if ($this->s->getSetting('fixed_dollar_amount_increase') == 'yes' &&
-                $this->s->getSetting('percentage_increase') == 'no') {
-                $quotePrice = $quotePrice + $this->s->getSetting('fixed_dollar_amount_increase_value');
+            if ($this->s->getSetting('amount_increase') == 'yes-fixed') {
+                $quotePrice = $quotePrice + $this->s->getSetting('amount_increase_value');
             }
 
-            if ($this->s->getSetting('percentage_increase') == 'yes' &&
-                $this->s->getSetting('fixed_dollar_amount_increase') == 'no') {
-                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('percentage_increase_value') / 100);
+            if ($this->s->getSetting('amount_increase') == 'yes-percentage') {
+                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('amount_increase_value') / 100);
             }
 
             $rate = array(
