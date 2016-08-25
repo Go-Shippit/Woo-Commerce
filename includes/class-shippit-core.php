@@ -1,25 +1,25 @@
 <?php
 /**
-*  Mamis.IT
-*
-*  NOTICE OF LICENSE
-*
-*  This source file is subject to the EULA
-*  that is available through the world-wide-web at this URL:
-*  http://www.mamis.com.au/licencing
-*
-*  @category   Mamis
-*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
-*  @author     Matthew Muscat <matthew@mamis.com.au>
-*  @license    http://www.mamis.com.au/licencing
-*/
+ * Mamis.IT
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is available through the world-wide-web at this URL:
+ * http://www.mamis.com.au/licencing
+ *
+ * @category   Mamis
+ * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @author     Matthew Muscat <matthew@mamis.com.au>
+ * @license    http://www.mamis.com.au/licencing
+ */
 
 class Mamis_Shippit_Core
 {
     /**
      * Version.
      */
-    public $version = '1.1.13';
+    public $version = '1.1.14';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -96,9 +96,11 @@ class Mamis_Shippit_Core
         // *****************
         
         $order = new Mamis_Shippit_Order;
-        // add order processing event
+        // If a new order is recieved, add pending sync
+        add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
+        // If a order transitions into "processing", add pending sync
         add_action('woocommerce_order_status_processing', array($order, 'addPendingSync'));
-        // If the order is changed from any state to on-hold check if mamis_shippit_sync exists
+        // If the order transition into "on-hold", remove pending sync
         add_action('woocommerce_order_status_on-hold', array($order, 'removePendingSync'));
 
         // *****************
@@ -218,7 +220,7 @@ class Mamis_Shippit_Core
         }
 
         $wcOrder = wc_get_order($orderId);
-        $wcOrder->update_status('completed', 'Item has been shipped with Shippit');
+        $wcOrder->update_status('completed', 'Order has been shipped with Shippit');
 
         add_action(
             'woocommerce_order_status_completed_notification',

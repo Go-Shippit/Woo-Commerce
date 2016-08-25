@@ -60,6 +60,12 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.1.14 =
+
+* Backport of fixes from 1.2.1 and 1.2.2, including
+** API endpoint updates
+** Order Sync Triggers
+
 = 1.1.13 =
 
 * Fix an issue whereby the settings form fields logic would load whenever the page being loaded involved the shippit shipping method, settings are now loaded only on the settings page
