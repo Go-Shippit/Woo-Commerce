@@ -135,7 +135,8 @@ class Mamis_Shippit_Api
             $uri,
             array(
                 'url' => $url,
-                'requestData' => $responseData
+                'requestData' => $requestData,
+                'responseData' => $responseData
             )
         );
 

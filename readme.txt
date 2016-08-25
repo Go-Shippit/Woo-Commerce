@@ -62,9 +62,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 = 1.1.14 =
 
-* Backport of fixes from 1.2.1 and 1.2.2, including
+* Backport of fixes from 1.2.1, 1.2.2 and 1.2.3, including
 ** API endpoint updates
 ** Order Sync Triggers
+** WooCommerce 2.6 Compatability
+** Webhook / API Request Logging
 
 = 1.1.13 =
 

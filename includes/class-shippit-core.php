@@ -172,6 +172,15 @@ class Mamis_Shippit_Core
         // Get the JSON data posted
         $requestData = json_decode(file_get_contents('php://input'));
 
+        $this->log->add(
+            'SHIPPIT - WEBHOOK REQUEST',
+            'Webhook Request Received',
+            array(
+                'url' => get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $requestApiKey,
+                'requestData' => $requestData
+            )
+        );
+
         // ensure an api key has been retrieved in the request
         if (empty($requestApiKey)) {
             wp_send_json_error(array(
