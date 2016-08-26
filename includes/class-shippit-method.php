@@ -169,17 +169,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _addStandardQuote($shippingQuote)
     {
         foreach ($shippingQuote->quotes as $standardQuote) {
-
-            $quotePrice = $standardQuote->price;
+            $quotePrice = $this->_getQuotePrice($standardQuote->price);
             
-            if ($this->s->getSetting('amount_increase') == 'yes-fixed') {
-                $quotePrice = $quotePrice + $this->s->getSetting('amount_increase_value');
-            }
-
-            if ($this->s->getSetting('amount_increase') == 'yes-percentage') {
-                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('amount_increase_value') / 100);
-            }
-
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,// . '_' . uniqid(),
                 'label' => 'Standard',
@@ -217,15 +208,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 $methodTitle = 'Scheduled';
             }
 
-            $quotePrice = $standardQuote->price;
-
-            if ($this->s->getSetting('amount_increase') == 'yes-fixed') {
-                $quotePrice = $quotePrice + $this->s->getSetting('amount_increase_value');
-            }
-
-            if ($this->s->getSetting('amount_increase') == 'yes-percentage') {
-                $quotePrice = $quotePrice *= (1 + $this->s->getSetting('amount_increase_value') / 100);
-            }
+            $quotePrice = $this->_getQuotePrice($premiumQuote->price);
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,// . '_' . uniqid(),
@@ -238,7 +221,24 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
+    /**
+     * Get the quote price, including the margin amount
+     * @param  float $quotePrice The quote amount
+     * @return float             The quote amount, with margin
+     *                           if applicable
+     */
+    private function _getQuotePrice($quotePrice)
+    {
+        switch ($this->s->getSetting('margin')) {
+            case 'yes-fixed':
+                $quotePrice += (float) $this->s->getSetting('margin_amount');
+                break;
+            case 'yes-percentage':
+                $quotePrice *= (1 + ( (float) $this->s->getSetting('margin_amount') / 100));
+        }
 
+        return $quotePrice;
+    }
 
     /**
      * Checks if we can ship the products in the cart
