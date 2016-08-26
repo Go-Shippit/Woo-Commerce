@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.4 =
+
+* Add functionality to enable merchants to add a margin to the quoted shipping prices (fixed or percentage).
+
 = 1.2.3 =
 
 * Fix a bug in marking orders as shipped on some webhook requests
