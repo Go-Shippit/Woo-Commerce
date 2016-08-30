@@ -255,9 +255,9 @@ class Mamis_Shippit_Order
                         $orderData['parcel_attributes'][] = array(
                             'sku' => $productSku,
                             'title' => $product->get_title(),
-                            'qty' => $orderItem['qty'],
-                            'price' => $order->get_item_subtotal($orderItem),
-                            'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
+                            'qty' => (float) $orderItem['qty'],
+                            'price' => (float) $order->get_item_subtotal($orderItem),
+                            'weight' => (float) ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
                         );
                     }
                 }
