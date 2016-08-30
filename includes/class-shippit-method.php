@@ -169,11 +169,17 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _addStandardQuote($shippingQuote)
     {
         foreach ($shippingQuote->quotes as $standardQuote) {
+            $quoteLabel = 'Standard';
             $quotePrice = $this->_getQuotePrice($standardQuote->price);
             
+            if ($quotePrice <= 0) {
+                $quoteLabel = 'Standard - Free Shipping';
+                $quotePrice = 0;
+            }
+
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,// . '_' . uniqid(),
-                'label' => 'Standard',
+                'label' => $quoteLabel,
                 'cost'  => $quotePrice,
                 'taxes' => false,
             );
@@ -209,6 +215,11 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             }
 
             $quotePrice = $this->_getQuotePrice($premiumQuote->price);
+            
+            if ($quotePrice <= 0) {
+                $methodTitle = 'Scheduled - Free Shipping';
+                $quotePrice = 0;
+            }
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,// . '_' . uniqid(),
