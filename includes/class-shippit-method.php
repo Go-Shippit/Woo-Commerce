@@ -172,7 +172,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($standardQuote->price);
             
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,// . '_' . uniqid(),
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Standard',
                 'cost'  => $quotePrice,
                 'taxes' => false,
@@ -211,7 +211,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($premiumQuote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,// . '_' . uniqid(),
+                'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,
                 'label' => $methodTitle,
                 'cost'  => $quotePrice,
                 'taxes' => false,
@@ -236,6 +236,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             case 'yes-percentage':
                 $quotePrice *= (1 + ( (float) $this->s->getSetting('margin_amount') / 100));
         }
+
+        // ensure we get the lowest price, but not below 0.
+        $quotePrice = max(0, $quotePrice);
 
         return $quotePrice;
     }
