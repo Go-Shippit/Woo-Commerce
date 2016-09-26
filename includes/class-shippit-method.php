@@ -133,7 +133,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $_product = $values['data']->post;
 
-            // If product is variation grab the variation details
+            // If product is variation, load variation ID
             if ($values['variation_id']) {
                 $cartItemDetails = wc_get_product( $values['variation_id'] );
             }

@@ -35,7 +35,7 @@ class Mamis_Shippit_Order
      *
      * Called when an order moves out from "processing"
      * status to a hold status
-     * 
+     *
      * @param  int     $order_id    The Order Id
      * @return boolean              True or false
      */
@@ -50,7 +50,7 @@ class Mamis_Shippit_Order
 
     /**
      * Add a pending sync
-     * 
+     *
      * @param  int     $orderId    The Order Id
      * @return boolean              True or false
      */
@@ -238,6 +238,8 @@ class Mamis_Shippit_Order
 
         $orderData['receiver_contact_number'] = get_post_meta($orderId, '_billing_phone', true);
 
+        error_log('Wordpress ORDER');
+
         if (sizeof($orderItems) > 0) {
             foreach ($orderItems as $orderItem) {
                 if ($orderItem['product_id'] > 0) {
@@ -257,7 +259,10 @@ class Mamis_Shippit_Order
                             'title' => $product->get_title(),
                             'qty' => (float) $orderItem['qty'],
                             'price' => (float) $order->get_item_subtotal($orderItem),
-                            'weight' => (float) ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
+                            'weight' => (float) $this->_wooWeightNormal($product->get_weight(),'kg'),
+                            'height' => (float) $this->_wooDimNormal($product->get_height(),'cm'),
+                            'length' => (float) $this->_wooDimNormal($product->get_length(),'cm'),
+                            'width' => (float) $this->_wooDimNormal($product->get_width(),'cm'),
                         );
                     }
                 }
@@ -293,5 +298,79 @@ class Mamis_Shippit_Order
             $orderComment = 'Order Synced with Shippit. Tracking number: ' . $apiResponse->tracking_number . '.';
             $order->add_order_note($orderComment, 0);
         }
+    }
+
+    // https://gist.github.com/mbrennan-afa/1812521
+    /**
+    *
+    * Normalise dimensions, unify to cm then convert to wanted unit value
+    * $unit: 'inch', 'm', 'cm', 'm'
+    * Usage: wooDimNormal(55, 'inch');
+    *
+    */
+    private function _wooDimNormal($dim, $unit) {
+        $wooDimUnit = strtolower($current_unit = get_option('woocommerce_dimension_unit'));
+        $unit = strtolower($unit);
+        if ($wooDimUnit !== $unit) {
+            //Unify all units to cm first
+            switch ($wooDimUnit) {
+                case 'inch':
+                    $dim *= 2.54;
+                    break;
+                case 'm':
+                    $dim *= 100;
+                    break;
+                case 'mm':
+                    $dim *= 0.1;
+                    break;
+            }
+            //Output desired unit
+            switch ($unit) {
+                case 'inch':
+                    $dim *= 0.3937;
+                    break;
+                case 'm':
+                    $dim *= 0.01;
+                    break;
+                case 'mm':
+                    $dim *= 10;
+                    break;
+            }
+        }
+        return $dim;
+    }
+
+    // https://gist.github.com/mbrennan-afa/1812521
+    /**
+    *
+    * Normalise weight, unify to kg then convert to wanted to unit
+    * $unit: 'g', 'kg', 'lbs'
+    * Useage: wooWeightNormal(55,'lbs');
+    *
+    */
+    private function _wooWeightNormal($weight, $unit) {
+        $wooWeightUnit = strtolower($current_unit = get_option('woocommerce_weight_unit'));
+        $unit = strtolower($unit);
+        if ($wooWeightUnit !== $unit) {
+            //Unify all units to kg first
+            switch ($wooWeightUnit) {
+                case 'g':
+                    $weight *= 0.001;
+                    break;
+                case 'lbs':
+                    $weight *= 0.4535;
+                    break;
+            }
+            //Output desired unit
+            switch ($unit) {
+                case 'g':
+                    $weight *= 1000;
+                    break;
+                case 'lbs':
+                    $weight *= 2.204;
+                    break;
+            }
+        }
+        return $weight;
     }
 }
