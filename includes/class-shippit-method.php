@@ -130,8 +130,17 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $itemDetails = array();
 
         foreach($items as $item => $values) {
+
             $_product = $values['data']->post;
-            $cartItemDetails = wc_get_product( $values['product_id'] );
+
+            // If product is variation grab the variation details
+            if ($values['variation_id']) {
+                $cartItemDetails = wc_get_product( $values['variation_id'] );
+            }
+
+            else {
+                $cartItemDetails = wc_get_product( $values['product_id'] );
+            }
 
             $itemDetails[] = array(
                 'product_id' => $values['product_id'],
@@ -142,9 +151,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             );
 
             error_log(print_r($itemDetails,true));
-
-            error_log(WC_Admin_Settings::get_option('woocommerce_weight_unit'));
-            error_log(WC_Admin_Settings::get_option('woocommerce_dimension_unit'));
         }
     }
 
@@ -162,6 +168,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $items = WC()->cart->get_cart();
 
         $this->_getItemDetails($items);
+        // error_log(print_r($items,true));
 
         $quoteData = array(
             'order_date' => '', // get all available dates
