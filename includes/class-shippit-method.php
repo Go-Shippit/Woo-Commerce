@@ -144,14 +144,88 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $itemDetails[] = array(
                 'product_id' => $values['product_id'],
-                'weight' => $cartItemDetails->get_weight(),
-                'height' => $cartItemDetails->get_height(),
-                'length' => $cartItemDetails->get_length(),
-                'width' => $cartItemDetails->get_width(),
+                'weight' => $this->_wooWeightNormal($cartItemDetails->get_weight(), 'kg'),
+                'height' => $this->_wooDimNormal($cartItemDetails->get_height(),'cm'),
+                'length' => $this->_wooDimNormal($cartItemDetails->get_length(), 'cm'),
+                'width' => $this->_wooDimNormal($cartItemDetails->get_width(), 'cm')
             );
-
-            error_log(print_r($itemDetails,true));
         }
+
+        return $itemDetails;
+    }
+
+    // https://gist.github.com/mbrennan-afa/1812521
+    /**
+    *
+    * Normalise dimensions, unify to cm then convert to wanted unit value
+    * $unit: 'inch', 'm', 'cm', 'm'
+    * Usage: wooDimNormal(55, 'inch');
+    *
+    */
+    private function _wooDimNormal($dim, $unit) {
+        $wooDimUnit = strtolower($current_unit = get_option('woocommerce_dimension_unit'));
+        $unit = strtolower($unit);
+        if ($wooDimUnit !== $unit) {
+            //Unify all units to cm first
+            switch ($wooDimUnit) {
+                case 'inch':
+                    $dim *= 2.54;
+                    break;
+                case 'm':
+                    $dim *= 100;
+                    break;
+                case 'mm':
+                    $dim *= 0.1;
+                    break;
+            }
+            //Output desired unit
+            switch ($unit) {
+                case 'inch':
+                    $dim *= 0.3937;
+                    break;
+                case 'm':
+                    $dim *= 0.01;
+                    break;
+                case 'mm':
+                    $dim *= 10;
+                    break;
+            }
+        }
+        return $dim;
+    }
+
+    // https://gist.github.com/mbrennan-afa/1812521
+    /**
+    *
+    * Normalise weight, unify to kg then convert to wanted to unit
+    * $unit: 'g', 'kg', 'lbs'
+    * Useage: wooWeightNormal(55,'lbs');
+    *
+    */
+    private function _wooWeightNormal($weight, $unit) {
+        $wooWeightUnit = strtolower($current_unit = get_option('woocommerce_weight_unit'));
+        $unit = strtolower($unit);
+        if ($wooWeightUnit !== $unit) {
+            //Unify all units to kg first
+            switch ($wooWeightUnit) {
+                case 'g':
+                    $weight *= 0.001;
+                    break;
+                case 'lbs':
+                    $weight *= 0.4535;
+                    break;
+            }
+            //Output desired unit
+            switch ($unit) {
+                case 'g':
+                    $weight *= 1000;
+                    break;
+                case 'lbs':
+                    $weight *= 2.204;
+                    break;
+            }
+        }
+        return $weight;
     }
 
     private function _processShippingQuotes($quoteDestination, $quoteCart)
@@ -167,20 +241,14 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         
         $items = WC()->cart->get_cart();
 
-        $this->_getItemDetails($items);
-        // error_log(print_r($items,true));
+        $itemsCart = $this->_getItemDetails($items);
 
         $quoteData = array(
             'order_date' => '', // get all available dates
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
-            'parcel_attributes' => array(
-                array(
-                    'qty' => 1,
-                    'weight' => ($weight == 0 ? 0.2 : $weight)
-                )
-            ),
+            'parcel_attributes' => $itemsCart
         );
 
         $shippingQuotes = $this->api->getQuote($quoteData);
