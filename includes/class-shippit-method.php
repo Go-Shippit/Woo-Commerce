@@ -108,6 +108,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
+        // error_log(print_r($package, true));
+
         // Check if we can ship the products by enabled filtering
         if (!$this->_canShipEnabledProducts($package)) {
             return;
@@ -118,7 +120,32 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             return;
         }
 
+        // $this->_getItemAttributes($package);
+
         $this->_processShippingQuotes($quoteDestination, $quoteCart);
+    }
+
+    private function _getItemDetails($items)
+    {
+        $itemDetails = array();
+
+        foreach($items as $item => $values) {
+            $_product = $values['data']->post;
+            $cartItemDetails = wc_get_product( $values['product_id'] );
+
+            $itemDetails[] = array(
+                'product_id' => $values['product_id'],
+                'weight' => $cartItemDetails->get_weight(),
+                'height' => $cartItemDetails->get_height(),
+                'length' => $cartItemDetails->get_length(),
+                'width' => $cartItemDetails->get_width(),
+            );
+
+            error_log(print_r($itemDetails,true));
+
+            error_log(WC_Admin_Settings::get_option('woocommerce_weight_unit'));
+            error_log(WC_Admin_Settings::get_option('woocommerce_dimension_unit'));
+        }
     }
 
     private function _processShippingQuotes($quoteDestination, $quoteCart)
@@ -131,6 +158,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $dropoffState = $quoteDestination['state'];
 
         $weight = WC()->cart->cart_contents_weight;
+        
+        $items = WC()->cart->get_cart();
+
+        $this->_getItemDetails($items);
 
         $quoteData = array(
             'order_date' => '', // get all available dates
