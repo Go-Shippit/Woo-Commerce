@@ -125,144 +125,99 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->_processShippingQuotes($quoteDestination, $quoteCart);
     }
 
-    private function _getItemDetails($items)
+    private function getParcelAttributes($items)
     {
         $itemDetails = array();
 
-        foreach($items as $item => $values) {
-
-            $_product = $values['data']->post;
+        foreach ($items as $cartItemId => $item) {
+            $itemDetail = array();
 
             // If product is variation, load variation ID
-            if ($values['variation_id']) {
-                $cartItemDetails = wc_get_product( $values['variation_id'] );
+            if ($item['variation_id']) {
+                $cartItem = wc_get_product($item['variation_id']);
             }
-
             else {
-                $cartItemDetails = wc_get_product( $values['product_id'] );
+                $cartItem = wc_get_product($item['product_id']);
             }
 
-            $itemDetails[] = array(
-                'product_id' => $values['product_id'],
-                'weight' => $this->_wooWeightNormal($cartItemDetails->get_weight(), 'kg'),
-                'height' => $this->_wooDimNormal($cartItemDetails->get_height(),'cm'),
-                'length' => $this->_wooDimNormal($cartItemDetails->get_length(), 'cm'),
-                'width' => $this->_wooDimNormal($cartItemDetails->get_width(), 'cm')
-            );
+            $itemWeight = $cartItem->get_weight();
+            $itemHeight = $cartItem->get_height();
+            $itemLength = $cartItem->get_length();
+            $itemWidth = $cartItem->get_height();
+
+            $itemDetail['qty'] = $item['quantity'];
+            
+            if (!empty($itemWeight)) {
+                $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+            }
+            else {
+                // stub weight to 0.2kg
+                $itemDetail['weight'] = 0.2;
+            }
+
+            if (!empty($itemHeight)) {
+                $itemDetail['height'] = $this->s->convertDimension($itemHeight);
+            }
+
+            if (!empty($itemLength)) {
+                $itemDetail['length'] = $this->s->convertDimension($itemLength);
+            }
+
+            if (!empty($itemWidth)) {
+                $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+            }
+
+            $itemDetails[] = $itemDetail;
         }
 
         return $itemDetails;
     }
 
-    // https://gist.github.com/mbrennan-afa/1812521
-    /**
-    *
-    * Normalise dimensions, unify to cm then convert to wanted unit value
-    * $unit: 'inch', 'm', 'cm', 'm'
-    * Usage: wooDimNormal(55, 'inch');
-    *
-    */
-    private function _wooDimNormal($dim, $unit) {
-        $wooDimUnit = strtolower($current_unit = get_option('woocommerce_dimension_unit'));
-        $unit = strtolower($unit);
-        if ($wooDimUnit !== $unit) {
-            //Unify all units to cm first
-            switch ($wooDimUnit) {
-                case 'inch':
-                    $dim *= 2.54;
-                    break;
-                case 'm':
-                    $dim *= 100;
-                    break;
-                case 'mm':
-                    $dim *= 0.1;
-                    break;
-            }
-            //Output desired unit
-            switch ($unit) {
-                case 'inch':
-                    $dim *= 0.3937;
-                    break;
-                case 'm':
-                    $dim *= 0.01;
-                    break;
-                case 'mm':
-                    $dim *= 10;
-                    break;
-            }
-        }
-        return $dim;
-    }
-
-    // https://gist.github.com/mbrennan-afa/1812521
-    /**
-    *
-    * Normalise weight, unify to kg then convert to wanted to unit
-    * $unit: 'g', 'kg', 'lbs'
-    * Useage: wooWeightNormal(55,'lbs');
-    *
-    */
-    private function _wooWeightNormal($weight, $unit) {
-        $wooWeightUnit = strtolower($current_unit = get_option('woocommerce_weight_unit'));
-        $unit = strtolower($unit);
-        if ($wooWeightUnit !== $unit) {
-            //Unify all units to kg first
-            switch ($wooWeightUnit) {
-                case 'g':
-                    $weight *= 0.001;
-                    break;
-                case 'lbs':
-                    $weight *= 0.4535;
-                    break;
-            }
-            //Output desired unit
-            switch ($unit) {
-                case 'g':
-                    $weight *= 1000;
-                    break;
-                case 'lbs':
-                    $weight *= 2.204;
-                    break;
-            }
-        }
-        return $weight;
-    }
-
     private function _processShippingQuotes($quoteDestination, $quoteCart)
     {
-        $isPremiumAvailable = in_array('premium', $this->s->getSetting('allowed_methods'));
-        $isStandardAvailable = in_array('standard', $this->s->getSetting('allowed_methods'));
+        $allowedMethods = $this->s->getSetting('allowed_methods');
+
+        $isPriorityAvailable = in_array('priority', $allowedMethods);
+        $isExpressAvailable = in_array('express', $allowedMethods);
+        $isStandardAvailable = in_array('standard', $allowedMethods);
 
         $dropoffSuburb = $quoteDestination['city'];
         $dropoffPostcode = $quoteDestination['postcode'];
         $dropoffState = $quoteDestination['state'];
-
-        $weight = WC()->cart->cart_contents_weight;
-        
         $items = WC()->cart->get_cart();
-
-        $itemsCart = $this->_getItemDetails($items);
 
         $quoteData = array(
             'order_date' => '', // get all available dates
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
-            'parcel_attributes' => $itemsCart
+            'parcel_attributes' => $this->getParcelAttributes($items)
         );
 
         $shippingQuotes = $this->api->getQuote($quoteData);
 
         if ($shippingQuotes) {
-            foreach($shippingQuotes as $shippingQuote) {
+            foreach ($shippingQuotes as $shippingQuote) {
                 if ($shippingQuote->success) {
-                    if ($shippingQuote->courier_type == 'Bonds'
-                        && $isPremiumAvailable) {
-                        $this->_addPremiumQuote($shippingQuote);
-                    }
-                    elseif ($shippingQuote->courier_type != 'Bonds'
-                        && $isStandardAvailable) {
-                        $this->_addStandardQuote($shippingQuote);
+                    switch ($shippingQuote->service_level) {
+                        case 'priority':
+                            if ($isPriorityAvailable) {
+                                $this->_addPriorityQuote($shippingQuote);
+                            }
+                            
+                            break;
+                        case 'express':
+                            if ($isExpressAvailable) {
+                                $this->_addExpressQuote($shippingQuote);
+                            }
+                            
+                            break;
+                        case 'standard':
+                            if ($isStandardAvailable) {
+                                $this->_addStandardQuote($shippingQuote);
+                            }
+
+                            break;
                     }
                 }
             }
@@ -274,8 +229,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     private function _addStandardQuote($shippingQuote)
     {
-        foreach ($shippingQuote->quotes as $standardQuote) {
-            $quotePrice = $this->_getQuotePrice($standardQuote->price);
+        foreach ($shippingQuote->quotes as $quote) {
+            $quotePrice = $this->_getQuotePrice($quote->price);
             
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
@@ -288,7 +243,23 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
-    private function _addPremiumQuote($shippingQuote)
+    private function _addExpressQuote($shippingQuote)
+    {
+        foreach ($shippingQuote->quotes as $quote) {
+            $quotePrice = $this->_getQuotePrice($quote->price);
+            
+            $rate = array(
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
+                'label' => 'Express',
+                'cost'  => $quotePrice,
+                'taxes' => false,
+            );
+
+            $this->add_rate($rate);
+        }
+    }
+
+    private function _addPriorityQuote($shippingQuote)
     {
         $timeSlotCount = 0;
         $maxTimeSlots = $this->s->getSetting('max_timeslots');
