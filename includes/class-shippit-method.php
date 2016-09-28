@@ -108,6 +108,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
+        // error_log(print_r($package, true));
+
         // Check if we can ship the products by enabled filtering
         if (!$this->_canShipEnabledProducts($package)) {
             return;
@@ -118,45 +120,104 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             return;
         }
 
+        // $this->_getItemAttributes($package);
+
         $this->_processShippingQuotes($quoteDestination, $quoteCart);
+    }
+
+    private function getParcelAttributes($items)
+    {
+        $itemDetails = array();
+
+        foreach ($items as $cartItemId => $item) {
+            $itemDetail = array();
+
+            // If product is variation, load variation ID
+            if ($item['variation_id']) {
+                $cartItem = wc_get_product($item['variation_id']);
+            }
+            else {
+                $cartItem = wc_get_product($item['product_id']);
+            }
+
+            $itemWeight = $cartItem->get_weight();
+            $itemHeight = $cartItem->get_height();
+            $itemLength = $cartItem->get_length();
+            $itemWidth = $cartItem->get_height();
+
+            $itemDetail['qty'] = $item['quantity'];
+            
+            if (!empty($itemWeight)) {
+                $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+            }
+            else {
+                // stub weight to 0.2kg
+                $itemDetail['weight'] = 0.2;
+            }
+
+            if (!empty($itemHeight)) {
+                $itemDetail['height'] = $this->s->convertDimension($itemHeight);
+            }
+
+            if (!empty($itemLength)) {
+                $itemDetail['length'] = $this->s->convertDimension($itemLength);
+            }
+
+            if (!empty($itemWidth)) {
+                $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+            }
+
+            $itemDetails[] = $itemDetail;
+        }
+
+        return $itemDetails;
     }
 
     private function _processShippingQuotes($quoteDestination, $quoteCart)
     {
-        $isPremiumAvailable = in_array('premium', $this->s->getSetting('allowed_methods'));
-        $isStandardAvailable = in_array('standard', $this->s->getSetting('allowed_methods'));
+        $allowedMethods = $this->s->getSetting('allowed_methods');
+
+        $isPriorityAvailable = in_array('priority', $allowedMethods);
+        $isExpressAvailable = in_array('express', $allowedMethods);
+        $isStandardAvailable = in_array('standard', $allowedMethods);
 
         $dropoffSuburb = $quoteDestination['city'];
         $dropoffPostcode = $quoteDestination['postcode'];
         $dropoffState = $quoteDestination['state'];
-
-        $weight = WC()->cart->cart_contents_weight;
+        $items = WC()->cart->get_cart();
 
         $quoteData = array(
             'order_date' => '', // get all available dates
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
-            'parcel_attributes' => array(
-                array(
-                    'qty' => 1,
-                    'weight' => ($weight == 0 ? 0.2 : $weight)
-                )
-            ),
+            'parcel_attributes' => $this->getParcelAttributes($items)
         );
 
         $shippingQuotes = $this->api->getQuote($quoteData);
 
         if ($shippingQuotes) {
-            foreach($shippingQuotes as $shippingQuote) {
+            foreach ($shippingQuotes as $shippingQuote) {
                 if ($shippingQuote->success) {
-                    if ($shippingQuote->courier_type == 'Bonds'
-                        && $isPremiumAvailable) {
-                        $this->_addPremiumQuote($shippingQuote);
-                    }
-                    elseif ($shippingQuote->courier_type != 'Bonds'
-                        && $isStandardAvailable) {
-                        $this->_addStandardQuote($shippingQuote);
+                    switch ($shippingQuote->service_level) {
+                        case 'priority':
+                            if ($isPriorityAvailable) {
+                                $this->_addPriorityQuote($shippingQuote);
+                            }
+                            
+                            break;
+                        case 'express':
+                            if ($isExpressAvailable) {
+                                $this->_addExpressQuote($shippingQuote);
+                            }
+                            
+                            break;
+                        case 'standard':
+                            if ($isStandardAvailable) {
+                                $this->_addStandardQuote($shippingQuote);
+                            }
+
+                            break;
                     }
                 }
             }
@@ -168,8 +229,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     private function _addStandardQuote($shippingQuote)
     {
-        foreach ($shippingQuote->quotes as $standardQuote) {
-            $quotePrice = $this->_getQuotePrice($standardQuote->price);
+        foreach ($shippingQuote->quotes as $quote) {
+            $quotePrice = $this->_getQuotePrice($quote->price);
             
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
@@ -182,7 +243,23 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
-    private function _addPremiumQuote($shippingQuote)
+    private function _addExpressQuote($shippingQuote)
+    {
+        foreach ($shippingQuote->quotes as $quote) {
+            $quotePrice = $this->_getQuotePrice($quote->price);
+            
+            $rate = array(
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
+                'label' => 'Express',
+                'cost'  => $quotePrice,
+                'taxes' => false,
+            );
+
+            $this->add_rate($rate);
+        }
+    }
+
+    private function _addPriorityQuote($shippingQuote)
     {
         $timeSlotCount = 0;
         $maxTimeSlots = $this->s->getSetting('max_timeslots');
