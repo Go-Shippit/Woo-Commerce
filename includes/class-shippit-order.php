@@ -252,15 +252,53 @@ class Mamis_Shippit_Order
                             $productSku = $product->get_sku();
                         }
 
+                        $itemWeight = $product->get_weight();
+                        $itemHeight = $product->get_height();
+                        $itemLength = $product->get_length();
+                        $itemWidth = $product->get_height();
+                        
+                        if (!empty($itemWeight)) {
+                            $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+                        }
+                        else {
+                            // stub weight to 0.2kg
+                            $itemDetail['weight'] = 0.2;
+                        }
+
+                        if (!empty($itemHeight)) {
+                            $itemDetail['height'] = $this->s->convertDimension($itemHeight);
+                        }
+                        else {
+                            $itemDetail['height'] = 0;
+                        }
+
+                        if (!empty($itemLength)) {
+                            $itemDetail['length'] = $this->s->convertDimension($itemLength);
+                        }
+                        else {
+                            $itemDetail['length'] = 0;
+                        }
+
+                        if (!empty($itemWidth)) {
+                            $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+                        }
+                        else {
+                            $itemDetail['width'] = 0;
+                        }
+
+                        $itemDetails = $itemDetail;
+
+                        error_log(print_r($itemDetail,true));
+
                         $orderData['parcel_attributes'][] = array(
                             'sku' => $productSku,
                             'title' => $product->get_title(),
                             'qty' => (float) $orderItem['qty'],
                             'price' => (float) $order->get_item_subtotal($orderItem),
-                            'weight' => (float) $this->s->convertWeight($product->get_weight(),'kg'),
-                            'height' => (float) $this->s->convertDimension($product->get_height(),'cm'),
-                            'length' => (float) $this->s->convertDimension($product->get_length(),'cm'),
-                            'width' => (float) $this->s->convertDimension($product->get_width(),'cm'),
+                            'weight' => (float) $itemDetail['weight'],
+                            'height' => (float) $itemDetail['height'],
+                            'length' => (float) $itemDetail['length'],
+                            'width' => (float) $itemDetail['width']
                         );
                     }
                 }

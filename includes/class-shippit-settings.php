@@ -311,7 +311,7 @@ class Mamis_Shippit_Settings
      * @param  string $unit      The unit to be converted to
      * @return float             The converted dimension
      */
-    public function convertDimension($dimension, $unit = 'cm')
+    public function convertDimension($dimension, $unit = 'm')
     {
         $dimensionCurrentUnit = get_option('woocommerce_dimension_unit');
         $dimensionCurrentUnit = strtolower($dimensionCurrentUnit);
