@@ -316,7 +316,7 @@ class Mamis_Shippit_Settings
         $dimensionCurrentUnit = get_option('woocommerce_dimension_unit');
         $dimensionCurrentUnit = strtolower($dimensionCurrentUnit);
         $unit = strtolower($unit);
-    
+
         if ($dimensionCurrentUnit !== $unit) {
             // Unify all units to cm first
             switch ($dimensionCurrentUnit) {

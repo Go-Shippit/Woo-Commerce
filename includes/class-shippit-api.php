@@ -154,7 +154,7 @@ class Mamis_Shippit_Api
         if (!$quote) {
             return false;
         }
-            
+
         return $quote->response;
     }
 
@@ -169,7 +169,7 @@ class Mamis_Shippit_Api
         if (!$order) {
             return false;
         }
-            
+
         return $order->response;
     }
 

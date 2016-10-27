@@ -256,7 +256,7 @@ class Mamis_Shippit_Order
                         $itemHeight = $product->get_height();
                         $itemLength = $product->get_length();
                         $itemWidth = $product->get_height();
-                        
+
                         if (!empty($itemWeight)) {
                             $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
                         }
@@ -306,7 +306,7 @@ class Mamis_Shippit_Order
         }
 
         $authorityToLeave = get_post_meta($orderId, 'authority_to_leave', true);
-        
+
         if (empty($authorityToLeave)) {
             $authorityToLeave = 'No';
         }

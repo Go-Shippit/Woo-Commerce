@@ -28,7 +28,7 @@ class Mamis_Shippit_Log
             $this->bugsnag->setAppVersion(MAMIS_SHIPPIT_VERSION);
         }
     }
-    
+
     public function add($errorType, $message, $metaData = null, $severity = 'info')
     {
         // If debug mode is active, log all info serverities, otherwise log only errors

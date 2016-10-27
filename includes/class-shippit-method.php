@@ -45,9 +45,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         // Load the settings form, but only when the settings form fields is required
         add_filter('woocommerce_settings_api_form_fields_mamis_shippit', array($this, 'init_form_fields'));
-        
+
         $this->init_settings();
-    
+
         // *****************
         // Shipping Method
         // *****************
@@ -104,7 +104,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         if (empty($allowedMethods)) {
             return;
         }
-        
+
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
@@ -146,7 +146,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $itemWidth = $cartItem->get_height();
 
             $itemDetail['qty'] = $item['quantity'];
-            
+
             if (!empty($itemWeight)) {
                 $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
             }
@@ -204,13 +204,13 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                             if ($isPriorityAvailable) {
                                 $this->_addPriorityQuote($shippingQuote);
                             }
-                            
+
                             break;
                         case 'express':
                             if ($isExpressAvailable) {
                                 $this->_addExpressQuote($shippingQuote);
                             }
-                            
+
                             break;
                         case 'standard':
                             if ($isStandardAvailable) {
@@ -231,7 +231,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         foreach ($shippingQuote->quotes as $quote) {
             $quotePrice = $this->_getQuotePrice($quote->price);
-            
+
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Standard',
@@ -247,7 +247,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         foreach ($shippingQuote->quotes as $quote) {
             $quotePrice = $this->_getQuotePrice($quote->price);
-            
+
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Express',
@@ -359,7 +359,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'Can Ship Enabled Products',
             'Returning true'
         );
-        
+
         return true;
     }
 

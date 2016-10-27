@@ -47,7 +47,7 @@ function init_shippit_method()
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');
-    
+
     $method = new Mamis_Shippit_Method();
 }
 

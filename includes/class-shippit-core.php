@@ -49,7 +49,7 @@ class Mamis_Shippit_Core
         if (!function_exists('is_plugin_active_for_network')) {
             require_once(ABSPATH . '/wp-admin/includes/plugin.php');
         }
-        
+
         // Check if WooCommerce is active
         if ( !in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) ) {
             if (!is_plugin_active_for_network('woocommerce/woocommerce.php')) {
@@ -94,7 +94,7 @@ class Mamis_Shippit_Core
         // *****************
         // Order Sync
         // *****************
-        
+
         $order = new Mamis_Shippit_Order;
         // If a new order is recieved, add pending sync
         add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
@@ -106,7 +106,7 @@ class Mamis_Shippit_Core
         // *****************
         // Authority To Leave
         // *****************
-        
+
         // Add authority to leave field to checkout
         add_action('woocommerce_after_order_notes', array($this, 'add_authority_to_leave'));
 
@@ -126,13 +126,13 @@ class Mamis_Shippit_Core
         //**********************/
         // Webhook functionality
         //**********************/
-        
+
         // create filter to get $_GET['shippit_api_key']
         add_filter('query_vars', array($this, 'add_query_vars'), 0);
 
         // handle API request if 'shippit_api_key' is set
         add_action('parse_request', array($this, 'handle_request'), 0);
-        
+
         // create 'shippit/shipment_create' endpoint
         add_action('init', array($this, 'add_endpoint'), 0);
     }
@@ -152,7 +152,7 @@ class Mamis_Shippit_Core
     public function handle_request()
     {
         global $wp;
-        
+
         if (isset($wp->query_vars['shippit_api_key'])) {
             $this->create_shipment();
             exit;
@@ -231,14 +231,14 @@ class Mamis_Shippit_Core
         $wcOrder = wc_get_order($orderId);
 
         // Don't update status unless all items are shipped
-        
+
         // Grab item details from order
         $orderItems = $wcOrder->get_items();
         $orderItemsData = array();
-        
+
         // Grab item details from request data
         $requestItems = $requestData->products;
-        
+
         // Store how many items are shippable
         $totalItemsShippable = 0;
 
@@ -266,7 +266,7 @@ class Mamis_Shippit_Core
 
         // Remove any refunded items from shippable count
         $totalItemsShippable -= $wcOrder->get_total_qty_refunded();
-  
+
         $this->log->add(
             'SHIPPIT - WEBHOOK REQUEST',
             'Order Contents',
@@ -449,7 +449,7 @@ class Mamis_Shippit_Core
                     'Registering Web Hook Response',
                     'Webhook Registration Successful'
                 );
-                                
+
                 $this->show_webhook_notice(true);
 
                 return true;
@@ -461,7 +461,7 @@ class Mamis_Shippit_Core
                 );
 
                 $this->show_webhook_notice(false);
-                
+
                 return false;
             }
         }
@@ -507,13 +507,13 @@ class Mamis_Shippit_Core
 
                 return false;
             }
-            
+
             if (property_exists($apiResponse, 'response')) {
                 $this->log->add(
                     'Validating API Key Result',
                     'API Key ' . $newApiKey . 'is VALID'
                 );
-                                
+
                 $this->show_api_notice(true);
 
                 return true;
