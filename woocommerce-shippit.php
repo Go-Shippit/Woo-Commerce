@@ -2,13 +2,13 @@
 /*
  * Plugin Name:     WooCommerce Shippit
  * Description:     WooCommerce Shippit
- * Version:         1.2.6
+ * Version:         1.2.7
  * Author:          Shippit Pty Ltd
  * Author URL:      http://www.shippit.com
  * Text Domain:     woocommerce-shippit
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.2.6');
+define('MAMIS_SHIPPIT_VERSION', '1.2.7');
 
 // import core classes
 include_once('includes/class-shippit-settings.php');
@@ -33,7 +33,7 @@ function init_shippit_core()
             continue;
         }
 
-        $shippitOtherShippingMethods[$shippingMethod->id] = $shippingMethod->title;
+        $shippitOtherShippingMethods[$shippingMethod->id] = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
     }
 }
 
