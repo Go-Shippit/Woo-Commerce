@@ -3,7 +3,7 @@ Contributors: williamonshippit
 Donate link: NA
 Tags: shipping, australia post, couriers please, fastway, shipping method,
 Requires at least: 3.0.0
-Tested up to: 4.4.2
+Tested up to: 4.7.0
 Stable tag: stable
 License: GPLv2 or later
 
@@ -59,6 +59,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 3. You and your customers can track their deliveries simply, elegantly and easily
 
 == Changelog ==
+
+= 1.2.8 =
+
+* Bugfix - Resolve an issue retrieving the product width value
 
 = 1.2.7 =
 

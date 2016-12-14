@@ -143,7 +143,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $itemWeight = $cartItem->get_weight();
             $itemHeight = $cartItem->get_height();
             $itemLength = $cartItem->get_length();
-            $itemWidth = $cartItem->get_height();
+            $itemWidth = $cartItem->get_width();
 
             $itemDetail['qty'] = $item['quantity'];
 
