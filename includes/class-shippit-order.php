@@ -266,10 +266,10 @@ class Mamis_Shippit_Order
                         }
 
                         if (!empty($itemHeight)) {
-                            $itemDetail['height'] = $this->s->convertDimension($itemHeight);
+                            $itemDetail['depth'] = $this->s->convertDimension($itemHeight);
                         }
                         else {
-                            $itemDetail['height'] = 0;
+                            $itemDetail['depth'] = 0;
                         }
 
                         if (!empty($itemLength)) {
@@ -296,7 +296,7 @@ class Mamis_Shippit_Order
                             'qty' => (float) $orderItem['qty'],
                             'price' => (float) $order->get_item_subtotal($orderItem),
                             'weight' => (float) $itemDetail['weight'],
-                            'height' => (float) $itemDetail['height'],
+                            'depth' => (float) $itemDetail['depth'],
                             'length' => (float) $itemDetail['length'],
                             'width' => (float) $itemDetail['width']
                         );
