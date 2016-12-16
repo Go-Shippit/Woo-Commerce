@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.10 =
+
+- Bugfix - Resolve an issue with the product height dimensions not being synced correctly via the api
+
 = 1.2.9 =
 
 - Change - API timeout updates
