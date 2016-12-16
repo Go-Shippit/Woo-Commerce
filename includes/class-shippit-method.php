@@ -156,7 +156,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             }
 
             if (!empty($itemHeight)) {
-                $itemDetail['height'] = $this->s->convertDimension($itemHeight);
+                $itemDetail['depth'] = $this->s->convertDimension($itemHeight);
             }
 
             if (!empty($itemLength)) {
