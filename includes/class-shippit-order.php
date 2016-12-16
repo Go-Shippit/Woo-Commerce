@@ -255,7 +255,7 @@ class Mamis_Shippit_Order
                         $itemWeight = $product->get_weight();
                         $itemHeight = $product->get_height();
                         $itemLength = $product->get_length();
-                        $itemWidth = $product->get_height();
+                        $itemWidth = $product->get_width();
 
                         if (!empty($itemWeight)) {
                             $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
