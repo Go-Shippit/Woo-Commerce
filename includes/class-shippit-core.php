@@ -31,7 +31,7 @@ class Mamis_Shippit_Core
     const ERROR_API_KEY_MISSING = 'An API Key is required';
     const ERROR_API_KEY_MISMATCH = 'The API Key provided does not match the configured API Key';
     const ERROR_BAD_REQUEST = 'An invalid request was recieved';
-    const ERROR_ORDER_MISSING = 'The order id requested was not found or has an status that is not available for shipping';
+    const ERROR_ORDER_MISSING = 'The order id requested was not found or has a status that is not available for shipping';
     const NOTICE_SHIPMENT_STATUS = 'Ignoring the order status update, as we only respond to ready_for_pickup state';
     const ERROR_SHIPMENT_FAILED = 'The shipment record was not able to be created at this time, please try again.';
     const SUCCESS_SHIPMENT_CREATED = 'The shipment record was created successfully.';
