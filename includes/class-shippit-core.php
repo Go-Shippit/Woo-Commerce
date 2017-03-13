@@ -202,10 +202,10 @@ class Mamis_Shippit_Core
         }
 
         // Grab the values from the posted JSON object
-        $orderId = $requestData->retailer_order_number;
+        $orderNumber = $requestData->retailer_order_number;
         $orderStatus = $requestData->current_state;
 
-        if (empty($orderId)) {
+        if (empty($orderNumber)) {
             wp_send_json_error(array(
                 'message' => self::ERROR_ORDER_MISSING
             ));
@@ -219,7 +219,8 @@ class Mamis_Shippit_Core
 
         // Get the order by the request order id passed,
         // ensure it's status is processing
-        $order = $this->get_order($orderId, 'wc-processing');
+        $order = $this->get_order($orderNumber, 'wc-processing');
+        $orderId = $order->ID;
 
         // Check if an order was found
         if (!$order) {
@@ -228,7 +229,7 @@ class Mamis_Shippit_Core
             ));
         }
 
-        $wcOrder = wc_get_order($order->ID);
+        $wcOrder = wc_get_order($orderId);
 
         // Don't update status unless all items are shipped
 
@@ -377,13 +378,24 @@ class Mamis_Shippit_Core
         global $woocommerce;
         global $post;
 
-        $queryArgs = array(
-            'meta_key' => '_wcj_order_number',
-            'meta_value' => $orderId,
-            'post_type' => 'shop_order',
-            'post_status' => $orderStatus,
-            'posts_per_page' => 1
-        );
+        // Add support for Wordpress Jetpack - Order Numbers
+        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled')) {
+            $queryArgs = array(
+                'meta_key' => '_wcj_order_number',
+                'meta_value' => $orderId,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1
+            );
+        }
+        else {
+            $queryArgs = array(
+                'p' => $orderId,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1
+            );
+        }
 
         // Get the woocommerce order if it's processing
         $order = get_posts($queryArgs);
