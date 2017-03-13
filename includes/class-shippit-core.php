@@ -228,7 +228,7 @@ class Mamis_Shippit_Core
             ));
         }
 
-        $wcOrder = wc_get_order($orderId);
+        $wcOrder = wc_get_order($order->ID);
 
         // Don't update status unless all items are shipped
 
@@ -372,25 +372,24 @@ class Mamis_Shippit_Core
         ));
     }
 
-    public function get_order($orderId, $orderStatus = null)
+    public function get_order($orderId, $orderStatus = 'wc-processing')
     {
         global $woocommerce;
         global $post;
 
         $queryArgs = array(
+            'meta_key' => '_wcj_order_number',
+            'meta_value' => $orderId,
             'post_type' => 'shop_order',
-            'p' => $orderId
+            'post_status' => $orderStatus,
+            'posts_per_page' => 1
         );
-
-        if (!empty($orderStatus)) {
-            $queryArgs['post_status'] = $orderStatus;
-        }
 
         // Get the woocommerce order if it's processing
         $order = get_posts($queryArgs);
 
         if (!empty($order)) {
-            return $order;
+            return reset($order);
         }
 
         return false;
