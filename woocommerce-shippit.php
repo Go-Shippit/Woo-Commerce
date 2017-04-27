@@ -38,8 +38,6 @@ function init_shippit_core()
     }
 
     add_filter( 'woocommerce_settings_tabs_array', 'Mamis_Shippit_Settings_Global::add_settings_tab', 50);
-    add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::settings_tab');
-    add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::update_settings');
 }
 
 // add shippit core functionality

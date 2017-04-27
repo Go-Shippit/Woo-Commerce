@@ -142,7 +142,7 @@ class Mamis_Shippit_Settings_Global
     public function getSettings()
     {
         if (is_null($this->_settingsCache)) {
-            $this->_settingsCache = get_option('woocommerce_mamis_shippit_settings');
+            $this->_settingsCache = get_option('woocommerce_mamis_shippit_global_settings');
         }
 
         return $this->_settingsCache;
