@@ -22,16 +22,21 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     /**
      * Constructor.
      */
-    public function __construct()
+    public function __construct($instance_id = 0)
     {
         $this->api = new Mamis_Shippit_Api();
-        $this->s = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
 
         $this->id                   = 'mamis_shippit';
+        $this->instance_id          = absint($instance_id);
         $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Configure Shippit');
+        $this->supports              = array(
+            'shipping-zones',
+            'instance-settings',
+            'instance-settings-modal',
+        );
 
         $this->init();
     }
@@ -43,10 +48,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function init()
     {
-        // Load the settings form, but only when the settings form fields is required
-        add_filter('woocommerce_settings_api_form_fields_mamis_shippit', array($this, 'init_form_fields'));
-
-        $this->init_settings();
+        $this->instance_form_fields    = include('settings-shippit.php');
+        $this->title                   = $this->get_option('title');
+        $this->tax_status              = $this->get_option('tax_status');
+        $this->cost                    = $this->get_option('cost');
+        $this->type                    = $this->get_option('type', 'class');
+        $this->allowed_methods         = $this->get_option('allowed_methods');
+        $this->max_timeslots           = $this->get_option('max_timeslots');
+        $this->filter_enabled          = $this->get_option('filter_enabled');
+        $this->filter_enabled_products = $this->get_option('filter_enabled_products');
+        $this->filter_attribute        = $this->get_option('filter_attribute');
+        $this->filter_attribute_code   = $this->get_option('filter_attribute_code');
+        $this->filter_attribute_value  = $this->get_option('filter_attribute_value');
+        $this->margin                  = $this->get_option('margin');
+        $this->margin_amount           = $this->get_option('margin_amount');
 
         // *****************
         // Shipping Method
@@ -78,9 +93,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function add_shipping_method($methods)
     {
-        if (class_exists('Mamis_Shippit_Method')) {
-            $methods[] = 'Mamis_Shippit_Method';
-        }
+        // if (class_exists('Mamis_Shippit_Method')) {
+        //     $methods[] = 'Mamis_Shippit_Method';
+        // }
+        $methods['mamis_shippit'] = new Mamis_Shippit_Method();
 
         return $methods;
     }
