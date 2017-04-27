@@ -11,6 +11,7 @@
 define('MAMIS_SHIPPIT_VERSION', '1.2.12');
 
 // import core classes
+include_once('includes/class-shippit-settings-global.php');
 include_once('includes/class-shippit-settings.php');
 include_once('includes/class-shippit-core.php');
 
@@ -35,6 +36,10 @@ function init_shippit_core()
 
         $shippitOtherShippingMethods[$shippingMethod->id] = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
     }
+
+    add_filter( 'woocommerce_settings_tabs_array', 'Mamis_Shippit_Settings_Global::add_settings_tab', 50);
+    add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::settings_tab');
+    add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::update_settings');
 }
 
 // add shippit core functionality
