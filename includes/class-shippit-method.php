@@ -35,7 +35,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->supports              = array(
             'shipping-zones',
             'instance-settings',
-            'instance-settings-modal',
+            // @TODO: Disable instance modal settings due to array not saving correctly
+            // https://github.com/bobbingwide/woocommerce/commit/1e8d9d4c95f519df090e3ec94d8ea08eb8656c9f
+            // 'instance-settings-modal',
         );
 
         $this->init();

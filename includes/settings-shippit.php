@@ -17,7 +17,7 @@ $settings = array(
         'title' => __('Allowed Methods', 'woocommerce-shippit'),
         'id' => 'allowed_methods',
         'class' => 'wc-enhanced-select',
-        'type' => 'select',
+        'type' => 'multiselect',
         'default' => array(
             'standard',
             'express',
