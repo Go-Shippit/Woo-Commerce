@@ -30,63 +30,6 @@ class Mamis_Shippit_Settings
         global $shippitOtherShippingMethods;
 
         $fields = array(
-            'enabled' => array(
-                'title' => __('Enabled', 'woocommerce-shippit'),
-                'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-                ),
-            ),
-
-            'api_key' => array(
-                'title' => __('API Key', 'woocommerce-shippit'),
-                'desc' => '',
-                'name' => 'api_key',
-                'type' => 'text',
-            ),
-
-            'environment' => array(
-                'title' => __('Environment', 'woocommerce-shippit'),
-                'description' => __('The environment to connect to for all quotes and order sync operations', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'live',
-                'type' => 'select',
-                'options' => array(
-                    'sandbox' => __('Sandbox', 'woocommerce-shippit'),
-                    'live' => __('Live', 'woocommerce-shippit'),
-                ),
-            ),
-
-            'debug' => array(
-                'title' => __('Debug', 'woocommerce-shippit'),
-                'description' => __('If debug mode is enabled, all events and requests are logged to the debug log file', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-                ),
-            ),
-
-            'send_all_orders' => array(
-                'title' => __('Send All Orders', 'woocommerce-shippit'),
-                'description' => __('Send all orders to Shippit', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-               ),
-            ),
-
             'title' => array(
                 'title' => __('Title', 'woocommerce-shippit'),
                 'type' => 'text',
@@ -192,33 +135,6 @@ class Mamis_Shippit_Settings
                 'description' => __('The product attribute value', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'type' => 'text',
-            ),
-
-            'standard_shipping_methods' => array(
-                'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s standard services', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
-                'class' => 'wc-enhanced-select',
-            ),
-
-            'express_shipping_methods' => array(
-                'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s express services', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
-                'class' => 'wc-enhanced-select',
-            ),
-
-            'international_shipping_methods' => array(
-                'title' => __('International Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s international services', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
-                'class' => 'wc-enhanced-select',
             ),
 
             'margin' => array(

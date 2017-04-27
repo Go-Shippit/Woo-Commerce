@@ -86,6 +86,20 @@ class Mamis_Shippit_Settings_Global
                 'id' => 'wc_settings_shippit_global_api_key'
             ),
 
+            'debug' => array(
+                'title' => __('Debug', 'woocommerce-shippit'),
+                'description' => __('If debug mode is enabled, all events and requests are logged to the debug log file', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'no',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+                ),
+                'id' => 'wc_settings_shippit_global_debug'
+            ),
+
             'environment' => array(
                 'title' => __('Environment', 'shippit-settings-tab'),
                 'description' => __('The environment to connect to for all quotes and order sync operations', 'shippit-settings-tab'),
@@ -98,6 +112,20 @@ class Mamis_Shippit_Settings_Global
                     'live' => __('Live', 'shippit-settings-tab'),
                 ),
                 'id' => 'wc_settings_shippit_global_environment'
+            ),
+
+            'send_all_orders' => array(
+                'title' => __('Send All Orders', 'shippit-settings-tab'),
+                'description' => __('Send all orders to Shippit', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'no',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'shippit-settings-tab'),
+                    'yes' => __('Yes', 'shippit-settings-tab'),
+               ),
+                'id' => 'wc_settings_shippit_global_send_all_orders'
             ),
 
             'standard_shipping_methods' => array(
@@ -139,6 +167,7 @@ class Mamis_Shippit_Settings_Global
         return apply_filters('wc_settings_shippit_settings', $settings);
     }
 
+    // @TODO: Review usage as each item is now stored a seperate option in database rather than one option
     public function getSettings()
     {
         if (is_null($this->_settingsCache)) {
@@ -148,6 +177,7 @@ class Mamis_Shippit_Settings_Global
         return $this->_settingsCache;
     }
 
+    // @TODO: Review usage as each item is now stored a seperate option in database rather than one option
     public function getSetting($key)
     {
         $settings = $this->getSettings();
