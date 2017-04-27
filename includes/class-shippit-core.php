@@ -172,7 +172,7 @@ class Mamis_Shippit_Core
         global $wp;
 
         // Get the configured api key
-        $apiKey = $this->s->getSetting('api_key');
+        $apiKey = get_option('wc_settings_shippit_global_api_key');
 
         // Grab the posted shippit API key
         $requestApiKey = $wp->query_vars['shippit_api_key'];
@@ -493,7 +493,7 @@ class Mamis_Shippit_Core
     private function validate_apikey($newApiKey, $oldApiKey = null, $environment = null)
     {
         if (is_null($oldApiKey)) {
-            $oldApiKey = $this->s->getSetting('api_key');
+            $oldApiKey = get_option('wc_settings_shippit_global_api_key');
         }
 
         $this->log->add(
