@@ -129,7 +129,7 @@ class Mamis_Shippit_Core
         // @TODO - Remove existing call as API_Key has been moved to global
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
         add_action('woocommerce_update_options_shippit_settings_tab', array($this, 'after_options_save'));
-        
+
 
         //**********************/
         // Webhook functionality
@@ -578,6 +578,11 @@ class Mamis_Shippit_Core
      */
     public static function order_sync_schedule()
     {
+        //@TODO: SHIP-197
+        require_once ('class-upgrade-data.php');
+        $upgrade = new Upgrade_Data();
+        $upgrade->upgrade();
+
         if (!wp_next_scheduled('syncOrders')) {
             wp_schedule_event(current_time('timestamp'), 'hourly', 'syncOrders');
         }
