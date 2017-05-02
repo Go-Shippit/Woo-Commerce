@@ -16,8 +16,6 @@
 
 class Mamis_Shippit_Settings_Instance
 {
-    private $_settingsCache = null;
-
     /**
      * Init fields.
      *
@@ -26,9 +24,6 @@ class Mamis_Shippit_Settings_Instance
      */
     public function getFields($isInstance = false)
     {
-        // @TODO: Review if possible to remove global var for php5.5 support
-        global $shippitOtherShippingMethods;
-
         $fields['title'] = array(
             'title' => __('Title', 'woocommerce-shippit'),
             'type' => 'text',
@@ -200,25 +195,5 @@ class Mamis_Shippit_Settings_Instance
         }
 
         return $productAttributes;
-    }
-
-    public function getSettings()
-    {
-        if (is_null($this->_settingsCache)) {
-            $this->_settingsCache = get_option('woocommerce_mamis_shippit_settings');
-        }
-
-        return $this->_settingsCache;
-    }
-
-    public function getSetting($key)
-    {
-        $settings = $this->getSettings();
-
-        if ( isset($settings[$key]) ) {
-            return $settings[$key];
-        }
-
-        return null;
     }
 }
