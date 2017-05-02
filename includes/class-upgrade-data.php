@@ -2,7 +2,7 @@
 
 class Upgrade_Data
 {
-	const NEW_OPTIONS_PREFIX = 'wc_settings_shippit_global_';
+	const NEW_OPTIONS_PREFIX = 'wc_settings_shippit_';
 
 	public function upgrade()
 	{

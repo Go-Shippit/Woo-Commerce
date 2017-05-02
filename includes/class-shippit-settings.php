@@ -9,86 +9,89 @@
  * http://www.mamis.com.au/licencing
  *
  * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @copyright  Copyright (c) by Mamis.IT Pty Ltd (http://www.mamis.com.au)
  * @author     Matthew Muscat <matthew@mamis.com.au>
  * @license    http://www.mamis.com.au/licencing
  */
 
 class Mamis_Shippit_Settings
 {
-    private $_settingsCache = null;
+    /**
+     * Add a new settings tab to the WooCommerce settings tabs array.
+     *
+     * @param array $settingsTab Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
+     * @return array $settingsTab Array of WooCommerce setting tabs & their labels, including the Subscription tab.
+     */
+    public static function add_settings_tab($settingsTab)
+    {
+        $settingsTab['shippit_settings_tab'] = __('Shippit', 'shippit-settings-tab');
+
+        return $settingsTab;
+    }
 
     /**
-     * Init fields.
+     * Uses the WooCommerce admin fields API to output settings via the @see woocommerce_admin_fields() function.
      *
-     * Add fields to the Shippit settings page.
-     *
+     * @uses woocommerce_admin_fields()
+     * @uses self::get_settings()
      */
-    public function getFields()
+    public static function addSettingsTab()
+    {
+        woocommerce_admin_fields(self::getFields());
+    }
+
+    /**
+     * Uses the WooCommerce options API to save settings via the @see woocommerce_update_options() function.
+     *
+     * @uses woocommerce_update_options()
+     * @uses self::get_settings()
+     */
+    public static function updateSettings()
+    {
+        woocommerce_update_options(self::getFields());
+    }
+
+    /**
+     * Get all the settings for this plugin for @see woocommerce_admin_fields() function.
+     *
+     * @return array Array of settings for @see woocommerce_admin_fields() function.
+     */
+    public static function getFields()
     {
         // @TODO: Review if possible to remove global var for php5.5 support
         global $shippitOtherShippingMethods;
 
-        $fields = array(
-            'title' => array(
-                'title' => __('Title', 'woocommerce-shippit'),
-                'type' => 'text',
-                'default' => 'Shippit',
+        $settings = array(
+            'section_title' => array(
+                'name'     => __( 'Shippit Settings', 'shippit-settings-tab' ),
+                'type'     => 'title',
+                'desc'     => '',
+                'id'       => 'shippit-settings-title'
             ),
 
-            'allowed_methods' => array(
-                'title' => __('Allowed Methods', 'woocommerce-shippit'),
-                'id' => 'allowed_methods',
+            'enabled' => array(
+                'title' => __('Enabled', 'shippit-settings-tab'),
                 'class' => 'wc-enhanced-select',
-                'type' => 'multiselect',
-                'default' => array(
-                    'standard',
-                    'priority',
-                    'express,'
-                ),
-                'options' => array(
-                    'standard' => __('Standard', 'woocommerce-shippit'),
-                    'express' => __('Express', 'woocommerce-shippit'),
-                    'priority' => __('Priority', 'woocommerce-shippit'),
-                ),
-            ),
-
-            'max_timeslots' => array(
-                'title' => __('Maximum Timeslots', 'woocommerce-shippit'),
-                'description' => __('The maximum amount of timeslots to display', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'id' => 'max_timeslots',
-                'class' => 'wc-enhanced-select',
-                'default' => '',
+                'default' => 'no',
                 'type' => 'select',
                 'options' => array(
-                    '' => __('-- No Max Timeslots --', 'woocommerce-shippit'),
-                    '1' => __('1 Timeslots', 'woocommerce-shippit'),
-                    '2' => __('2 Timeslots', 'woocommerce-shippit'),
-                    '3' => __('3 Timeslots', 'woocommerce-shippit'),
-                    '4' => __('4 Timeslots', 'woocommerce-shippit'),
-                    '5' => __('5 Timeslots', 'woocommerce-shippit'),
-                    '6' => __('6 Timeslots', 'woocommerce-shippit'),
-                    '7' => __('7 Timeslots', 'woocommerce-shippit'),
-                    '8' => __('8 Timeslots', 'woocommerce-shippit'),
-                    '9' => __('9 Timeslots', 'woocommerce-shippit'),
-                    '10' => __('10 Timeslots', 'woocommerce-shippit'),
-                    '11' => __('11 Timeslots', 'woocommerce-shippit'),
-                    '12' => __('12 Timeslots', 'woocommerce-shippit'),
-                    '13' => __('13 Timeslots', 'woocommerce-shippit'),
-                    '14' => __('14 Timeslots', 'woocommerce-shippit'),
-                    '15' => __('15 Timeslots', 'woocommerce-shippit'),
-                    '16' => __('16 Timeslots', 'woocommerce-shippit'),
-                    '17' => __('17 Timeslots', 'woocommerce-shippit'),
-                    '18' => __('18 Timeslots', 'woocommerce-shippit'),
-                    '19' => __('19 Timeslots', 'woocommerce-shippit'),
-                    '20' => __('20 Timeslots', 'woocommerce-shippit'),
-               ),
+                    'no' => __('No', 'shippit-settings-tab'),
+                    'yes' => __('Yes', 'shippit-settings-tab'),
+                ),
+                'id' => 'wc_settings_shippit_enabled'
             ),
 
-            'filter_enabled' => array(
-                'title' => __('Filter by enabled products', 'woocommerce-shippit'),
-                'description' => __('Filter products that are enabled for quoting by shippit', 'woocommerce-shippit'),
+            'api_key' => array(
+                'title' => __('API Key', 'shippit-settings-tab'),
+                'desc' => '',
+                'name' => 'api_key',
+                'type' => 'text',
+                'id' => 'wc_settings_shippit_api_key'
+            ),
+
+            'debug' => array(
+                'title' => __('Debug', 'woocommerce-shippit'),
+                'description' => __('If debug mode is enabled, all events and requests are logged to the debug log file', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
@@ -96,126 +99,75 @@ class Mamis_Shippit_Settings
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
                     'yes' => __('Yes', 'woocommerce-shippit'),
-               ),
+                ),
+                'id' => 'wc_settings_shippit_debug'
             ),
 
-            'filter_enabled_products' => array(
-                'title' => __('Enabled Products', 'woocommerce-shippit'),
-                'description' => __('The products enabled for quoting by Shippit', 'woocommerce-shippit'),
+            'environment' => array(
+                'title' => __('Environment', 'shippit-settings-tab'),
+                'description' => __('The environment to connect to for all quotes and order sync operations', 'shippit-settings-tab'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
+                'default' => 'live',
+                'type' => 'select',
+                'options' => array(
+                    'sandbox' => __('Sandbox', 'shippit-settings-tab'),
+                    'live' => __('Live', 'shippit-settings-tab'),
+                ),
+                'id' => 'wc_settings_shippit_environment'
+            ),
+
+            'send_all_orders' => array(
+                'title' => __('Send All Orders', 'shippit-settings-tab'),
+                'description' => __('Send all orders to Shippit', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'no',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'shippit-settings-tab'),
+                    'yes' => __('Yes', 'shippit-settings-tab'),
+               ),
+                'id' => 'wc_settings_shippit_send_all_orders'
+            ),
+
+            'standard_shipping_methods' => array(
+                'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
+                'description' => __('Existing shipping methods mapped to Shippit\'s standard services', 'woocommerce-shippit'),
+                'desc_tip' => true,
                 'type' => 'multiselect',
-                'options' => $this->_getProducts(),
-            ),
-
-            'filter_attribute' => array(
-                'title' => __('Filter by product attributes', 'woocommerce-shippit'),
-                'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
-                'desc_tip' => true,
+                'options' => $shippitOtherShippingMethods,
                 'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-               ),
+                'id' => 'wc_settings_shippit_standard_shipping_methods'
             ),
 
-            'filter_attribute_code' => array(
-                'title' => __('Filter by attribute code', 'woocommerce-shippit'),
-                'description' => __('The product attribute code', 'woocommerce-shippit'),
+            'express_shipping_methods' => array(
+                'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
+                'description' => __('Existing shipping methods mapped to Shippit\'s express services', 'woocommerce-shippit'),
                 'desc_tip' => true,
-                'type' => 'select',
+                'type' => 'multiselect',
+                'options' => $shippitOtherShippingMethods,
                 'class' => 'wc-enhanced-select',
-                'options' => $this->_getAttributes(),
+                'id' => 'wc_settings_shippit_express_shipping_methods'
             ),
 
-            'filter_attribute_value' => array(
-                'title' => __('Filter by attribute value', 'woocommerce-shippit'),
-                'description' => __('The product attribute value', 'woocommerce-shippit'),
+            'international_shipping_methods' => array(
+                'title' => __('International Shipping Methods', 'woocommerce-shippit'),
+                'description' => __('Existing shipping methods mapped to Shippit\'s international services', 'woocommerce-shippit'),
                 'desc_tip' => true,
-                'type' => 'text',
-            ),
-
-            'margin' => array(
-                'title' => __('Margin'),
+                'type' => 'multiselect',
+                'options' => $shippitOtherShippingMethods,
                 'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'description' => __('Add a margin to the quoted shipping amounts', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes-percentage' => __('Yes - Percentage', 'woocommerce-shippit'),
-                    'yes-fixed' => __('Yes - Fixed Dollar Amount', 'woocommerce-shippit'),
-               ),
+                'id' => 'wc_settings_shippit_international_shipping_methods'
             ),
 
-            'margin_amount' => array(
-                'title' => __('Margin Amount', 'woocommerce-shippit'),
-                'description' => __('Please enter a margin amount, in either a whole dollar amount (ie: 5.50) or a percentage amount (ie: 5)', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'type' => 'text',
-            ),
+            'section_end' => array(
+                 'type' => 'sectionend',
+                 'id' => 'wc_settings_tab_demo_section_end'
+            )
         );
 
-        return $fields;
-    }
-
-    /**
-     * Get products with id/name for a multiselect
-     *
-     * @return array     An associative array of product ids and name
-     */
-    private function _getProducts()
-    {
-        $productArgs = array(
-            'post_type' => 'product',
-            'posts_per_page' => -1
-        );
-
-        $products = get_posts($productArgs);
-
-        $productOptions = array();
-
-        foreach ($products as $product) {
-            $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
-        }
-
-        return $productOptions;
-    }
-
-    public function _getAttributes()
-    {
-        $productAttributes = array();
-
-        $attributeTaxonomies = wc_get_attribute_taxonomies();
-
-        foreach ($attributeTaxonomies as $tax) {
-            $productAttributes[$tax->attribute_name] = __($tax->attribute_name, 'woocommerce-shippit');
-        }
-
-        return $productAttributes;
-    }
-
-    public function getSettings()
-    {
-        if (is_null($this->_settingsCache)) {
-            $this->_settingsCache = get_option('woocommerce_mamis_shippit_settings');
-        }
-
-        return $this->_settingsCache;
-    }
-
-    public function getSetting($key)
-    {
-        $settings = $this->getSettings();
-
-        if ( isset($settings[$key]) ) {
-            return $settings[$key];
-        }
-
-        return null;
+        return apply_filters('wc_settings_shippit_settings', $settings);
     }
 
     /**

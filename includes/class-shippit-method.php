@@ -50,7 +50,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function init()
     {
-        $this->instance_form_fields    = include('settings-shippit.php');
+        $this->s                       = new Mamis_Shippit_Settings();
+        $this->instance_form_fields    = (new Mamis_Shippit_Settings)->getFields(true);
         $this->title                   = $this->get_option('title');
         $this->tax_status              = $this->get_option('tax_status');
         $this->cost                    = $this->get_option('cost');

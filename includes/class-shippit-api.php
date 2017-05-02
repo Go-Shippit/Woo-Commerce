@@ -28,9 +28,9 @@ class Mamis_Shippit_Api
     {
         $this->settings = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
-        $this->apiKey = get_option('wc_settings_shippit_global_api_key');
-        $this->debug = get_option('wc_settings_shippit_global_debug');
-        $this->environment = get_option('wc_settings_shippit_global_environment');
+        $this->apiKey = get_option('wc_settings_shippit_api_key');
+        $this->debug = get_option('wc_settings_shippit_debug');
+        $this->environment = get_option('wc_settings_shippit_environment');
     }
 
     private function getApiKey()

@@ -32,7 +32,7 @@ class Mamis_Shippit_Log
     public function add($errorType, $message, $metaData = null, $severity = 'info')
     {
         // If debug mode is active, log all info serverities, otherwise log only errors
-        if (get_option('wc_settings_shippit_global_debug') == 'yes' || $severity == 'error') {
+        if (get_option('wc_settings_shippit_debug') == 'yes' || $severity == 'error') {
             error_log('-- ' . $errorType . ' --');
             error_log($message);
 

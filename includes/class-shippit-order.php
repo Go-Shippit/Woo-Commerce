@@ -56,8 +56,8 @@ class Mamis_Shippit_Order
      */
     public function addPendingSync($orderId)
     {
-        $isEnabled = get_option('wc_settings_shippit_global_enabled');
-        $sendAllOrders = get_option('wc_settings_shippit_global_send_all_orders');
+        $isEnabled = get_option('wc_settings_shippit_enabled');
+        $sendAllOrders = get_option('wc_settings_shippit_send_all_orders');
 
         if ($isEnabled != 'yes') {
             return;
@@ -92,9 +92,9 @@ class Mamis_Shippit_Order
     private function _isShippitShippingMethod($order)
     {
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = get_option('wc_settings_shippit_global_standard_shipping_methods');
-        $expressShippingMethods = get_option('wc_settings_shippit_global_express_shipping_methods');
-        $internationalShippingMethods = get_option('wc_settings_shippit_global_international_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -129,9 +129,9 @@ class Mamis_Shippit_Order
         }
 
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = get_option('wc_settings_shippit_global_standard_shipping_methods');
-        $expressShippingMethods = get_option('wc_settings_shippit_global_express_shipping_methods');
-        $internationalShippingMethods = get_option('wc_settings_shippit_global_international_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             // Check if shipping method is mapped to standard

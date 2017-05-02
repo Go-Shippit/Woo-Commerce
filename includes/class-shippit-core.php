@@ -58,7 +58,6 @@ class Mamis_Shippit_Core
         }
 
         $this->s = new Mamis_Shippit_Settings();
-        $this->globalSettings = new Mamis_Shippit_Settings_Global();
         $this->log = new Mamis_Shippit_Log();
 
         $this->init();
@@ -121,9 +120,9 @@ class Mamis_Shippit_Core
             echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
         }
 
-        // Add the global Shippit settings Tab
-        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::settings_tab');
-        add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings_Global::update_settings');
+        // Add the shippit settings tab functionality
+        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addSettingsTab');
+        add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
         // @TODO - Remove existing call as API_Key has been moved to global
@@ -172,7 +171,7 @@ class Mamis_Shippit_Core
         global $wp;
 
         // Get the configured api key
-        $apiKey = get_option('wc_settings_shippit_global_api_key');
+        $apiKey = get_option('wc_settings_shippit_api_key');
 
         // Grab the posted shippit API key
         $requestApiKey = $wp->query_vars['shippit_api_key'];
@@ -418,10 +417,10 @@ class Mamis_Shippit_Core
     public function after_options_save()
     {
         // Get key after the options have saved
-        $currentApiKey = get_option('wc_settings_shippit_global_api_key');
-        $newApiKey = $_POST['wc_settings_shippit_global_api_key'];
+        $currentApiKey = get_option('wc_settings_shippit_api_key');
+        $newApiKey = $_POST['wc_settings_shippit_api_key'];
 
-        $environment = $_POST['wc_settings_shippit_global_environment'];
+        $environment = $_POST['wc_settings_shippit_environment'];
         $isValidApiKey = null;
 
         if ($newApiKey != $currentApiKey) {
@@ -493,7 +492,7 @@ class Mamis_Shippit_Core
     private function validate_apikey($newApiKey, $oldApiKey = null, $environment = null)
     {
         if (is_null($oldApiKey)) {
-            $oldApiKey = get_option('wc_settings_shippit_global_api_key');
+            $oldApiKey = get_option('wc_settings_shippit_api_key');
         }
 
         $this->log->add(
