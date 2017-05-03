@@ -121,7 +121,6 @@ class Mamis_Shippit_Core
         add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
-        // @TODO - Remove existing call as API_Key has been moved to global
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
         add_action('woocommerce_update_options_shippit_settings_tab', array($this, 'after_options_save'));
 
@@ -223,15 +222,15 @@ class Mamis_Shippit_Core
         // Get the order by the request order id passed,
         // ensure it's status is processing
         $order = $this->get_order($orderNumber, 'wc-processing');
-        $orderId = $order->ID;
 
-        // Check if an order was found
+        // Check if an order is returned
         if (!$order) {
             wp_send_json_error(array(
                 'message' => self::ERROR_ORDER_MISSING
             ));
         }
 
+        $orderId = $order->ID;
         $wcOrder = wc_get_order($orderId);
 
         // Don't update status unless all items are shipped

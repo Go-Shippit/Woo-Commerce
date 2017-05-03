@@ -37,7 +37,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->supports              = array(
             'shipping-zones',
             'instance-settings',
-            // @TODO: Disable instance modal settings due to array not saving correctly
+            // Disable instance modal settings due to array not saving correctly
             // https://github.com/bobbingwide/woocommerce/commit/1e8d9d4c95f519df090e3ec94d8ea08eb8656c9f
             // 'instance-settings-modal',
         );
@@ -53,7 +53,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function init()
     {
         // Initiate instance settings as class variables
-        $this->enabled                 = $this->get_option('enabled');
+        
+        // Use property "quote_enabled", as "enabled" is used by the parent method
+        $this->quote_enabled           = $this->get_option('enabled');
+        
         $this->title                   = $this->get_option('title');
         $this->allowed_methods         = $this->get_option('allowed_methods');
         $this->max_timeslots           = $this->get_option('max_timeslots');
@@ -84,7 +87,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public static function add_shipping_method($methods)
     {
-        // @TODO: Review why this requires a key
         if (class_exists('Mamis_Shippit_Method')) {
             $methods['mamis_shippit'] = 'Mamis_Shippit_Method';
         }
@@ -101,7 +103,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function calculate_shipping($package = array())
     {
         // Check if the module is enabled and used for shipping quotes
-        if ($this->enabled != 'yes') {
+        if ($this->quote_enabled != 'yes') {
             return;
         }
 
