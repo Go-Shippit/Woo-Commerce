@@ -73,7 +73,7 @@ class Mamis_Shippit_Settings
             'enabled' => array(
                 'id' => 'wc_settings_shippit_enabled',
                 'title' => __('Enabled', 'woocommerce-shippit'),
-                'desc'     => 'General Settings allow you to connect your WooCommerce store with Shippit.',
+                'desc'     => 'Determines whether live quoting, order sync and fulfillment sync are enabled and active.',
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',

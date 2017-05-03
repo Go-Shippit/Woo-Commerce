@@ -53,10 +53,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function init()
     {
         // Initiate instance settings as class variables
-        
+
         // Use property "quote_enabled", as "enabled" is used by the parent method
         $this->quote_enabled           = $this->get_option('enabled');
-        
+
         $this->title                   = $this->get_option('title');
         $this->allowed_methods         = $this->get_option('allowed_methods');
         $this->max_timeslots           = $this->get_option('max_timeslots');
@@ -103,7 +103,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function calculate_shipping($package = array())
     {
         // Check if the module is enabled and used for shipping quotes
-        if ($this->quote_enabled != 'yes') {
+        if (get_option('wc_settings_shippit_enabled') != 'yes'
+            || $this->quote_enabled != 'yes') {
             return;
         }
 
