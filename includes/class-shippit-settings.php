@@ -22,9 +22,9 @@ class Mamis_Shippit_Settings
      * @param array $settingsTab Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
      * @return array $settingsTab Array of WooCommerce setting tabs & their labels, including the Subscription tab.
      */
-    public static function add_settings_tab($settingsTab)
+    public static function addSettingsTab($settingsTab)
     {
-        $settingsTab['shippit_settings_tab'] = __('Shippit', 'shippit-settings-tab');
+        $settingsTab['shippit_settings_tab'] = __('Shippit', 'woocommerce-shippit');
 
         return $settingsTab;
     }
@@ -35,7 +35,7 @@ class Mamis_Shippit_Settings
      * @uses woocommerce_admin_fields()
      * @uses self::get_settings()
      */
-    public static function addSettingsTab()
+    public static function addFields()
     {
         woocommerce_admin_fields(self::getFields());
     }
@@ -62,36 +62,18 @@ class Mamis_Shippit_Settings
         global $shippitOtherShippingMethods;
 
         $settings = array(
-            'section_title' => array(
-                'name'     => __( 'Shippit Settings', 'shippit-settings-tab' ),
+            'title_general' => array(
+                'id'       => 'shippit-settings-general-title',
+                'name'     => __( 'General Settings', 'woocommerce-shippit' ),
                 'type'     => 'title',
-                'desc'     => '',
-                'id'       => 'shippit-settings-title'
+                'desc'     => 'General Settings allow you to connect your WooCommerce store with Shippit.',
+                'desc_tip' => true,
             ),
 
             'enabled' => array(
-                'title' => __('Enabled', 'shippit-settings-tab'),
-                'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'shippit-settings-tab'),
-                    'yes' => __('Yes', 'shippit-settings-tab'),
-                ),
-                'id' => 'wc_settings_shippit_enabled'
-            ),
-
-            'api_key' => array(
-                'title' => __('API Key', 'shippit-settings-tab'),
-                'desc' => '',
-                'name' => 'api_key',
-                'type' => 'text',
-                'id' => 'wc_settings_shippit_api_key'
-            ),
-
-            'debug' => array(
-                'title' => __('Debug', 'woocommerce-shippit'),
-                'description' => __('If debug mode is enabled, all events and requests are logged to the debug log file', 'woocommerce-shippit'),
+                'id' => 'wc_settings_shippit_enabled',
+                'title' => __('Enabled', 'woocommerce-shippit'),
+                'desc'     => 'General Settings allow you to connect your WooCommerce store with Shippit.',
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
@@ -100,159 +82,123 @@ class Mamis_Shippit_Settings
                     'no' => __('No', 'woocommerce-shippit'),
                     'yes' => __('Yes', 'woocommerce-shippit'),
                 ),
-                'id' => 'wc_settings_shippit_debug'
             ),
 
-            'environment' => array(
-                'title' => __('Environment', 'shippit-settings-tab'),
-                'description' => __('The environment to connect to for all quotes and order sync operations', 'shippit-settings-tab'),
+            'api_key' => array(
+                'id' => 'wc_settings_shippit_api_key',
+                'title' => __('API Key', 'woocommerce-shippit'),
+                'desc' => 'Your Shippit API Key',
                 'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'live',
-                'type' => 'select',
-                'options' => array(
-                    'sandbox' => __('Sandbox', 'shippit-settings-tab'),
-                    'live' => __('Live', 'shippit-settings-tab'),
-                ),
-                'id' => 'wc_settings_shippit_environment'
+                'name' => 'api_key',
+                'type' => 'text',
+                'css' => 'min-width: 350px; border-radius: 3px;',
             ),
 
-            'send_all_orders' => array(
-                'title' => __('Send All Orders', 'shippit-settings-tab'),
-                'description' => __('Send all orders to Shippit', 'woocommerce-shippit'),
+            'debug' => array(
+                'id' => 'wc_settings_shippit_debug',
+                'title' => __('Debug Mode', 'woocommerce-shippit'),
+                'desc' => __('If debug mode is enabled, all events and requests are logged to the debug log file', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
                 'type' => 'select',
                 'options' => array(
-                    'no' => __('No', 'shippit-settings-tab'),
-                    'yes' => __('Yes', 'shippit-settings-tab'),
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+                ),
+            ),
+
+            'environment' => array(
+                'id' => 'wc_settings_shippit_environment',
+                'title' => __('Environment', 'woocommerce-shippit'),
+                'desc' => __('The environment to connect to for all quotes and order sync operations', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'live',
+                'type' => 'select',
+                'options' => array(
+                    'sandbox' => __('Sandbox', 'woocommerce-shippit'),
+                    'live' => __('Live', 'woocommerce-shippit'),
+                ),
+            ),
+
+            'section_general_end' => array(
+                 'id' => 'shippit-settings-general-end',
+                 'type' => 'sectionend',
+            ),
+
+            'title_order' => array(
+                'id' => 'shippit-settings-orders-title',
+                'name' => __( 'Order Sync Settings', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'Order Sync Settings refers to your prefernces for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
+            ),
+
+            'send_all_orders' => array(
+                'id' => 'wc_settings_shippit_send_all_orders',
+                'title' => __('Auto-Sync New Orders', 'woocommerce-shippit'),
+                'desc' => __('Automatically sync all new order to Shippit', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'no',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
                ),
-                'id' => 'wc_settings_shippit_send_all_orders'
             ),
 
             'standard_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_standard_shipping_methods',
                 'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s standard services', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Standard" Shippit service level', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'type' => 'multiselect',
                 'options' => $shippitOtherShippingMethods,
                 'class' => 'wc-enhanced-select',
-                'id' => 'wc_settings_shippit_standard_shipping_methods'
             ),
 
             'express_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_express_shipping_methods',
                 'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s express services', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Express" Shippit service level', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'type' => 'multiselect',
                 'options' => $shippitOtherShippingMethods,
                 'class' => 'wc-enhanced-select',
-                'id' => 'wc_settings_shippit_express_shipping_methods'
             ),
 
-            'international_shipping_methods' => array(
-                'title' => __('International Shipping Methods', 'woocommerce-shippit'),
-                'description' => __('Existing shipping methods mapped to Shippit\'s international services', 'woocommerce-shippit'),
+            'section_order_end' => array(
+                 'id' => 'shippit-settings-order-end',
+                 'type' => 'sectionend',
+            ),
+
+            'title_fulfillment' => array(
+                'id' => 'shippit-settings-fulfillment-title',
+                'name' => __( 'Fulfillment Settings', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'Enable this setting to mark orders as fulfilled in WooCommerce. With this setting enabled, Shippit will update all tracking information against the order as it is fulfilled.',
                 'desc_tip' => true,
-                'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
+            ),
+
+            'fulfillment_enabled' => array(
+                'id' => 'wc_settings_shippit_fulfillment_enabled',
+                'title' => __('Enabled', 'woocommerce-shippit'),
                 'class' => 'wc-enhanced-select',
-                'id' => 'wc_settings_shippit_international_shipping_methods'
+                'default' => 'yes',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+                )
             ),
 
             'section_end' => array(
+                 'id' => 'shippit-settings-fulfillment-end',
                  'type' => 'sectionend',
-                 'id' => 'wc_settings_tab_demo_section_end'
             )
         );
 
         return apply_filters('wc_settings_shippit_settings', $settings);
-    }
-
-    /**
-     * Convert the dimension to a different unit size
-     *
-     * based on https://gist.github.com/mbrennan-afa/1812521
-     *
-     * @param  float $dimension  The dimension to be converted
-     * @param  string $unit      The unit to be converted to
-     * @return float             The converted dimension
-     */
-    public function convertDimension($dimension, $unit = 'm')
-    {
-        $dimensionCurrentUnit = get_option('woocommerce_dimension_unit');
-        $dimensionCurrentUnit = strtolower($dimensionCurrentUnit);
-        $unit = strtolower($unit);
-
-        if ($dimensionCurrentUnit !== $unit) {
-            // Unify all units to cm first
-            switch ($dimensionCurrentUnit) {
-                case 'inch':
-                    $dimension *= 2.54;
-                    break;
-                case 'm':
-                    $dimension *= 100;
-                    break;
-                case 'mm':
-                    $dimension *= 0.1;
-                    break;
-            }
-
-            // Output desired unit
-            switch ($unit) {
-                case 'inch':
-                    $dimension *= 0.3937;
-                    break;
-                case 'm':
-                    $dimension *= 0.01;
-                    break;
-                case 'mm':
-                    $dimension *= 10;
-                    break;
-            }
-        }
-
-        return $dimension;
-    }
-
-    /**
-     * Convert the weight to a different unit size
-     *
-     * based on https://gist.github.com/mbrennan-afa/1812521
-     *
-     * @param  float $weight     The weight to be converted
-     * @param  string $unit      The unit to be converted to
-     * @return float             The converted weight
-     */
-    public function convertWeight($weight, $unit = 'kg')
-    {
-        $weightCurrentUnit = get_option('woocommerce_weight_unit');
-        $weightCurrentUnit = strtolower($weightCurrentUnit);
-        $unit = strtolower($unit);
-
-        if ($weightCurrentUnit !== $unit) {
-            // Unify all units to kg first
-            switch ($weightCurrentUnit) {
-                case 'g':
-                    $weight *= 0.001;
-                    break;
-                case 'lbs':
-                    $weight *= 0.4535;
-                    break;
-            }
-
-            // Output desired unit
-            switch ($unit) {
-                case 'g':
-                    $weight *= 1000;
-                    break;
-                case 'lbs':
-                    $weight *= 2.204;
-                    break;
-            }
-        }
-
-        return $weight;
     }
 }

@@ -16,10 +16,6 @@
 
 class Mamis_Shippit_Core
 {
-    /**
-     * Version.
-     */
-    public $version = '1.2.12';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -121,7 +117,7 @@ class Mamis_Shippit_Core
         }
 
         // Add the shippit settings tab functionality
-        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addSettingsTab');
+        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
         add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
@@ -577,11 +573,6 @@ class Mamis_Shippit_Core
      */
     public static function order_sync_schedule()
     {
-        //@TODO: SHIP-197
-        require_once ('class-upgrade-data.php');
-        $upgrade = new Upgrade_Data();
-        $upgrade->upgrade();
-
         if (!wp_next_scheduled('syncOrders')) {
             wp_schedule_event(current_time('timestamp'), 'hourly', 'syncOrders');
         }

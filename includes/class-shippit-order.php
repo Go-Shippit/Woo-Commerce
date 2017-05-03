@@ -18,6 +18,7 @@ class Mamis_Shippit_Order
 {
     private $api;
     private $s;
+    private $helper;
 
     const CARRIER_CODE = 'mamis_shippit';
 
@@ -28,6 +29,7 @@ class Mamis_Shippit_Order
     {
         $this->api = new Mamis_Shippit_Api();
         $this->s = new Mamis_Shippit_Settings();
+        $this->helper = new Mamis_Shippit_Helper();
     }
 
     /**
@@ -258,7 +260,7 @@ class Mamis_Shippit_Order
                         $itemWidth = $product->get_width();
 
                         if (!empty($itemWeight)) {
-                            $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+                            $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
                         }
                         else {
                             // stub weight to 0.2kg
@@ -266,29 +268,27 @@ class Mamis_Shippit_Order
                         }
 
                         if (!empty($itemHeight)) {
-                            $itemDetail['depth'] = $this->s->convertDimension($itemHeight);
+                            $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
                         }
                         else {
                             $itemDetail['depth'] = 0;
                         }
 
                         if (!empty($itemLength)) {
-                            $itemDetail['length'] = $this->s->convertDimension($itemLength);
+                            $itemDetail['length'] = $this->helper->convertDimension($itemLength);
                         }
                         else {
                             $itemDetail['length'] = 0;
                         }
 
                         if (!empty($itemWidth)) {
-                            $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+                            $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
                         }
                         else {
                             $itemDetail['width'] = 0;
                         }
 
                         $itemDetails = $itemDetail;
-
-                        error_log(print_r($itemDetail,true));
 
                         $orderData['parcel_attributes'][] = array(
                             'sku' => $productSku,

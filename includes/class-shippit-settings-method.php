@@ -14,7 +14,7 @@
  * @license    http://www.mamis.com.au/licencing
  */
 
-class Mamis_Shippit_Settings_Instance
+class Mamis_Shippit_Settings_Method
 {
     /**
      * Init fields.
@@ -24,6 +24,20 @@ class Mamis_Shippit_Settings_Instance
      */
     public function getFields($isInstance = false)
     {
+        $fields['enabled'] = array(
+            'id' => 'wc_settings_shippit_enabled',
+            'title' => __('Enabled', 'woocommerce-shippit'),
+            'desc'     => 'Utilise this shipping method for live quoting.',
+            'desc_tip' => true,
+            'class' => 'wc-enhanced-select',
+            'default' => 'no',
+            'type' => 'select',
+            'options' => array(
+                'no' => __('No', 'woocommerce-shippit'),
+                'yes' => __('Yes', 'woocommerce-shippit'),
+            ),
+        );
+
         $fields['title'] = array(
             'title' => __('Title', 'woocommerce-shippit'),
             'type' => 'text',
@@ -78,6 +92,12 @@ class Mamis_Shippit_Settings_Instance
                 '19' => __('19 Timeslots', 'woocommerce-shippit'),
                 '20' => __('20 Timeslots', 'woocommerce-shippit'),
            ),
+        );
+
+        $fields['title_filter'] = array(
+            'name'     => __( 'Filter Settings', 'woocommerce-shippit' ),
+            'type'     => 'title',
+            'desc'     => 'Filter Settings allow you to only provide live quotes when the cart contents meets certain conditions.'
         );
 
         // Only show "filter enabled" and "filter_enabled_products"
@@ -135,6 +155,12 @@ class Mamis_Shippit_Settings_Instance
             'description' => __('The product attribute value', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'text',
+        );
+
+        $fields['title_filter'] = array(
+            'name'     => __( 'Filter Settings', 'woocommerce-shippit' ),
+            'type'     => 'title',
+            'desc'     => 'Filter Settings allow you to only provide live quotes when the cart contents meets certain conditions.'
         );
 
         $fields['margin'] = array(
