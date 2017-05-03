@@ -379,7 +379,7 @@ class Mamis_Shippit_Core
         global $post;
 
         // Add support for Wordpress Jetpack - Order Numbers
-        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled')) {
+        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled') == 'yes') {
             $queryArgs = array(
                 'meta_key' => '_wcj_order_number',
                 'meta_value' => $orderId,
