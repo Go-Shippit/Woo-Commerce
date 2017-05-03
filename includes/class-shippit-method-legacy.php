@@ -44,7 +44,7 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
     public function init()
     {
         // Initiate instance settings as class variables
-        $this->enabled                 = $this->get_option('enabled');
+        $this->quote_enabled           = $this->get_option('enabled');
         $this->title                   = $this->get_option('title');
         $this->allowed_methods         = $this->get_option('allowed_methods');
         $this->max_timeslots           = $this->get_option('max_timeslots');
@@ -89,9 +89,8 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
      */
     public static function add_shipping_method($methods)
     {
-        // @TODO: review method key to use
         if (class_exists('Mamis_Shippit_Method_Legacy')) {
-            $methods[] = 'Mamis_Shippit_Method_Legacy';
+            $methods['legacy_mamis_shippit'] = 'Mamis_Shippit_Method_Legacy';
         }
 
         return $methods;
