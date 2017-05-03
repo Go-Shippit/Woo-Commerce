@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.13 =
+
+- Bugfix - Resolve an issue where if the jetpack module was present, but disabled, custom orders numbers logic was still being used - causing the fulfillment webhook to fail to locate the order for fulfillment.
+
 = 1.2.12 =
 
 - Feature - Add support for shipping orders that use custom order numbers in the WooCommerce Jetpack module
