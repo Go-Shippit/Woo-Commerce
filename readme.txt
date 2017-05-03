@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.2.12 =
+
+- Feature - Add support for shipping orders that use custom order numbers in the WooCommerce Jetpack module
+
 = 1.2.11 =
 
 - Bugfix - Resolve an issue where an order may not be marked as shipped, due to differing order id and woocommerce order numbers
