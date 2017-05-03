@@ -65,6 +65,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 - Feature - Add support for shipping zones - you can now use shipping live quotes within WooCommerce Shipping Zones - we've kept the old shipping method active, however we suggest updating your shipping method to utilise the new zones functionality, as this legacy method will be removed in a future release.
 - Change - A new "Shippit" tab will now appear in WooCommerce for all Shippit core settings, shippit shipping method options will now only contain configuration options relating to live quoting functionality, with order sync and fulfillment sync options now shown in the "Shippit" tab
 
+= 1.2.13 =
+
+- Bugfix - Resolve an issue where if the jetpack module was present, but disabled, custom orders numbers logic was still being used - causing the fulfillment webhook to fail to locate the order for fulfillment.
+
 = 1.2.12 =
 
 - Feature - Add support for shipping orders that use custom order numbers in the WooCommerce Jetpack module
