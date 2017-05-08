@@ -123,6 +123,7 @@ class Mamis_Shippit_Settings_Method
                 'description' => __('The products enabled for quoting by Shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
+                'default' => '',
                 'type' => 'multiselect',
                 'options' => $this->_getProducts(),
             );
@@ -147,6 +148,7 @@ class Mamis_Shippit_Settings_Method
             'desc_tip' => true,
             'type' => 'select',
             'class' => 'wc-enhanced-select',
+            'default' => '',
             'options' => $this->_getAttributes(),
         );
 
@@ -154,6 +156,7 @@ class Mamis_Shippit_Settings_Method
             'title' => __('Filter by attribute value', 'woocommerce-shippit'),
             'description' => __('The product attribute value', 'woocommerce-shippit'),
             'desc_tip' => true,
+            'default' => '',
             'type' => 'text',
         );
 
@@ -181,6 +184,7 @@ class Mamis_Shippit_Settings_Method
             'title' => __('Margin Amount', 'woocommerce-shippit'),
             'description' => __('Please enter a margin amount, in either a whole dollar amount (ie: 5.50) or a percentage amount (ie: 5)', 'woocommerce-shippit'),
             'desc_tip' => true,
+            'default' => '',
             'type' => 'text',
         );
 
