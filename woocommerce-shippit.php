@@ -24,7 +24,6 @@ function init_shippit_core()
     $upgrade = (new Mamis_Shippit_Upgrade())->run();
 
     // import helper classes
-    include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
@@ -50,7 +49,6 @@ add_action('woocommerce_init', 'init_shippit_core', 99999);
 
 function init_shippit_method()
 {
-    include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');

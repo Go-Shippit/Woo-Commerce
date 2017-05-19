@@ -17,16 +17,10 @@
 class Mamis_Shippit_Log
 {
     public $s;
-    public $bugsnag;
 
     public function __construct()
     {
         $this->s = new Mamis_Shippit_Settings();
-        $this->bugsnag = new Bugsnag_Client('b2873ea2ae95a3c9f2cb63ca1557abb5');
-
-        if ($this->bugsnag) {
-            $this->bugsnag->setAppVersion(MAMIS_SHIPPIT_VERSION);
-        }
     }
 
     public function add($errorType, $message, $metaData = null, $severity = 'info')
@@ -38,10 +32,6 @@ class Mamis_Shippit_Log
 
             if (!is_null($metaData)) {
                 error_log(json_encode($metaData));
-            }
-
-            if ($this->bugsnag) {
-                $this->bugsnag->notifyError($errorType, $message, $metaData, $severity);
             }
         }
     }
@@ -59,9 +49,5 @@ class Mamis_Shippit_Log
     public function exception($exception)
     {
         error_log($exception->getMessage());
-
-        if ($this->bugsnag) {
-            $this->bugsnag->notifyException($exception);
-        }
     }
 }
