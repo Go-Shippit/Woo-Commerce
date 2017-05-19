@@ -90,7 +90,7 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
     public static function add_shipping_method($methods)
     {
         if (class_exists('Mamis_Shippit_Method_Legacy')) {
-            $methods['legacy_mamis_shippit'] = 'Mamis_Shippit_Method_Legacy';
+            $methods['mamis_shippit'] = 'Mamis_Shippit_Method_Legacy';
         }
 
         return $methods;

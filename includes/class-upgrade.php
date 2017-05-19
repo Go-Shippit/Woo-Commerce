@@ -24,6 +24,7 @@ class Mamis_Shippit_Upgrade
             return;
         }
 
+        // Migrate the core module settings to the new "Shippit Tab"
         $oldOptions = get_option('woocommerce_mamis_shippit_settings');
 
         $newOptions = [
@@ -44,6 +45,9 @@ class Mamis_Shippit_Upgrade
                 }
             }
         }
+
+        // Migrate the shipping method settings to "legacy"
+        update_option('woocommerce_mamis_shippit_legacy_settings', $oldOptions);
 
         // Update version
         update_option('wc_shippit_version', '1.3.0');
