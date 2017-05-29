@@ -16,13 +16,6 @@
 
 class Mamis_Shippit_Log
 {
-    public $s;
-
-    public function __construct()
-    {
-        $this->s = new Mamis_Shippit_Settings();
-    }
-
     public function add($errorType, $message, $metaData = null, $severity = 'info')
     {
         // If debug mode is active, log all info serverities, otherwise log only errors
