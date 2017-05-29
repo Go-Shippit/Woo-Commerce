@@ -2,24 +2,28 @@
 /*
  * Plugin Name:     WooCommerce Shippit
  * Description:     WooCommerce Shippit
- * Version:         1.2.13
+ * Version:         1.3.0
  * Author:          Shippit Pty Ltd
  * Author URL:      http://www.shippit.com
  * Text Domain:     woocommerce-shippit
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.2.13');
+define('MAMIS_SHIPPIT_VERSION', '1.3.0');
 
 // import core classes
+include_once('includes/class-shippit-helper.php');
 include_once('includes/class-shippit-settings.php');
+include_once('includes/class-shippit-settings-method.php');
 include_once('includes/class-shippit-core.php');
 
 function init_shippit_core()
 {
     global $shippitOtherShippingMethods;
 
+    include_once('includes/class-upgrade.php');
+    $upgrade = (new Mamis_Shippit_Upgrade())->run();
+
     // import helper classes
-    include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
@@ -35,6 +39,8 @@ function init_shippit_core()
 
         $shippitOtherShippingMethods[$shippingMethod->id] = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
     }
+
+    add_filter('woocommerce_settings_tabs_array', 'Mamis_Shippit_Settings::addSettingsTab', 50);
 }
 
 // add shippit core functionality
@@ -43,12 +49,14 @@ add_action('woocommerce_init', 'init_shippit_core', 99999);
 
 function init_shippit_method()
 {
-    include_once('vendor/Bugsnag/Autoload.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');
+    include_once('includes/class-shippit-method-legacy.php');
 
-    $method = new Mamis_Shippit_Method();
+    // add shipping methods
+    add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method', 'add_shipping_method'));
+    add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method_Legacy', 'add_shipping_method'));
 }
 
 // add shipping method class

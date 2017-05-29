@@ -18,6 +18,7 @@ class Mamis_Shippit_Order
 {
     private $api;
     private $s;
+    private $helper;
 
     const CARRIER_CODE = 'mamis_shippit';
 
@@ -28,6 +29,7 @@ class Mamis_Shippit_Order
     {
         $this->api = new Mamis_Shippit_Api();
         $this->s = new Mamis_Shippit_Settings();
+        $this->helper = new Mamis_Shippit_Helper();
     }
 
     /**
@@ -56,8 +58,8 @@ class Mamis_Shippit_Order
      */
     public function addPendingSync($orderId)
     {
-        $isEnabled = $this->s->getSetting('enabled');
-        $sendAllOrders = $this->s->getSetting('send_all_orders');
+        $isEnabled = get_option('wc_settings_shippit_enabled');
+        $sendAllOrders = get_option('wc_settings_shippit_send_all_orders');
 
         if ($isEnabled != 'yes') {
             return;
@@ -92,9 +94,9 @@ class Mamis_Shippit_Order
     private function _isShippitShippingMethod($order)
     {
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
-        $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
-        $internationalShippingMethods = $this->s->getSetting('international_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -129,9 +131,9 @@ class Mamis_Shippit_Order
         }
 
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
-        $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
-        $internationalShippingMethods = $this->s->getSetting('international_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             // Check if shipping method is mapped to standard
@@ -258,7 +260,7 @@ class Mamis_Shippit_Order
                         $itemWidth = $product->get_width();
 
                         if (!empty($itemWeight)) {
-                            $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+                            $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
                         }
                         else {
                             // stub weight to 0.2kg
@@ -266,29 +268,27 @@ class Mamis_Shippit_Order
                         }
 
                         if (!empty($itemHeight)) {
-                            $itemDetail['depth'] = $this->s->convertDimension($itemHeight);
+                            $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
                         }
                         else {
                             $itemDetail['depth'] = 0;
                         }
 
                         if (!empty($itemLength)) {
-                            $itemDetail['length'] = $this->s->convertDimension($itemLength);
+                            $itemDetail['length'] = $this->helper->convertDimension($itemLength);
                         }
                         else {
                             $itemDetail['length'] = 0;
                         }
 
                         if (!empty($itemWidth)) {
-                            $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+                            $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
                         }
                         else {
                             $itemDetail['width'] = 0;
                         }
 
                         $itemDetails = $itemDetail;
-
-                        error_log(print_r($itemDetail,true));
 
                         $orderData['parcel_attributes'][] = array(
                             'sku' => $productSku,

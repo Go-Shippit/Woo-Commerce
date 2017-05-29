@@ -16,22 +16,31 @@
 
 class Mamis_Shippit_Method extends WC_Shipping_Method
 {
-    private $api;
-    private $s;
+    protected $api;
+    protected $helper;
 
     /**
      * Constructor.
      */
-    public function __construct()
+    public function __construct($instance_id = 0)
     {
         $this->api = new Mamis_Shippit_Api();
-        $this->s = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
+        $this->helper = new Mamis_Shippit_Helper();
 
         $this->id                   = 'mamis_shippit';
+        $this->instance_id          = absint($instance_id);
+        $this->instance_form_fields = (new Mamis_Shippit_Settings_Method)->getFields(true);
         $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
-        $this->method_description   = __('Configure Shippit');
+        $this->method_description   = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
+        $this->supports              = array(
+            'shipping-zones',
+            'instance-settings',
+            // Disable instance modal settings due to array not saving correctly
+            // https://github.com/bobbingwide/woocommerce/commit/1e8d9d4c95f519df090e3ec94d8ea08eb8656c9f
+            // 'instance-settings-modal',
+        );
 
         $this->init();
     }
@@ -43,31 +52,31 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function init()
     {
-        // Load the settings form, but only when the settings form fields is required
-        add_filter('woocommerce_settings_api_form_fields_mamis_shippit', array($this, 'init_form_fields'));
+        // Initiate instance settings as class variables
 
-        $this->init_settings();
+        // Use property "quote_enabled", as "enabled" is used by the parent method
+        $this->quote_enabled           = $this->get_option('enabled');
+
+        $this->title                   = $this->get_option('title');
+        $this->allowed_methods         = $this->get_option('allowed_methods');
+        $this->max_timeslots           = $this->get_option('max_timeslots');
+        $this->filter_enabled          = 'no'; // depreciated
+        $this->filter_enabled_products = array(); // depreciated
+        $this->filter_attribute        = $this->get_option('filter_attribute');
+        $this->filter_attribute_code   = $this->get_option('filter_attribute_code');
+        $this->filter_attribute_value  = $this->get_option('filter_attribute_value');
+        $this->margin                  = $this->get_option('margin');
+        $this->margin_amount           = $this->get_option('margin_amount');
 
         // *****************
         // Shipping Method
         // *****************
 
-        // add shipping method
-        add_filter('woocommerce_shipping_methods', array($this, 'add_shipping_method'));
-
         // *****************
         // Shipping Method Save Event
         // *****************
 
-        // Save settings in admin if you have any defined
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
-    }
-
-    public function init_form_fields()
-    {
-        $this->form_fields = $this->s->getFields();
-
-        return $this->form_fields;
     }
 
     /**
@@ -76,10 +85,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      * Add shipping method to WooCommerce.
      *
      */
-    public function add_shipping_method($methods)
+    public static function add_shipping_method($methods)
     {
         if (class_exists('Mamis_Shippit_Method')) {
-            $methods[] = 'Mamis_Shippit_Method';
+            $methods['mamis_shippit'] = 'Mamis_Shippit_Method';
         }
 
         return $methods;
@@ -94,14 +103,13 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function calculate_shipping($package = array())
     {
         // Check if the module is enabled and used for shipping quotes
-        if ($this->enabled != 'yes') {
+        if (get_option('wc_settings_shippit_enabled') != 'yes'
+            || $this->quote_enabled != 'yes') {
             return;
         }
 
-        $allowedMethods = $this->s->getSetting('allowed_methods');
-
         // Ensure we have a shipping method available for use
-        if (empty($allowedMethods)) {
+        if (empty($this->allowed_methods)) {
             return;
         }
 
@@ -148,7 +156,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $itemDetail['qty'] = $item['quantity'];
 
             if (!empty($itemWeight)) {
-                $itemDetail['weight'] = $this->s->convertWeight($itemWeight);
+                $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
             }
             else {
                 // stub weight to 0.2kg
@@ -156,15 +164,15 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             }
 
             if (!empty($itemHeight)) {
-                $itemDetail['depth'] = $this->s->convertDimension($itemHeight);
+                $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
             }
 
             if (!empty($itemLength)) {
-                $itemDetail['length'] = $this->s->convertDimension($itemLength);
+                $itemDetail['length'] = $this->helper->convertDimension($itemLength);
             }
 
             if (!empty($itemWidth)) {
-                $itemDetail['width'] = $this->s->convertDimension($itemWidth);
+                $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
             }
 
             $itemDetails[] = $itemDetail;
@@ -175,11 +183,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     private function _processShippingQuotes($quoteDestination, $quoteCart)
     {
-        $allowedMethods = $this->s->getSetting('allowed_methods');
-
-        $isPriorityAvailable = in_array('priority', $allowedMethods);
-        $isExpressAvailable = in_array('express', $allowedMethods);
-        $isStandardAvailable = in_array('standard', $allowedMethods);
+        $isPriorityAvailable = in_array('priority', $this->allowed_methods);
+        $isExpressAvailable = in_array('express', $this->allowed_methods);
+        $isStandardAvailable = in_array('standard', $this->allowed_methods);
 
         $dropoffSuburb = $quoteDestination['city'];
         $dropoffPostcode = $quoteDestination['postcode'];
@@ -262,10 +268,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _addPriorityQuote($shippingQuote)
     {
         $timeSlotCount = 0;
-        $maxTimeSlots = $this->s->getSetting('max_timeslots');
 
         foreach ($shippingQuote->quotes as $premiumQuote) {
-            if (!empty($maxTimeSlots) && $maxTimeSlots <= $timeSlotCount) {
+            if (!empty($this->max_timeslots) && $this->max_timeslots <= $timeSlotCount) {
                 break;
             }
 
@@ -306,12 +311,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     private function _getQuotePrice($quotePrice)
     {
-        switch ($this->s->getSetting('margin')) {
+        switch ($this->margin) {
             case 'yes-fixed':
-                $quotePrice += (float) $this->s->getSetting('margin_amount');
+                $quotePrice += (float) $this->margin_amount;
                 break;
             case 'yes-percentage':
-                $quotePrice *= (1 + ( (float) $this->s->getSetting('margin_amount') / 100));
+                $quotePrice *= (1 + ( (float) $this->margin_amount / 100));
         }
 
         // ensure we get the lowest price, but not below 0.
@@ -322,19 +327,21 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     /**
      * Checks if we can ship the products in the cart
-     * @return [type] [description]
+     *
+     * @depreciated - this functionality is only available on
+     * the legacy shipping method - it will be removed in Q1 2018
      */
     private function _canShipEnabledProducts($package)
     {
-        if ($this->s->getSetting('filter_enabled') == 'no') {
+        if ($this->filter_enabled == 'no') {
             return true;
         }
 
-        if ($this->s->getSetting('filter_enabled_products') == null) {
+        if ($this->filter_enabled_products == null) {
             return false;
         }
 
-        $allowedProducts = $this->s->getSetting('filter_enabled_products');
+        $allowedProducts = $this->filter_enabled_products;
 
         $products = $package['contents'];
         $productIds = array();
@@ -343,7 +350,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $productIds[] = $product['product_id'];
         }
 
-        if (count($allowedProducts) > 0) {
+        if (!empty($allowedProducts)) {
             // If item is not enabled return false
             if ($productIds != array_intersect($productIds, $allowedProducts)) {
                 $this->log->add(
@@ -365,18 +372,18 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
     private function _canShipEnabledAttributes($package)
     {
-        if ($this->s->getSetting('filter_attribute') == 'no') {
+        if ($this->filter_attribute == 'no') {
             return true;
         }
 
-        $attributeCode = $this->s->getSetting('filter_attribute_code');
+        $attributeCode = $this->filter_attribute_code;
 
         // Check if there is an attribute code set
         if (empty($attributeCode)) {
             return true;
         }
 
-        $attributeValue = $this->s->getSetting('filter_attribute_value');
+        $attributeValue = $this->filter_attribute_value;
 
         // Check if there is an attribute value set
         if (empty($attributeValue)) {

@@ -16,10 +16,6 @@
 
 class Mamis_Shippit_Core
 {
-    /**
-     * Version.
-     */
-    public $version = '1.2.13';
     public $id = 'mamis_shippit';
 
     // The shipping methods
@@ -120,8 +116,14 @@ class Mamis_Shippit_Core
             echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
         }
 
+        // Add the shippit settings tab functionality
+        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
+        add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
+
         // Validate the api key when the setting is changed
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
+        add_action('woocommerce_update_options_shippit_settings_tab', array($this, 'after_options_save'));
+
 
         //**********************/
         // Webhook functionality
@@ -164,7 +166,7 @@ class Mamis_Shippit_Core
         global $wp;
 
         // Get the configured api key
-        $apiKey = $this->s->getSetting('api_key');
+        $apiKey = get_option('wc_settings_shippit_api_key');
 
         // Grab the posted shippit API key
         $requestApiKey = $wp->query_vars['shippit_api_key'];
@@ -220,15 +222,15 @@ class Mamis_Shippit_Core
         // Get the order by the request order id passed,
         // ensure it's status is processing
         $order = $this->get_order($orderNumber, 'wc-processing');
-        $orderId = $order->ID;
 
-        // Check if an order was found
+        // Check if an order is returned
         if (!$order) {
             wp_send_json_error(array(
                 'message' => self::ERROR_ORDER_MISSING
             ));
         }
 
+        $orderId = $order->ID;
         $wcOrder = wc_get_order($orderId);
 
         // Don't update status unless all items are shipped
@@ -379,7 +381,7 @@ class Mamis_Shippit_Core
         global $post;
 
         // Add support for Wordpress Jetpack - Order Numbers
-        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled') == 'yes') {
+        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled')) {
             $queryArgs = array(
                 'meta_key' => '_wcj_order_number',
                 'meta_value' => $orderId,
@@ -410,9 +412,10 @@ class Mamis_Shippit_Core
     public function after_options_save()
     {
         // Get key after the options have saved
-        $currentApiKey = $this->s->getSetting('api_key');
-        $newApiKey = $_POST['woocommerce_mamis_shippit_api_key'];
-        $environment = $_POST['woocommerce_mamis_shippit_environment'];
+        $currentApiKey = get_option('wc_settings_shippit_api_key');
+        $newApiKey = $_POST['wc_settings_shippit_api_key'];
+
+        $environment = $_POST['wc_settings_shippit_environment'];
         $isValidApiKey = null;
 
         if ($newApiKey != $currentApiKey) {
@@ -484,7 +487,7 @@ class Mamis_Shippit_Core
     private function validate_apikey($newApiKey, $oldApiKey = null, $environment = null)
     {
         if (is_null($oldApiKey)) {
-            $oldApiKey = $this->s->getSetting('api_key');
+            $oldApiKey = get_option('wc_settings_shippit_api_key');
         }
 
         $this->log->add(
