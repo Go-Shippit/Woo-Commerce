@@ -1,23 +1,24 @@
 <?php
 /**
-*  Mamis.IT
-*
-*  NOTICE OF LICENSE
-*
-*  This source file is subject to the EULA
-*  that is available through the world-wide-web at this URL:
-*  http://www.mamis.com.au/licencing
-*
-*  @category   Mamis
-*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
-*  @author     Matthew Muscat <matthew@mamis.com.au>
-*  @license    http://www.mamis.com.au/licencing
-*/
+ * Mamis.IT
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is available through the world-wide-web at this URL:
+ * http://www.mamis.com.au/licencing
+ *
+ * @category   Mamis
+ * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @author     Matthew Muscat <matthew@mamis.com.au>
+ * @license    http://www.mamis.com.au/licencing
+ */
 
 class Mamis_Shippit_Order
 {
     private $api;
     private $s;
+    private $helper;
 
     const CARRIER_CODE = 'mamis_shippit';
 
@@ -28,6 +29,7 @@ class Mamis_Shippit_Order
     {
         $this->api = new Mamis_Shippit_Api();
         $this->s = new Mamis_Shippit_Settings();
+        $this->helper = new Mamis_Shippit_Helper();
     }
 
     /**
@@ -35,7 +37,7 @@ class Mamis_Shippit_Order
      *
      * Called when an order moves out from "processing"
      * status to a hold status
-     * 
+     *
      * @param  int     $order_id    The Order Id
      * @return boolean              True or false
      */
@@ -51,14 +53,13 @@ class Mamis_Shippit_Order
     /**
      * Add a pending sync
      *
-     * Called when an order moves into the "processing" state
-     * 
      * @param  int     $orderId    The Order Id
      * @return boolean              True or false
      */
     public function addPendingSync($orderId)
-    {   $isEnabled = $this->s->getSetting('enabled');
-        $sendAllOrders = $this->s->getSetting('send_all_orders');
+    {
+        $isEnabled = get_option('wc_settings_shippit_enabled');
+        $sendAllOrders = get_option('wc_settings_shippit_send_all_orders');
 
         if ($isEnabled != 'yes') {
             return;
@@ -70,9 +71,15 @@ class Mamis_Shippit_Order
 
         // Get the orders_item_id meta with key shipping
         $order = new WC_Order($orderId);
+
+        // Only add the order as pending when it's in a "processing" status
+        if (!$order->has_status('processing')) {
+            return;
+        }
+
         $isShippitShippingMethod = $order->get_shipping_methods();
 
-        if ($sendAllOrders == 'yes' && $order->shipping_country == 'AU') {
+        if ($sendAllOrders == 'yes') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
             $this->syncOrder($orderId);
@@ -87,8 +94,9 @@ class Mamis_Shippit_Order
     private function _isShippitShippingMethod($order)
     {
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
-        $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -98,6 +106,11 @@ class Mamis_Shippit_Order
 
             if (!empty($expressShippingMethods)
                 && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
+                return true;
+            }
+
+            if (!empty($internationalShippingMethods)
+                && in_array($shippingMethod['method_id'], $internationalShippingMethods)) {
                 return true;
             }
 
@@ -112,9 +125,15 @@ class Mamis_Shippit_Order
 
     private function _getShippingMethodId($order)
     {
+        // If the country is other than AU, use international
+        if ($order->shipping_country != 'AU') {
+            return 'Dhl';
+        }
+
         $shippingMethods = $order->get_shipping_methods();
-        $standardShippingMethods = $this->s->getSetting('standard_shipping_methods');
-        $expressShippingMethods = $this->s->getSetting('express_shipping_methods');
+        $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
+        $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
+        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             // Check if shipping method is mapped to standard
@@ -127,6 +146,12 @@ class Mamis_Shippit_Order
             if (!empty($expressShippingMethods)
                 && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
                 return 'eparcelexpress';
+            }
+
+            // Check if shipping method is mapped to international shipping
+            if (!empty($internationalShippingMethods)
+                && in_array($shippingMethod['method_id'], $internationalShippingMethods)) {
+                return 'Dhl';
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
@@ -158,15 +183,14 @@ class Mamis_Shippit_Order
             'post_type' => 'shop_order',
             'meta_query' => array(
                 array(
-                'key' => '_mamis_shippit_sync',
-                'value' => 'false',
-                'compare' => '='
+                    'key' => '_mamis_shippit_sync',
+                    'value' => 'false',
+                    'compare' => '='
                 )
             ),
         );
 
         // Get all woocommerce orders that are processing
-
         $orderPosts = get_posts($orderPostArg);
 
         foreach ($orderPosts as $orderPost) {
@@ -190,10 +214,11 @@ class Mamis_Shippit_Order
 
             $orderData['courier_type'] = $shippingOptions[0];
 
-            if (isset($shippingOptions[1])) {
+            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
                 $orderData['delivery_date'] = $shippingOptions[1];
             }
-            if (isset($shippingOptions[2])) {
+
+            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[2])) {
                 $orderData['delivery_window'] = $shippingOptions[2];
             }
         }
@@ -221,9 +246,59 @@ class Mamis_Shippit_Order
                     $product = $order->get_product_from_item($orderItem);
 
                     if (!$product->is_virtual()) {
+                        // Append sku with variation_id if it exists
+                        if ($product->product_type == 'variation') {
+                            $productSku = $product->get_sku() . '|' . $product->get_variation_id();
+                        }
+                        else {
+                            $productSku = $product->get_sku();
+                        }
+
+                        $itemWeight = $product->get_weight();
+                        $itemHeight = $product->get_height();
+                        $itemLength = $product->get_length();
+                        $itemWidth = $product->get_width();
+
+                        if (!empty($itemWeight)) {
+                            $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
+                        }
+                        else {
+                            // stub weight to 0.2kg
+                            $itemDetail['weight'] = 0.2;
+                        }
+
+                        if (!empty($itemHeight)) {
+                            $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
+                        }
+                        else {
+                            $itemDetail['depth'] = 0;
+                        }
+
+                        if (!empty($itemLength)) {
+                            $itemDetail['length'] = $this->helper->convertDimension($itemLength);
+                        }
+                        else {
+                            $itemDetail['length'] = 0;
+                        }
+
+                        if (!empty($itemWidth)) {
+                            $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
+                        }
+                        else {
+                            $itemDetail['width'] = 0;
+                        }
+
+                        $itemDetails = $itemDetail;
+
                         $orderData['parcel_attributes'][] = array(
-                            'qty' => $orderItem['qty'],
-                            'weight' => ($product->get_weight() == 0 ? 0.2 : $product->get_weight())
+                            'sku' => $productSku,
+                            'title' => $product->get_title(),
+                            'qty' => (float) $orderItem['qty'],
+                            'price' => (float) $order->get_item_subtotal($orderItem),
+                            'weight' => (float) $itemDetail['weight'],
+                            'depth' => (float) $itemDetail['depth'],
+                            'length' => (float) $itemDetail['length'],
+                            'width' => (float) $itemDetail['width']
                         );
                     }
                 }
@@ -231,18 +306,25 @@ class Mamis_Shippit_Order
         }
 
         $authorityToLeave = get_post_meta($orderId, 'authority_to_leave', true);
-        
+
         if (empty($authorityToLeave)) {
             $authorityToLeave = 'No';
         }
 
-        $orderData['delivery_postcode']        = $order->shipping_postcode;
+        $orderData['delivery_company']         = $order->shipping_company;
         $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
-        $orderData['delivery_suburb']          = $order->shipping_city;
+        $orderData['delivery_country_code']    = $order->shipping_country;
         $orderData['delivery_state']           = $order->shipping_state;
+        $orderData['delivery_postcode']        = $order->shipping_postcode;
+        $orderData['delivery_suburb']          = $order->shipping_city;
         $orderData['delivery_instructions']    = $order->customer_message;
         $orderData['authority_to_leave']       = $authorityToLeave;
         $orderData['retailer_invoice']         = $order->get_order_number();
+
+        // If no state has been provided, use the suburb
+        if (empty($orderData['delivery_state'])) {
+            $orderData['delivery_state'] = $orderData['delivery_suburb'];
+        }
 
         // Send the API request
         $apiResponse = $this->api->sendOrder($orderData);

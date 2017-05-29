@@ -1,24 +1,24 @@
 <?php
 /**
-*  Mamis.IT
-*
-*  NOTICE OF LICENSE
-*
-*  This source file is subject to the EULA
-*  that is available through the world-wide-web at this URL:
-*  http://www.mamis.com.au/licencing
-*
-*  @category   Mamis
-*  @copyright  Copyright (c) 2015 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
-*  @author     Matthew Muscat <matthew@mamis.com.au>
-*  @license    http://www.mamis.com.au/licencing
-*/
+ * Mamis.IT
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is available through the world-wide-web at this URL:
+ * http://www.mamis.com.au/licencing
+ *
+ * @category   Mamis
+ * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
+ * @author     Matthew Muscat <matthew@mamis.com.au>
+ * @license    http://www.mamis.com.au/licencing
+ */
 
 class Mamis_Shippit_Api
 {
-    const API_ENDPOINT_LIVE = 'http://goshippit.herokuapp.com/api/3';
-    const API_ENDPOINT_STAGING = 'http://shippit-staging.herokuapp.com/api/3';
-    const API_TIMEOUT = 5;
+    const API_ENDPOINT_LIVE = 'https://www.shippit.com/api/3';
+    const API_ENDPOINT_STAGING = 'https://staging.shippit.com/api/3';
+    const API_TIMEOUT = 30;
     const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
     private $apiKey = null;
@@ -28,9 +28,9 @@ class Mamis_Shippit_Api
     {
         $this->settings = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
-        $this->apiKey = $this->settings->getSetting('api_key');
-        $this->debug = $this->settings->getSetting('debug');
-        $this->environment = $this->settings->getSetting('environment');
+        $this->apiKey = get_option('wc_settings_shippit_api_key');
+        $this->debug = get_option('wc_settings_shippit_debug');
+        $this->environment = get_option('wc_settings_shippit_environment');
     }
 
     private function getApiKey()
@@ -64,7 +64,7 @@ class Mamis_Shippit_Api
             'blocking'     => true,
             'method'       => $requestMethod,
             'timeout'      => self::API_TIMEOUT,
-            'user-agent'   => self::API_USER_AGENT,
+            'user-agent'   => self::API_USER_AGENT . 'v' . MAMIS_SHIPPIT_VERSION,
             'headers'      => array(
                 'content-type' => 'application/json',
             ),
@@ -135,7 +135,8 @@ class Mamis_Shippit_Api
             $uri,
             array(
                 'url' => $url,
-                'requestData' => $responseData
+                'requestData' => $requestData,
+                'responseData' => $responseData
             )
         );
 
@@ -153,7 +154,7 @@ class Mamis_Shippit_Api
         if (!$quote) {
             return false;
         }
-            
+
         return $quote->response;
     }
 
@@ -168,7 +169,7 @@ class Mamis_Shippit_Api
         if (!$order) {
             return false;
         }
-            
+
         return $order->response;
     }
 
