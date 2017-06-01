@@ -294,7 +294,7 @@ class Mamis_Shippit_Order
                             'sku' => $productSku,
                             'title' => $product->get_title(),
                             'qty' => (float) $orderItem['qty'],
-                            'price' => (float) $order->get_item_subtotal($orderItem),
+                            'price' => (float) $order->get_item_subtotal($orderItem, true),
                             'weight' => (float) $itemDetail['weight'],
                             'depth' => (float) $itemDetail['depth'],
                             'length' => (float) $itemDetail['length'],
