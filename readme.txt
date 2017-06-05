@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.1 =
+
+- Change - Include the taxable amount for item prices sent to Shippit
+
 = 1.3.0 =
 
 - Feature - Add support for shipping zones - you can now use shipping live quotes within WooCommerce Shipping Zones - we've kept the old shipping method active, however we suggest updating your shipping method to utilise the new zones functionality, as this legacy method will be removed in a future release.
