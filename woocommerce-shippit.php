@@ -21,7 +21,8 @@ function init_shippit_core()
     global $shippitOtherShippingMethods;
 
     include_once('includes/class-upgrade.php');
-    $upgrade = (new Mamis_Shippit_Upgrade())->run();
+    $upgrade = new Mamis_Shippit_Upgrade();
+    $upgrade->run();
 
     // import helper classes
     include_once('includes/class-shippit-log.php');
