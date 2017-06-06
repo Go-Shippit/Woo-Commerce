@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.2 =
+
+- Bugfix - Fixes a bug affecting unsupported version of PHP (< PHP 5.4)
+
 = 1.3.1 =
 
 - Change - Include the taxable amount for item prices sent to Shippit
