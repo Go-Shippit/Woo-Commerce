@@ -14,8 +14,7 @@ php-5.2-linter:
   image: tetraweb/php:5.2
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
-
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 ###########
 # PHP 5.3 #
@@ -27,7 +26,7 @@ php-5.3-linter:
   image: tetraweb/php:5.3
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 
 ###########
@@ -40,7 +39,7 @@ php-5.4-linter:
   image: tetraweb/php:5.4
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 
 ###########
@@ -53,7 +52,7 @@ php-5.5-linter:
   image: tetraweb/php:5.5
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 
 ###########
@@ -66,7 +65,7 @@ php-5.6-linter:
   image: tetraweb/php:5.6
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 
 ###########
@@ -79,7 +78,7 @@ php-7.0-linter:
   image: tetraweb/php:7.0
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 
 ###########
@@ -92,7 +91,7 @@ php-7.1-linter:
   image: tetraweb/php:7.1
   script:
     - php -v
-    - if find . -name "*.php" -exec php -l {} \; | grep "Fatal error"; then exit 1; fi
+    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
 
 # PHP CS
 php-7.1-phpcs:
