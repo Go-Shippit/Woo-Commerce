@@ -163,16 +163,19 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 $itemDetail['weight'] = 0.2;
             }
 
-            if (!empty($itemHeight)) {
-                $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
-            }
+            if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
+                || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
+                if (!empty($itemHeight)) {
+                    $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
+                }
 
-            if (!empty($itemLength)) {
-                $itemDetail['length'] = $this->helper->convertDimension($itemLength);
-            }
+                if (!empty($itemLength)) {
+                    $itemDetail['length'] = $this->helper->convertDimension($itemLength);
+                }
 
-            if (!empty($itemWidth)) {
-                $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
+                if (!empty($itemWidth)) {
+                    $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
+                }
             }
 
             $itemDetails[] = $itemDetail;

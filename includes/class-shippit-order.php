@@ -254,51 +254,35 @@ class Mamis_Shippit_Order
                             $productSku = $product->get_sku();
                         }
 
+                        // Reset the itemDetail to an empty array
+                        $itemDetail = array();
+
                         $itemWeight = $product->get_weight();
-                        $itemHeight = $product->get_height();
-                        $itemLength = $product->get_length();
-                        $itemWidth = $product->get_width();
 
-                        if (!empty($itemWeight)) {
-                            $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
-                        }
-                        else {
-                            // stub weight to 0.2kg
-                            $itemDetail['weight'] = 0.2;
-                        }
+                        // Get the weight if available, otherwise stub weight to 0.2kg
+                        $itemDetail['weight'] = (!empty($itemWeight) ? $this->helper->convertWeight($itemWeight) : 0.2);
 
-                        if (!empty($itemHeight)) {
-                            $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
-                        }
-                        else {
-                            $itemDetail['depth'] = 0;
+                        if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
+                            || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
+                            $itemHeight = $product->get_height();
+                            $itemLength = $product->get_length();
+                            $itemWidth = $product->get_width();
+
+                            $itemDetail['depth'] = (!empty($itemHeight) ? $this->helper->convertDimension($itemHeight) : 0);
+
+                            $itemDetail['length'] = (!empty($itemLength) ? $this->helper->convertDimension($itemLength) : 0);
+
+                            $itemDetail['width'] = (!empty($itemWidth) ? $this->helper->convertDimension($itemWidth) : 0);
                         }
 
-                        if (!empty($itemLength)) {
-                            $itemDetail['length'] = $this->helper->convertDimension($itemLength);
-                        }
-                        else {
-                            $itemDetail['length'] = 0;
-                        }
-
-                        if (!empty($itemWidth)) {
-                            $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
-                        }
-                        else {
-                            $itemDetail['width'] = 0;
-                        }
-
-                        $itemDetails = $itemDetail;
-
-                        $orderData['parcel_attributes'][] = array(
-                            'sku' => $productSku,
-                            'title' => $product->get_title(),
-                            'qty' => (float) $orderItem['qty'],
-                            'price' => (float) $order->get_item_subtotal($orderItem, true),
-                            'weight' => (float) $itemDetail['weight'],
-                            'depth' => (float) $itemDetail['depth'],
-                            'length' => (float) $itemDetail['length'],
-                            'width' => (float) $itemDetail['width']
+                        $orderData['parcel_attributes'][] = array_merge(
+                            array(
+                                'sku' => $productSku,
+                                'title' => $product->get_title(),
+                                'qty' => (float) $orderItem['qty'],
+                                'price' => (float) $order->get_item_subtotal($orderItem, true),
+                            ),
+                            $itemDetail
                         );
                     }
                 }
