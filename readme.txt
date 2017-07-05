@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.3 =
+
+- Feature - Add feature flag to enable merchants to ignore item dimensions in quotes / orders
+-- To enable, add "define(`SHIPPIT_IGNORE_ITEM_DIMENSIONS`, true)" to wp-config.php
+
 = 1.3.2 =
 
 - Bugfix - Fixes a bug affecting unsupported version of PHP (< PHP 5.4)
