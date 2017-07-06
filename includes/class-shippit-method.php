@@ -247,7 +247,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Standard',
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);
@@ -263,7 +262,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Express',
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);
@@ -301,7 +299,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,
                 'label' => $methodTitle,
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);
