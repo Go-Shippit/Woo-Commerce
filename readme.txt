@@ -60,6 +60,14 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.5 =
+
+- Bugfix - Ensure live quotes take into account the WooCommerce Taxation preferences
+
+= 1.3.4 =
+
+- add plugin syntax support for PHP 5.2 and 5.3
+
 = 1.3.3 =
 
 - Feature - Add feature flag to enable merchants to ignore item dimensions in quotes / orders

@@ -76,7 +76,8 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
 
     public function init_form_fields()
     {
-        $this->form_fields = (new Mamis_Shippit_Settings_Method)->getFields();
+        $settings = new Mamis_Shippit_Settings_Method();
+        $this->form_fields = $settings->getFields();
 
         return $this->form_fields;
     }

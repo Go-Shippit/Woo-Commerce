@@ -27,7 +27,7 @@ class Mamis_Shippit_Upgrade
         // Migrate the core module settings to the new "Shippit Tab"
         $oldOptions = get_option('woocommerce_mamis_shippit_settings');
 
-        $newOptions = [
+        $newOptions = array(
             'enabled',
             'api_key',
             'debug',
@@ -36,7 +36,7 @@ class Mamis_Shippit_Upgrade
             'standard_shipping_methods',
             'express_shipping_methods',
             'international_shipping_methods'
-        ];
+        );
 
         if (!empty($oldOptions)) {
             foreach ($oldOptions as $key => $value) {

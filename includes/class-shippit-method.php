@@ -28,9 +28,11 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->log = new Mamis_Shippit_Log();
         $this->helper = new Mamis_Shippit_Helper();
 
+        $settings = new Mamis_Shippit_Settings_Method();
+
         $this->id                   = 'mamis_shippit';
         $this->instance_id          = absint($instance_id);
-        $this->instance_form_fields = (new Mamis_Shippit_Settings_Method)->getFields(true);
+        $this->instance_form_fields = $settings->getFields(true);
         $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
@@ -245,7 +247,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Standard',
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);
@@ -261,7 +262,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
                 'label' => 'Express',
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);
@@ -299,7 +299,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,
                 'label' => $methodTitle,
                 'cost'  => $quotePrice,
-                'taxes' => false,
             );
 
             $this->add_rate($rate);

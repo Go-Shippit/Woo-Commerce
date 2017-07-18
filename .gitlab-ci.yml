@@ -14,7 +14,8 @@ php-5.2-linter:
   image: tetraweb/php:5.2
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
+
 
 ###########
 # PHP 5.3 #
@@ -26,7 +27,7 @@ php-5.3-linter:
   image: tetraweb/php:5.3
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 
 ###########
@@ -39,7 +40,7 @@ php-5.4-linter:
   image: tetraweb/php:5.4
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 
 ###########
@@ -52,7 +53,7 @@ php-5.5-linter:
   image: tetraweb/php:5.5
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 
 ###########
@@ -65,7 +66,7 @@ php-5.6-linter:
   image: tetraweb/php:5.6
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 
 ###########
@@ -78,7 +79,7 @@ php-7.0-linter:
   image: tetraweb/php:7.0
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 
 ###########
@@ -91,7 +92,7 @@ php-7.1-linter:
   image: tetraweb/php:7.1
   script:
     - php -v
-    - find . -name "*.php" -exec php -l {} \; | grep -v '^No syntax errors detected'; test $? -eq 1
+    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
 # PHP CS
 php-7.1-phpcs:
