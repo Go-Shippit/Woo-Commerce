@@ -300,10 +300,11 @@ class Mamis_Shippit_Core
             }
 
             $skuData = null;
+            $productSku = (isset($requestItem->sku) ? $requestItem->sku : null);
             $productVariationId = null;
 
-            if (strpos($requestItem->sku, '|') !== false) {
-                $skuData = explode('|', $requestItem->sku);
+            if (strpos($productSku, '|') !== false) {
+                $skuData = explode('|', $productSku);
                 $productVariationId = end($skuData);
 
                 // remove the variation id
@@ -311,27 +312,38 @@ class Mamis_Shippit_Core
 
                 $productSku = implode('|', $skuData);
             }
-            else {
-                $productSku = $requestItem->sku;
-            }
 
-            foreach ($orderItemsData as $orderItemData) {
-                if (
-                    // If the product is a variation, match sku and variation_id
-                    (!is_null($productVariationId)
-                        && $productSku == $orderItemData['sku']
-                        && $productVariationId == $orderItemData['variation_id'])
-                    // Otherwise, match by the sku only
-                    || $productSku == $orderItemData['sku']
-                ) {
-                    $orderComment .= $requestItem->quantity . 'x of ' . $requestItem->title . '<br>';
-                    $totalItemsShipped += $requestItem->quantity;
-                    $orderItemsShipped[] = array(
-                        'sku' => $requestItem->sku,
-                        'quantity' => $requestItem->quantity,
-                        'title' => $requestItem->title
-                    );
+            // If we have product sku data, attempt to match based
+            // on the product sku + variation id, or product sku
+            if (!is_null($productSku)) {
+                foreach ($orderItemsData as $orderItemData) {
+                    if (
+                        // If the product is a variation, match sku and variation_id
+                        (!is_null($productVariationId)
+                            && $productSku == $orderItemData['sku']
+                            && $productVariationId == $orderItemData['variation_id'])
+                        // Otherwise, match by the sku only
+                        || $productSku == $orderItemData['sku']
+                    ) {
+                        $orderComment .= $requestItem->quantity . 'x of ' . $requestItem->title . '<br>';
+                        $totalItemsShipped += $requestItem->quantity;
+                        $orderItemsShipped[] = array(
+                            'sku' => $requestItem->sku,
+                            'quantity' => $requestItem->quantity,
+                            'title' => $requestItem->title
+                        );
+                    }
                 }
+            }
+            // Otherwise, don't attempt matching to order items
+            // Use the requestItem qty to determine the
+            // number of items that were shipped
+            else {
+                $orderComment .= $requestItem->quantity . 'x of ' . (isset($requestItem->title) ? $requestItem->title : 'Unknown Item') . '<br>';
+                $totalItemsShipped += $requestItem->quantity;
+                $orderItemsShipped[] = array(
+                    'quantity' => $requestItem->quantity
+                );
             }
         }
 
