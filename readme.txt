@@ -60,6 +60,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.6 =
+
+- Feature - Allow for shipments of orders without SKU details to be accepted and processed by the plugin
+
 = 1.3.5 =
 
 - Bugfix - Ensure live quotes take into account the WooCommerce Taxation preferences
