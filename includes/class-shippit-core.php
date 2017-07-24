@@ -113,7 +113,7 @@ class Mamis_Shippit_Core
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
         function authority_to_leave_display_admin_order_meta($order){
-            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
+            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->get_id(), 'authority_to_leave', true ) . '</p>';
         }
 
         // Add the shippit settings tab functionality
