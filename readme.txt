@@ -60,6 +60,16 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.7 =
+
+- New Features
+-- Adds support for WooCommerce v3
+—-- Ensures variation products are loaded via WC_Product_Variation on fulfillments
+—-- resolves minor PHP_NOTICE errors messages due to WooCommerce v3 changes on accessing order properties
+
+- Bugfixes
+-- Resolves undefined index “default” message when loading shipping method settings
+
 = 1.3.6 =
 
 - Feature - Allow for shipments of orders without SKU details to be accepted and processed by the plugin
