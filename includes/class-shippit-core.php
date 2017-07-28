@@ -258,7 +258,7 @@ class Mamis_Shippit_Core
             // SKU not stored in get_items so need to create new WC_Product
             // If item is a variation use variation_id in product call
             if ($orderItem['variation_id']) {
-                $product = new WC_Product($orderItem['variation_id']);
+                $product = new WC_Product_Variation($orderItem['variation_id']);
             }
             else {
                 $product = new WC_Product($orderItem['product_id']);
