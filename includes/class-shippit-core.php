@@ -323,7 +323,7 @@ class Mamis_Shippit_Core
 
             // If we have product sku data, attempt to match based
             // on the product sku + variation id, or product sku
-            if (!is_null($productSku)) {
+            if (!empty($productSku)) {
                 foreach ($orderItemsData as $orderItemData) {
                     if (
                         // If the product is a variation, match sku and variation_id
