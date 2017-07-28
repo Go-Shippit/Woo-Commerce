@@ -125,8 +125,15 @@ class Mamis_Shippit_Order
 
     private function _getShippingMethodId($order)
     {
+        if (version_compare(WC()->version, '3.0.0') >= 0) {
+            $shippingCountry = $order->get_shipping_country();
+        }
+        else {
+            $shippingCountry = $order->shipping_country;
+        }
+
         // If the country is other than AU, use international
-        if ($order->shipping_country != 'AU') {
+        if ($shippingCountry != 'AU') {
             return 'Dhl';
         }
 
@@ -245,9 +252,16 @@ class Mamis_Shippit_Order
                 if ($orderItem['product_id'] > 0) {
                     $product = $order->get_product_from_item($orderItem);
 
+                    if (version_compare(WC()->version, '3.0.0') >= 0) {
+                        $productType = $product->get_type();
+                    }
+                    else {
+                        $productType = $product->type;
+                    }
+
                     if (!$product->is_virtual()) {
                         // Append sku with variation_id if it exists
-                        if ($product->product_type == 'variation') {
+                        if ($productType == 'variation') {
                             $productSku = $product->get_sku() . '|' . $product->get_variation_id();
                         }
                         else {
@@ -295,13 +309,25 @@ class Mamis_Shippit_Order
             $authorityToLeave = 'No';
         }
 
-        $orderData['delivery_company']         = $order->shipping_company;
-        $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
-        $orderData['delivery_country_code']    = $order->shipping_country;
-        $orderData['delivery_state']           = $order->shipping_state;
-        $orderData['delivery_postcode']        = $order->shipping_postcode;
-        $orderData['delivery_suburb']          = $order->shipping_city;
-        $orderData['delivery_instructions']    = $order->customer_message;
+        if (version_compare(WC()->version, '3.0.0') >= 0) {
+            $orderData['delivery_company']         = $order->get_shipping_company();
+            $orderData['delivery_address']         = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2());
+            $orderData['delivery_country_code']    = $order->get_shipping_country();
+            $orderData['delivery_state']           = $order->get_shipping_state();
+            $orderData['delivery_postcode']        = $order->get_shipping_postcode();
+            $orderData['delivery_suburb']          = $order->get_shipping_city();
+            $orderData['delivery_instructions']    = $order->get_customer_note();
+        }
+        else {
+            $orderData['delivery_company']         = $order->shipping_company;
+            $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
+            $orderData['delivery_country_code']    = $order->shipping_country;
+            $orderData['delivery_state']           = $order->shipping_state;
+            $orderData['delivery_postcode']        = $order->shipping_postcode;
+            $orderData['delivery_suburb']          = $order->shipping_city;
+            $orderData['delivery_instructions']    = $order->customer_message;
+        }
+
         $orderData['authority_to_leave']       = $authorityToLeave;
         $orderData['retailer_invoice']         = $order->get_order_number();
 

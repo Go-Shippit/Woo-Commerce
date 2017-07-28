@@ -112,8 +112,16 @@ class Mamis_Shippit_Core
         // Display the authority to leave on the orders edit page
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
-        function authority_to_leave_display_admin_order_meta($order){
-            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $order->id, 'authority_to_leave', true ) . '</p>';
+        function authority_to_leave_display_admin_order_meta($order)
+        {
+            if (version_compare(WC()->version, '3.0.0') >= 0) {
+                $orderId = $order->get_id();
+            }
+            else {
+                $orderId = $order->id;
+            }
+
+            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $orderId, 'authority_to_leave', true ) . '</p>';
         }
 
         // Add the shippit settings tab functionality
@@ -250,7 +258,7 @@ class Mamis_Shippit_Core
             // SKU not stored in get_items so need to create new WC_Product
             // If item is a variation use variation_id in product call
             if ($orderItem['variation_id']) {
-                $product = new WC_Product($orderItem['variation_id']);
+                $product = new WC_Product_Variation($orderItem['variation_id']);
             }
             else {
                 $product = new WC_Product($orderItem['product_id']);
@@ -315,7 +323,7 @@ class Mamis_Shippit_Core
 
             // If we have product sku data, attempt to match based
             // on the product sku + variation id, or product sku
-            if (!is_null($productSku)) {
+            if (!empty($productSku)) {
                 foreach ($orderItemsData as $orderItemData) {
                     if (
                         // If the product is a variation, match sku and variation_id
