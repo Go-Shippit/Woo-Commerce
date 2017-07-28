@@ -94,12 +94,6 @@ class Mamis_Shippit_Settings_Method
            ),
         );
 
-        $fields['title_filter'] = array(
-            'name'     => __( 'Filter Settings', 'woocommerce-shippit' ),
-            'type'     => 'title',
-            'desc'     => 'Filter Settings allow you to only provide live quotes when the cart contents meets certain conditions.'
-        );
-
         // Only show "filter enabled" and "filter_enabled_products"
         // on the legacy shipping method class
         //
@@ -158,12 +152,6 @@ class Mamis_Shippit_Settings_Method
             'desc_tip' => true,
             'default' => '',
             'type' => 'text',
-        );
-
-        $fields['title_filter'] = array(
-            'name'     => __( 'Filter Settings', 'woocommerce-shippit' ),
-            'type'     => 'title',
-            'desc'     => 'Filter Settings allow you to only provide live quotes when the cart contents meets certain conditions.'
         );
 
         $fields['margin'] = array(
