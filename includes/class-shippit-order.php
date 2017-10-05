@@ -143,22 +143,24 @@ class Mamis_Shippit_Order
         $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
-            $shippingMethodId = explode(":", $shippingMethod['method_id']);
+            $methodId = explode(":", $shippingMethod['method_id']);
+            $shippingMethodId = $methodId[0];
+
             // Check if shipping method is mapped to standard
             if (!empty($standardShippingMethods)
-                && in_array($shippingMethodId[0], $standardShippingMethods)) {
+                && in_array($shippingMethodId, $standardShippingMethods)) {
                 return 'CouriersPlease';
             }
 
             // Check if shipping method is mapped to express
             if (!empty($expressShippingMethods)
-                && in_array($shippingMethodId[0], $expressShippingMethods)) {
+                && in_array($shippingMethodId, $expressShippingMethods)) {
                 return 'eparcelexpress';
             }
 
             // Check if shipping method is mapped to international shipping
             if (!empty($internationalShippingMethods)
-                && in_array($shippingMethodId[0], $internationalShippingMethods)) {
+                && in_array($shippingMethodId, $internationalShippingMethods)) {
                 return 'Dhl';
             }
 
