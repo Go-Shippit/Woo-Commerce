@@ -143,8 +143,8 @@ class Mamis_Shippit_Order
         $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
-            $methodId = explode(":", $shippingMethod['method_id']);
-            $shippingMethodId = $methodId[0];
+            $methodId = explode(':', $shippingMethod['method_id']);
+            $shippingMethodId = reset($methodId);
 
             // Check if shipping method is mapped to standard
             if (!empty($standardShippingMethods)
