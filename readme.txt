@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.8 =
+
+- Bugfixes
+-- Resolved an issue whereby shipping method mapping may not map correctly when using Shipping Method Instances in WooCommerce v3
+
 = 1.3.7 =
 
 - New Features
