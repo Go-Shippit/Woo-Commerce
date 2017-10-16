@@ -145,7 +145,53 @@ class Mamis_Shippit_Core
 
         // create 'shippit/shipment_create' endpoint
         add_action('init', array($this, 'add_endpoint'), 0);
+
+        // Add Send to Shippit order action
+        add_action( 'woocommerce_order_actions', array($this, 'shippit_add_order_meta_box_action') );
+
+        // Process Shippit send order action
+        add_action( 'woocommerce_order_action_shippit_order_action', array($order, 'sendOrder') );
+
+        // Add Bulk Send to Shippit orders action
+        add_action( 'bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
+
+        // Process Shippit bulk orders send action
+        add_action( 'handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
     }
+
+    /**
+     * Add a custom action to order actions select box on edit order page
+     * Only added for paid orders
+     * @param  array $actions order actions array to display
+     * @return array updated actions
+     */
+    public function shippit_add_order_meta_box_action( $actions ) {
+        global $theorder;
+
+        // return if the order has been paid for or this action has been run
+        if ( ! $theorder->is_paid() ) {
+            return $actions;
+        }
+
+        // add "Send to Shippit" custom action
+        $actions['shippit_order_action'] = __( 'Send to Shippit' );
+
+        return $actions;
+    }
+
+    /**
+     * Add a custom bulk order action to order actions select box on orders list page
+     * @param  array $actions order actions array to display
+     * @return array updated actions
+     */
+    public function shippit_send_bulk_orders_action($actions)
+    {
+        // add "Send to Shippit" bulk orders action
+        $actions['shippit_bulk_orders_action'] = __( 'Send to Shippit' );
+
+        return $actions;
+    }
+
 
     public function add_endpoint()
     {

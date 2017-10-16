@@ -208,6 +208,54 @@ class Mamis_Shippit_Order
         }
     }
 
+    /**
+     * Manual action - Send order to shippit
+     * @param  object $order order to be send
+     */
+    public function sendOrder($order)
+    {
+        $orderId = $order->get_order_number();
+
+        // Only add the order as pending when it's in a "processing" status
+        if (!$order->has_status('processing') ||
+            get_post_meta($orderId, '_mamis_shippit_sync', true) == 'true'
+        ) {
+            return;
+        }
+
+        add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+
+        // attempt to sync the order now
+        $this->syncOrder($orderId);
+    }
+
+    /**
+     * Manual action - Send bulk orders to shippit
+     * @param  string $redirect_to return url
+     * @param  string $action selected bulk order action
+     */
+    public function sendBulkOrders($redirect_to, $action, $order_ids)
+    {
+        if ($action != 'shippit_bulk_orders_action') {
+            return;
+        }
+
+        foreach ($order_ids as $order_id) {
+            if (get_post_status($order_id) != 'wc-processing' ||
+                get_post_meta($order_id, '_mamis_shippit_sync', true) == 'true'
+            ) {
+                continue;
+            }
+
+            add_post_meta($order_id, '_mamis_shippit_sync', 'false', true);
+
+            // attempt to sync the order now
+            $this->syncOrder($order_id);
+        }
+
+        return $redirect_to;
+    }
+
     public function syncOrder($orderId)
     {
         // Get the orders_item_id meta with key shipping
