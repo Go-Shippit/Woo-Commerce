@@ -216,14 +216,12 @@ class Mamis_Shippit_Order
     {
         $orderId = $order->get_order_number();
 
-        // Only add the order as pending when it's in a "processing" status
-        if (!$order->has_status('processing') ||
-            get_post_meta($orderId, '_mamis_shippit_sync', true) == 'true'
-        ) {
+        // Only add the order when it's in a "processing" status
+        if (!$order->has_status('processing')) {
             return;
         }
 
-        add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+        update_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
 
         // attempt to sync the order now
         $this->syncOrder($orderId);
@@ -241,16 +239,12 @@ class Mamis_Shippit_Order
         }
 
         foreach ($order_ids as $order_id) {
-            if (get_post_status($order_id) != 'wc-processing' ||
-                get_post_meta($order_id, '_mamis_shippit_sync', true) == 'true'
-            ) {
-                continue;
-            }
+            // Mark Shippit sync as false as for this manual action
+            // we want to schedule orders for sync even if synced already
+            update_post_meta($order_id, '_mamis_shippit_sync', 'false');
 
-            add_post_meta($order_id, '_mamis_shippit_sync', 'false', true);
-
-            // attempt to sync the order now
-            $this->syncOrder($order_id);
+            // Create the schedule for the orders to sync
+            wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
         }
 
         return $redirect_to;
