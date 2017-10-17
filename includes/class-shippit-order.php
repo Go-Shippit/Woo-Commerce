@@ -221,7 +221,7 @@ class Mamis_Shippit_Order
             return;
         }
 
-        update_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+        update_post_meta($orderId, '_mamis_shippit_sync', 'false');
 
         // attempt to sync the order now
         $this->syncOrder($orderId);
