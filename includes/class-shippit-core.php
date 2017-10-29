@@ -615,6 +615,10 @@ class Mamis_Shippit_Core
 
     public function add_authority_to_leave($checkout)
     {
+        if (get_option('wc_settings_shippit_atl_enabled') != 'yes') {
+            return;
+        }
+
         echo '<div id="authority_to_leave"><h2>' . __('Authority to leave') . '</h2>';
 
         woocommerce_form_field( 'authority_to_leave', array(

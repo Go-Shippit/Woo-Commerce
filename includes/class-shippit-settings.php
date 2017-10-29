@@ -128,6 +128,33 @@ class Mamis_Shippit_Settings
                  'type' => 'sectionend',
             ),
 
+            'title_checkout' => array(
+                'id'       => 'shippit-settings-checkout-title',
+                'name'     => __( 'Checkout Options', 'woocommerce-shippit' ),
+                'type'     => 'title',
+                'desc'     => 'Show/hide additional fields on the checkout.',
+                'desc_tip' => true,
+            ),
+
+            'atl_enabled' => array(
+                'id' => 'wc_settings_shippit_atl_enabled',
+                'title' => __('Display Authority to Leave', 'woocommerce-shippit'),
+                'desc'     => 'Determines whether to show Auhtority to Leave field in the checkout or not.',
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'yes',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+                ),
+            ),
+
+            'section_checkout_end' => array(
+                 'id' => 'shippit-settings-checkout-end',
+                 'type' => 'sectionend',
+            ),
+
             'title_order' => array(
                 'id' => 'shippit-settings-orders-title',
                 'name' => __( 'Order Sync Settings', 'woocommerce-shippit' ),
