@@ -208,6 +208,46 @@ class Mamis_Shippit_Order
         }
     }
 
+    /**
+     * Manual action - Send order to shippit
+     *
+     * @param  object $order order to be send
+     */
+    public function sendOrder($order)
+    {
+        $orderId = $order->get_order_number();
+
+        update_post_meta($orderId, '_mamis_shippit_sync', 'false');
+
+        // attempt to sync the order now
+        $this->syncOrder($orderId);
+    }
+
+    /**
+     * Manual action - Send bulk orders to shippit
+     *
+     * @param  string $redirectTo return url
+     * @param  string $action selected bulk order action
+     */
+    public function sendBulkOrders($redirectTo, $action, $orderIds)
+    {
+        // only process when the action is a shippit bulk-ordders action
+        if ($action != 'shippit_bulk_orders_action') {
+            return $redirectTo;
+        }
+
+        foreach ($orderIds as $orderId) {
+            // Mark Shippit sync as false as for this manual action
+            // we want to schedule orders for sync even if synced already
+            update_post_meta($orderId, '_mamis_shippit_sync', 'false');
+        }
+
+        // Create the schedule for the orders to sync
+        wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+
+        return $redirectTo;
+    }
+
     public function syncOrder($orderId)
     {
         // Get the orders_item_id meta with key shipping
