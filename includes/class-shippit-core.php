@@ -615,7 +615,7 @@ class Mamis_Shippit_Core
 
     public function add_authority_to_leave($checkout)
     {
-        if (get_option('wc_settings_shippit_atl-enabled') != 'yes') {
+        if (get_option('wc_settings_shippit_atl_enabled') != 'yes') {
             return;
         }
 

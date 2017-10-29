@@ -137,12 +137,12 @@ class Mamis_Shippit_Settings
             ),
 
             'atl_enabled' => array(
-                'id' => 'wc_settings_shippit_atl-enabled',
+                'id' => 'wc_settings_shippit_atl_enabled',
                 'title' => __('Display Authority to Leave', 'woocommerce-shippit'),
                 'desc'     => 'Determines whether to show Auhtority to Leave field in the checkout or not.',
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
-                'default' => 'no',
+                'default' => 'yes',
                 'type' => 'select',
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
