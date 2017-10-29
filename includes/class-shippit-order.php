@@ -210,16 +210,12 @@ class Mamis_Shippit_Order
 
     /**
      * Manual action - Send order to shippit
+     *
      * @param  object $order order to be send
      */
     public function sendOrder($order)
     {
         $orderId = $order->get_order_number();
-
-        // Only add the order when it's in a "processing" status
-        if (!$order->has_status('processing')) {
-            return;
-        }
 
         update_post_meta($orderId, '_mamis_shippit_sync', 'false');
 
@@ -229,25 +225,27 @@ class Mamis_Shippit_Order
 
     /**
      * Manual action - Send bulk orders to shippit
-     * @param  string $redirect_to return url
+     *
+     * @param  string $redirectTo return url
      * @param  string $action selected bulk order action
      */
-    public function sendBulkOrders($redirect_to, $action, $order_ids)
+    public function sendBulkOrders($redirectTo, $action, $orderIds)
     {
+        // only process when the action is a shippit bulk-ordders action
         if ($action != 'shippit_bulk_orders_action') {
-            return;
+            return $redirectTo;
         }
 
-        foreach ($order_ids as $order_id) {
+        foreach ($orderIds as $orderId) {
             // Mark Shippit sync as false as for this manual action
             // we want to schedule orders for sync even if synced already
-            update_post_meta($order_id, '_mamis_shippit_sync', 'false');
-
-            // Create the schedule for the orders to sync
-            wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+            update_post_meta($orderId, '_mamis_shippit_sync', 'false');
         }
 
-        return $redirect_to;
+        // Create the schedule for the orders to sync
+        wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+
+        return $redirectTo;
     }
 
     public function syncOrder($orderId)

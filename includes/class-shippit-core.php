@@ -160,20 +160,14 @@ class Mamis_Shippit_Core
     }
 
     /**
-     * Add a custom action to order actions select box on edit order page
-     * Only added for paid orders
+     * Add a custom action to order actions select box
+     *
      * @param  array $actions order actions array to display
      * @return array updated actions
      */
-    public function shippit_add_order_meta_box_action( $actions ) {
-        global $theorder;
-
-        // return if the order has been paid for or this action has been run
-        if ( ! $theorder->is_paid() ) {
-            return $actions;
-        }
-
-        // add "Send to Shippit" custom action
+    public function shippit_add_order_meta_box_action($actions)
+    {
+        // add "Send to Shippit" custom order action
         $actions['shippit_order_action'] = __( 'Send to Shippit' );
 
         return $actions;
@@ -181,12 +175,13 @@ class Mamis_Shippit_Core
 
     /**
      * Add a custom bulk order action to order actions select box on orders list page
+     *
      * @param  array $actions order actions array to display
      * @return array updated actions
      */
     public function shippit_send_bulk_orders_action($actions)
     {
-        // add "Send to Shippit" bulk orders action
+        // add "Send to Shippit" bulk action on the orders listing page
         $actions['shippit_bulk_orders_action'] = __( 'Send to Shippit' );
 
         return $actions;
