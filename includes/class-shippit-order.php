@@ -208,6 +208,46 @@ class Mamis_Shippit_Order
         }
     }
 
+    /**
+     * Manual action - Send order to shippit
+     *
+     * @param  object $order order to be send
+     */
+    public function sendOrder($order)
+    {
+        $orderId = $order->get_order_number();
+
+        update_post_meta($orderId, '_mamis_shippit_sync', 'false');
+
+        // attempt to sync the order now
+        $this->syncOrder($orderId);
+    }
+
+    /**
+     * Manual action - Send bulk orders to shippit
+     *
+     * @param  string $redirectTo return url
+     * @param  string $action selected bulk order action
+     */
+    public function sendBulkOrders($redirectTo, $action, $orderIds)
+    {
+        // only process when the action is a shippit bulk-ordders action
+        if ($action != 'shippit_bulk_orders_action') {
+            return $redirectTo;
+        }
+
+        foreach ($orderIds as $orderId) {
+            // Mark Shippit sync as false as for this manual action
+            // we want to schedule orders for sync even if synced already
+            update_post_meta($orderId, '_mamis_shippit_sync', 'false');
+        }
+
+        // Create the schedule for the orders to sync
+        wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+
+        return add_query_arg(array('shippit_sync' => '2'), $redirectTo);
+    }
+
     public function syncOrder($orderId)
     {
         // Get the orders_item_id meta with key shipping
@@ -250,60 +290,78 @@ class Mamis_Shippit_Order
 
         $orderData['receiver_contact_number'] = get_post_meta($orderId, '_billing_phone', true);
 
-        if (sizeof($orderItems) > 0) {
-            foreach ($orderItems as $orderItem) {
-                if ($orderItem['product_id'] > 0) {
-                    $product = $order->get_product_from_item($orderItem);
+        // If there are no order items, return early
+        if (count($orderItems) == 0) {
+            update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
 
-                    if (version_compare(WC()->version, '3.0.0') >= 0) {
-                        $productType = $product->get_type();
-                    }
-                    else {
-                        $productType = $product->type;
-                    }
+            return;
+        }
 
-                    if (!$product->is_virtual()) {
-                        // Append sku with variation_id if it exists
-                        if ($productType == 'variation') {
-                            $productSku = $product->get_sku() . '|' . $product->get_variation_id();
-                        }
-                        else {
-                            $productSku = $product->get_sku();
-                        }
-
-                        // Reset the itemDetail to an empty array
-                        $itemDetail = array();
-
-                        $itemWeight = $product->get_weight();
-
-                        // Get the weight if available, otherwise stub weight to 0.2kg
-                        $itemDetail['weight'] = (!empty($itemWeight) ? $this->helper->convertWeight($itemWeight) : 0.2);
-
-                        if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
-                            || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
-                            $itemHeight = $product->get_height();
-                            $itemLength = $product->get_length();
-                            $itemWidth = $product->get_width();
-
-                            $itemDetail['depth'] = (!empty($itemHeight) ? $this->helper->convertDimension($itemHeight) : 0);
-
-                            $itemDetail['length'] = (!empty($itemLength) ? $this->helper->convertDimension($itemLength) : 0);
-
-                            $itemDetail['width'] = (!empty($itemWidth) ? $this->helper->convertDimension($itemWidth) : 0);
-                        }
-
-                        $orderData['parcel_attributes'][] = array_merge(
-                            array(
-                                'sku' => $productSku,
-                                'title' => $product->get_title(),
-                                'qty' => (float) $orderItem['qty'],
-                                'price' => (float) $order->get_item_subtotal($orderItem, true),
-                            ),
-                            $itemDetail
-                        );
-                    }
-                }
+        foreach ($orderItems as $orderItem) {
+            // If the order item does not have a linked product, skip it
+            if (!isset($orderItem['product_id']) || $orderItem['product_id'] == 0) {
+                continue;
             }
+
+            $product = $order->get_product_from_item($orderItem);
+
+            // If the product is a virtual item, skip it
+            if ($product->is_virtual()) {
+                continue;
+            }
+
+            if (version_compare(WC()->version, '3.0.0') >= 0) {
+                $productType = $product->get_type();
+            }
+            else {
+                $productType = $product->type;
+            }
+
+            // Append sku with variation_id if it exists
+            if ($productType == 'variation') {
+                $productSku = $product->get_sku() . '|' . $product->get_variation_id();
+            }
+            else {
+                $productSku = $product->get_sku();
+            }
+
+            // Reset the itemDetail to an empty array
+            $itemDetail = array();
+
+            $itemWeight = $product->get_weight();
+
+            // Get the weight if available, otherwise stub weight to 0.2kg
+            $itemDetail['weight'] = (!empty($itemWeight) ? $this->helper->convertWeight($itemWeight) : 0.2);
+
+            if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
+                || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
+                $itemHeight = $product->get_height();
+                $itemLength = $product->get_length();
+                $itemWidth = $product->get_width();
+
+                $itemDetail['depth'] = (!empty($itemHeight) ? $this->helper->convertDimension($itemHeight) : 0);
+
+                $itemDetail['length'] = (!empty($itemLength) ? $this->helper->convertDimension($itemLength) : 0);
+
+                $itemDetail['width'] = (!empty($itemWidth) ? $this->helper->convertDimension($itemWidth) : 0);
+            }
+
+            $orderData['parcel_attributes'][] = array_merge(
+                array(
+                    'sku' => $productSku,
+                    'title' => $product->get_title(),
+                    'qty' => (float) $orderItem['qty'],
+                    'price' => (float) $order->get_item_subtotal($orderItem, true),
+                ),
+                $itemDetail
+            );
+        }
+
+        // If there are not parcel items, don't sync the order
+        if (!isset($orderData['parcel_attributes'])) {
+            update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
+
+            return;
         }
 
         $authorityToLeave = get_post_meta($orderId, 'authority_to_leave', true);

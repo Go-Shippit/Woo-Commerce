@@ -145,6 +145,59 @@ class Mamis_Shippit_Core
 
         // create 'shippit/shipment_create' endpoint
         add_action('init', array($this, 'add_endpoint'), 0);
+
+        // Add Send to Shippit order action
+        add_action('woocommerce_order_actions', array($this, 'shippit_add_order_meta_box_action') );
+
+        // Process Shippit send order action
+        add_action('woocommerce_order_action_shippit_order_action', array($order, 'sendOrder') );
+
+        // Add Bulk Send to Shippit orders action
+        add_action('bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
+
+        // Process Shippit bulk orders send action
+        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+
+        add_action('admin_notices', array($this, 'order_sync_notice') );
+    }
+
+    /**
+     * Add a custom action to order actions select box
+     *
+     * @param  array $actions order actions array to display
+     * @return array updated actions
+     */
+    public function shippit_add_order_meta_box_action($actions)
+    {
+        // add "Send to Shippit" custom order action
+        $actions['shippit_order_action'] = __( 'Send to Shippit' );
+
+        return $actions;
+    }
+
+    /**
+     * Add a custom bulk order action to order actions select box on orders list page
+     *
+     * @param  array $actions order actions array to display
+     * @return array updated actions
+     */
+    public function shippit_send_bulk_orders_action($actions)
+    {
+        // add "Send to Shippit" bulk action on the orders listing page
+        $actions['shippit_bulk_orders_action'] = __( 'Send to Shippit' );
+
+        return $actions;
+    }
+
+    public function order_sync_notice()
+    {
+        if (!isset($_GET['shippit_sync'])) {
+            return;
+        }
+
+        echo '<div class="updated notice is-dismissable">'
+                . '<p>Orders have been scheduled to sync with Shippit - they will be synced shortly.</p>'
+            . '</div>';
     }
 
     public function add_endpoint()
@@ -615,6 +668,10 @@ class Mamis_Shippit_Core
 
     public function add_authority_to_leave($checkout)
     {
+        if (get_option('wc_settings_shippit_atl_enabled') != 'yes') {
+            return;
+        }
+
         echo '<div id="authority_to_leave"><h2>' . __('Authority to leave') . '</h2>';
 
         woocommerce_form_field( 'authority_to_leave', array(
