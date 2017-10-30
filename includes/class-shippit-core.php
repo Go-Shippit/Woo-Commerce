@@ -147,16 +147,18 @@ class Mamis_Shippit_Core
         add_action('init', array($this, 'add_endpoint'), 0);
 
         // Add Send to Shippit order action
-        add_action( 'woocommerce_order_actions', array($this, 'shippit_add_order_meta_box_action') );
+        add_action('woocommerce_order_actions', array($this, 'shippit_add_order_meta_box_action') );
 
         // Process Shippit send order action
-        add_action( 'woocommerce_order_action_shippit_order_action', array($order, 'sendOrder') );
+        add_action('woocommerce_order_action_shippit_order_action', array($order, 'sendOrder') );
 
         // Add Bulk Send to Shippit orders action
-        add_action( 'bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
+        add_action('bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
 
         // Process Shippit bulk orders send action
-        add_action( 'handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+
+        add_action('admin_notices', array($this, 'order_sync_notice') );
     }
 
     /**
@@ -187,6 +189,16 @@ class Mamis_Shippit_Core
         return $actions;
     }
 
+    public function order_sync_notice()
+    {
+        if (!isset($_GET['shippit_sync'])) {
+            return;
+        }
+
+        echo '<div class="updated notice is-dismissable">'
+                . '<p>Orders have been scheduled to sync with Shippit - they will be synced shortly.</p>'
+            . '</div>';
+    }
 
     public function add_endpoint()
     {

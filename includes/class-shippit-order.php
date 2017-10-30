@@ -245,7 +245,7 @@ class Mamis_Shippit_Order
         // Create the schedule for the orders to sync
         wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
 
-        return $redirectTo;
+        return add_query_arg(array('shippit_sync' => '2'), $redirectTo);
     }
 
     public function syncOrder($orderId)
