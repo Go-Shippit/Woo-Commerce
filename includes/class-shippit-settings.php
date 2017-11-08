@@ -33,7 +33,6 @@ class Mamis_Shippit_Settings
      * Uses the WooCommerce admin fields API to output settings via the @see woocommerce_admin_fields() function.
      *
      * @uses woocommerce_admin_fields()
-     * @uses self::get_settings()
      */
     public static function addFields()
     {
@@ -44,7 +43,6 @@ class Mamis_Shippit_Settings
      * Uses the WooCommerce options API to save settings via the @see woocommerce_update_options() function.
      *
      * @uses woocommerce_update_options()
-     * @uses self::get_settings()
      */
     public static function updateSettings()
     {
@@ -58,8 +56,7 @@ class Mamis_Shippit_Settings
      */
     public static function getFields()
     {
-        // @TODO: Review if possible to remove global var for php5.5 support
-        global $shippitOtherShippingMethods;
+        $shippingMethodOptions = self::getShippingMethodOptions();
 
         $settings = array(
             'title_general' => array(
@@ -183,7 +180,7 @@ class Mamis_Shippit_Settings
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
+                'options' => $shippingMethodOptions,
                 'class' => 'wc-enhanced-select',
             ),
 
@@ -194,7 +191,7 @@ class Mamis_Shippit_Settings
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
-                'options' => $shippitOtherShippingMethods,
+                'options' => $shippingMethodOptions,
                 'class' => 'wc-enhanced-select',
             ),
 
@@ -230,5 +227,123 @@ class Mamis_Shippit_Settings
         );
 
         return apply_filters('wc_settings_shippit_settings', $settings);
+    }
+
+    /**
+     * Get the shipping method options that should
+     * be available for shipping method mapping
+     *
+     * @return array
+     */
+    public static function getShippingMethodOptions()
+    {
+        // If we have a WooCommerce installation
+        // with Shipping Zones Support
+        if (class_exists('WC_Shipping_Zones')) {
+            $shippingMethodsWithZones = self::getShippingMethodsWithZones();
+            $shippingMethodsWithoutZones = self::getShippingMethodsWithoutZones();
+
+            $shippingMethodsOptions = array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
+        }
+        // Otherwise, fallback to legacy methods only display
+        else {
+            $shippingMethodsOptions = self::getShippingMethodsLegacy();
+        }
+
+        return $shippingMethodsOptions;
+    }
+
+    /**
+     * Get the shipping method options with zone details
+     *
+     * @return array
+     */
+    protected static function getShippingMethodsWithZones()
+    {
+        $shippingMethodOptions = array();
+        $zones = WC_Shipping_Zones::get_zones();
+
+        foreach ($zones as $zone) {
+            $shippingMethods = $zone['shipping_methods'];
+
+            foreach ($shippingMethods as $shippingMethod) {
+                if ($shippingMethod->id == 'mamis_shippit') {
+                    continue;
+                }
+
+                $shippingMethodKey = $shippingMethod->id . ':' . $shippingMethod->instance_id;
+                $shippingMethodLabel = (property_exists($shippingMethod, 'title') ? $shippingMethod->title : $shippingMethod->method_title);
+
+                $shippingMethodOptions[$shippingMethodKey] = sprintf(
+                    '%s (%s)',
+                    $shippingMethodLabel,
+                    $zone['zone_name']
+                );
+            }
+        }
+
+        return $shippingMethodOptions;
+    }
+
+    /**
+     * Get the shipping method options without zone details
+     * - used to support legacy methods used in a zone-supported environment
+     *
+     * @return array
+     */
+    protected static function getShippingMethodsWithoutZones()
+    {
+        $shippingMethodOptions = array();
+        $shippingMethods = WC()->shipping()->get_shipping_methods();
+
+        foreach ($shippingMethods as $shippingMethod) {
+            if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
+                continue;
+            }
+
+            // If the shipping method supports shipping zones,
+            // skip it from the options display
+            if (in_array('shipping-zones', $shippingMethod->supports)) {
+                continue;
+            }
+
+            $shippingMethodKey = $shippingMethod->id;
+            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
+
+            $shippingMethodOptions[$shippingMethodKey] = sprintf(
+                '%s (%s)',
+                $shippingMethodLabel,
+                'Legacy - No Shipping Zone Support'
+            );
+        }
+
+        return $shippingMethodOptions;
+    }
+
+    /**
+     * Get the shipping method options using the legacy functionality
+     *
+     * @return array
+     */
+    protected static function getShippingMethodsLegacy()
+    {
+        $shippingMethodOptions = array();
+        $shippingMethods = WC()->shipping()->get_shipping_methods();
+
+        foreach ($shippingMethods as $shippingMethod) {
+            if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
+                continue;
+            }
+
+            $shippingMethodKey = $shippingMethod->id;
+            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
+
+            $shippingMethodOptions[$shippingMethodKey] = sprintf(
+                '%s',
+                $shippingMethodLabel
+            );
+        }
+
+        return $shippingMethodOptions;
     }
 }

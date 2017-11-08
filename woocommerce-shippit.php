@@ -20,8 +20,6 @@ include_once('includes/class-shippit-core.php');
 
 function init_shippit_core()
 {
-    global $shippitOtherShippingMethods;
-
     include_once('includes/class-upgrade.php');
     $upgrade = new Mamis_Shippit_Upgrade();
     $upgrade->run();
@@ -33,17 +31,14 @@ function init_shippit_core()
 
     $shippit = Mamis_Shippit_Core::instance();
 
-    $shippingMethods = WC()->shipping()->load_shipping_methods();
-
-    foreach ($shippingMethods as $shippingMethod) {
-        if ($shippingMethod->id == 'mamis_shippit') {
-            continue;
-        }
-
-        $shippitOtherShippingMethods[$shippingMethod->id] = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
-    }
-
-    add_filter('woocommerce_settings_tabs_array', 'Mamis_Shippit_Settings::addSettingsTab', 50);
+    add_filter(
+        'woocommerce_settings_tabs_array',
+        array(
+            'Mamis_Shippit_Settings',
+            'addSettingsTab',
+        ),
+        50
+    );
 }
 
 // add shippit core functionality
