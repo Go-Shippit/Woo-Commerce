@@ -60,6 +60,15 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.3.9 =
+
+- New Features
+-- Adds the ability to send orders manually, via the orders listing page or when editing an order directly
+-- Adds a new configuration option for the "Authority To Leave" field in Checkout, allowing it to be disabled if required.
+
+- Bugfixes
+-- Resolve an issue whereby orders could be sent to Shippit without any items in the order
+
 = 1.3.8 =
 
 - Bugfixes

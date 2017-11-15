@@ -1,14 +1,16 @@
 <?php
 /*
- * Plugin Name:     WooCommerce Shippit
- * Description:     WooCommerce Shippit
- * Version:         1.3.8
- * Author:          Shippit Pty Ltd
- * Author URL:      http://www.shippit.com
- * Text Domain:     woocommerce-shippit
+ * Plugin Name:             WooCommerce Shippit
+ * Description:             WooCommerce Shippit
+ * Version:                 1.3.9
+ * Author:                  Shippit Pty Ltd
+ * Author URL:              http://www.shippit.com
+ * Text Domain:             woocommerce-shippit
+ * WC requires at least:    2.3.0
+ * WC Tested Up To:         3.2.1
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.3.8');
+define('MAMIS_SHIPPIT_VERSION', '1.3.9');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
@@ -18,8 +20,6 @@ include_once('includes/class-shippit-core.php');
 
 function init_shippit_core()
 {
-    global $shippitOtherShippingMethods;
-
     include_once('includes/class-upgrade.php');
     $upgrade = new Mamis_Shippit_Upgrade();
     $upgrade->run();
@@ -31,17 +31,14 @@ function init_shippit_core()
 
     $shippit = Mamis_Shippit_Core::instance();
 
-    $shippingMethods = WC()->shipping()->load_shipping_methods();
-
-    foreach ($shippingMethods as $shippingMethod) {
-        if ($shippingMethod->id == 'mamis_shippit') {
-            continue;
-        }
-
-        $shippitOtherShippingMethods[$shippingMethod->id] = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
-    }
-
-    add_filter('woocommerce_settings_tabs_array', 'Mamis_Shippit_Settings::addSettingsTab', 50);
+    add_filter(
+        'woocommerce_settings_tabs_array',
+        array(
+            'Mamis_Shippit_Settings',
+            'addSettingsTab',
+        ),
+        50
+    );
 }
 
 // add shippit core functionality

@@ -125,8 +125,8 @@ class Mamis_Shippit_Core
         }
 
         // Add the shippit settings tab functionality
-        add_action( 'woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
-        add_action( 'woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
+        add_action('woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
+        add_action('woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
