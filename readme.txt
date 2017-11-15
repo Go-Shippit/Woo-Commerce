@@ -60,6 +60,15 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.0 =
+
+- New Features
+-- Adds the ability to setup shipping method mapping based on the individual zone methods
+-- Improved messaging if a sync failure occurs
+
+- Bugfixes
+-- Resolve an issue whereby the wrong order could be send in some environments
+
 = 1.3.9 =
 
 - New Features
