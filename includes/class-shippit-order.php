@@ -214,7 +214,7 @@ class Mamis_Shippit_Order
      */
     public function sendOrder($order)
     {
-        $orderId = $order->get_order_number();
+        $orderId = $order->get_id();
 
         update_post_meta($orderId, '_mamis_shippit_sync', 'false');
 
@@ -402,6 +402,32 @@ class Mamis_Shippit_Order
         if ($apiResponse && $apiResponse->tracking_number) {
             update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
             $orderComment = 'Order Synced with Shippit. Tracking number: ' . $apiResponse->tracking_number . '.';
+            $order->add_order_note($orderComment, 0);
+        }
+        else {
+            $orderComment = 'Order Failed to sync with Shippit.';
+
+            if ($apiResponse && isset($apiResponse->messages)) {
+                $messages = $apiResponse->messages;
+
+                foreach ($messages as $field => $message) {
+                    $orderComment .= sprintf(
+                        '%c%s - %s',
+                        10, // ASCII Code for NewLine
+                        $field,
+                        implode(', ', $message)
+                    );
+                }
+            }
+            elseif ($apiResponse && isset($apiResponse->error) && isset($apiResponse->error_description)) {
+                $orderComment .= sprintf(
+                    '%c%s - %s',
+                    10, // ASCII Code for NewLine
+                    $apiResponse->error,
+                    $apiResponse->error_description
+                );
+            }
+
             $order->add_order_note($orderComment, 0);
         }
     }

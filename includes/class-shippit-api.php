@@ -164,7 +164,7 @@ class Mamis_Shippit_Api
             'order' => $orderData
         );
 
-        $order = $this->call('orders', $requestData);
+        $order = $this->call('orders', $requestData, 'POST', false);
 
         if (!$order) {
             return false;
@@ -175,7 +175,7 @@ class Mamis_Shippit_Api
 
     public function getMerchant()
     {
-        return $this->call('merchant', null, $requestMethod = 'GET', false);
+        return $this->call('merchant', null, 'GET', false);
     }
 
     public function putMerchant($merchantData)
@@ -184,6 +184,6 @@ class Mamis_Shippit_Api
             'merchant' => $merchantData
         );
 
-        return $this->call('merchant', $requestData, $requestMethod = 'PUT');
+        return $this->call('merchant', $requestData, 'PUT');
     }
 }
