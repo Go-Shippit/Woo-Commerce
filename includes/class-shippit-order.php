@@ -84,19 +84,19 @@ class Mamis_Shippit_Order
             // attempt to sync the order now
             $this->syncOrder($orderId);
         }
-        elseif ($this->_isShippitShippingMethod($order)) {
+        elseif ($this->isShippitShippingMethod($order)) {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
             $this->syncOrder($orderId);
         }
     }
 
-    private function _isShippitShippingMethod($order)
+    protected function isShippitShippingMethod($order)
     {
         $shippingMethods = $order->get_shipping_methods();
         $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
         $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
-        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
+        $clickandcollectShippingMethods = get_option('wc_settings_shippit_clickandcollect_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -109,8 +109,8 @@ class Mamis_Shippit_Order
                 return true;
             }
 
-            if (!empty($internationalShippingMethods)
-                && in_array($shippingMethod['method_id'], $internationalShippingMethods)) {
+            if (!empty($clickandcollectShippingMethods)
+                && in_array($shippingMethod['method_id'], $clickandcollectShippingMethods)) {
                 return true;
             }
 
@@ -123,49 +123,37 @@ class Mamis_Shippit_Order
         return false;
     }
 
-    private function _getShippingMethodId($order)
+    protected function getShippingMethodId($order)
     {
-        if (version_compare(WC()->version, '3.0.0') >= 0) {
-            $shippingCountry = $order->get_shipping_country();
-        }
-        else {
-            $shippingCountry = $order->shipping_country;
-        }
-
-        // If the country is other than AU, use international
-        if ($shippingCountry != 'AU') {
-            return 'Dhl';
-        }
-
         $shippingMethods = $order->get_shipping_methods();
         $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
         $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
-        $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
+        $clickandcollectShippingMethods = get_option('wc_settings_shippit_clickandcollect_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             $shippingMethodId = $shippingMethod['method_id'];
 
+            // Check if the shipping method chosen is Mamis_Shippit
+            if (strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE) {
+                return $shippingMethod['method_id'];
+            }
+
             // Check if shipping method is mapped to standard
             if (!empty($standardShippingMethods)
                 && in_array($shippingMethodId, $standardShippingMethods)) {
-                return 'CouriersPlease';
+                return 'standard';
             }
 
             // Check if shipping method is mapped to express
             if (!empty($expressShippingMethods)
                 && in_array($shippingMethodId, $expressShippingMethods)) {
-                return 'eparcelexpress';
+                return 'express';
             }
 
-            // Check if shipping method is mapped to international shipping
-            if (!empty($internationalShippingMethods)
-                && in_array($shippingMethodId, $internationalShippingMethods)) {
-                return 'Dhl';
-            }
-
-            // Check if the shipping method chosen is Mamis_Shippit
-            if (strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE) {
-                return $shippingMethod['method_id'];
+            // Check if shipping method is mapped to click and collect
+            if (!empty($clickandcollectShippingMethods)
+                && in_array($shippingMethodId, $clickandcollectShippingMethods)) {
+                return 'click_and_collect';
             }
         }
 
@@ -173,14 +161,44 @@ class Mamis_Shippit_Order
     }
 
     /**
-    * Add Sync Meta
-    *
-    * Add _mamis_shippit_sync meta key value to all orders that
-    * are using the Mamis_Shippit Method
-    */
+     * Get the shipping method preferences to be sent to Shippit
+     * @param  $shippingMethodId  The Shipping Method identifier to be processed
+     * @return array              An array of the property values to be used for Shippit
+     */
+    protected function getShippingMethodPreferences($shippingMethodId)
+    {
+        // Check if the shipping method chosen was Mamis_Shippit
+        $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
+
+        // If the method is click and collect, set the value
+        // without splitting the array
+        if ($shippingOptions == 'click_and_collect') {
+            $shippingOptions = array($shippingOptions);
+        }
+        // Otherwise, split the array by "_" to pull additional details
+        // such as delivery date + delivery window for priority services
+        else {
+            $shippingOptions = explode('_', $shippingOptions);
+        }
+
+        $orderData['courier_type'] = $shippingOptions[0];
+
+        // Retrieve the delivery_date preference
+        if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
+            $orderData['delivery_date'] = $shippingOptions[1];
+        }
+
+        // Retrieve the delivery_window preference
+        if ($shippingOptions[0] == 'priority' && isset($shippingOptions[2])) {
+            $orderData['delivery_window'] = $shippingOptions[2];
+        }
+    }
 
     /**
      * Sync all pending orders
+     *
+     * Adds _mamis_shippit_sync meta key value to all orders
+     * that have been scheduled for sync with shippit
      * @return [type] [description]
      */
     public function syncOrders()
@@ -254,27 +272,17 @@ class Mamis_Shippit_Order
         $orderItems = $order->get_items();
         $orderData = array();
 
-        $shippingMethodId = $this->_getShippingMethodId($order);
+        $shippingMethodId = $this->getShippingMethodId($order);
 
-        if ($shippingMethodId) {
-            // Check if the shipping method chosen was Mamis_Shippit
-            $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
-            $shippingOptions = explode('_', $shippingOptions);
-
-            $orderData['courier_type'] = $shippingOptions[0];
-
-            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
-                $orderData['delivery_date'] = $shippingOptions[1];
-            }
-
-            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[2])) {
-                $orderData['delivery_window'] = $shippingOptions[2];
-            }
+        // fallback to standard if a method could no longer be mapped
+        if (empty($shippingMethodId)) {
+            $shippingMethodId = 'standard';
         }
-        // fallback to couriers please if a method could no longer be mapped
-        else {
-            $orderData['courier_type'] = 'CouriersPlease';
-        }
+
+        // Retrieve the order shipping method preferences
+        $shippingMethodPreferences = $this->getShippingMethodPreferences($shippingMethodId);
+
+        $orderData = array_merge($orderData, $shippingMethodPreferences);
 
         // Set user attributes
         $orderData['user_attributes'] = array(
