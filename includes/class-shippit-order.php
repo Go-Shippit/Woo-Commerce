@@ -170,9 +170,9 @@ class Mamis_Shippit_Order
         // Check if the shipping method chosen was Mamis_Shippit
         $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
 
-        // If the method is click and collect, set the value
-        // without splitting the array
-        if ($shippingOptions == 'click_and_collect') {
+        // If the method is click_and_collect or plain_label,
+        // set the value without splitting the array
+        if ($shippingOptions == 'click_and_collect' || $shippingOptions == 'plain_label') {
             $shippingOptions = array($shippingOptions);
         }
         // Otherwise, split the array by "_" to pull additional details
@@ -181,16 +181,24 @@ class Mamis_Shippit_Order
             $shippingOptions = explode('_', $shippingOptions);
         }
 
-        $orderData['courier_type'] = $shippingOptions[0];
-
-        // Retrieve the delivery_date preference
-        if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
-            $orderData['delivery_date'] = $shippingOptions[1];
+        if ($shoppingOptions[0] == 'plain_label') {
+            $orderData['courier_type'] = null;
+            $orderData['courier_allication'] = 'PlainLabel';
+        }
+        else {
+            $orderData['courier_type'] = $shippingOptions[0];
         }
 
-        // Retrieve the delivery_window preference
-        if ($shippingOptions[0] == 'priority' && isset($shippingOptions[2])) {
-            $orderData['delivery_window'] = $shippingOptions[2];
+        if ($shippingOptions[0] == 'priority') {
+            // Retrieve the delivery_date preference
+            if (isset($shippingOptions[1])) {
+                $orderData['delivery_date'] = $shippingOptions[1];
+            }
+
+            // Retrieve the delivery_window preference
+            if (isset($shippingOptions[2])) {
+                $orderData['delivery_window'] = $shippingOptions[2];
+            }
         }
     }
 

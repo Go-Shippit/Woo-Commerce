@@ -176,7 +176,7 @@ class Mamis_Shippit_Settings
             'standard_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_standard_shipping_methods',
                 'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Standard" Shippit service level', 'woocommerce-shippit', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Standard" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -187,7 +187,18 @@ class Mamis_Shippit_Settings
             'express_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_express_shipping_methods',
                 'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Express" Shippit service level', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Express" Shippit Service', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'multiselect',
+                'options' => $shippingMethodOptions,
+                'class' => 'wc-enhanced-select',
+            ),
+
+            'plain_label_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_plain_label_shipping_methods',
+                'title' => __('Plain Label Shipping Methods', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to the "Plain Label" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
