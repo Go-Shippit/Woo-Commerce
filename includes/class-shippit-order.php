@@ -141,6 +141,7 @@ class Mamis_Shippit_Order
         $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
         $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
         $internationalShippingMethods = get_option('wc_settings_shippit_international_shipping_methods');
+        $plainLabelShippingMethods = get_option('wc_settings_shippit_plain_label_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             $shippingMethodId = $shippingMethod['method_id'];
@@ -161,6 +162,12 @@ class Mamis_Shippit_Order
             if (!empty($internationalShippingMethods)
                 && in_array($shippingMethodId, $internationalShippingMethods)) {
                 return 'Dhl';
+            }
+
+            // Check if shipping method is mapped to plain label shipping
+            if (!empty($plainLabelShippingMethods)
+                && in_array($shippingMethodId, $plainLabelShippingMethods)) {
+                return 'PlainLabel';
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
@@ -261,7 +268,14 @@ class Mamis_Shippit_Order
             $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
             $shippingOptions = explode('_', $shippingOptions);
 
-            $orderData['courier_type'] = $shippingOptions[0];
+            if($shippingOptions[0] != "PlainLabel") {
+                $orderData['courier_type'] = $shippingOptions[0];
+                $orderData['courier_allocation'] = null;
+            }
+            else {
+                $orderData['courier_allocation'] = $shippingOptions[0];
+                $orderData['courier_type'] = null;
+            }
 
             if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
                 $orderData['delivery_date'] = $shippingOptions[1];
