@@ -53,13 +53,13 @@ class Mamis_Shippit_Settings_Method
                 'standard',
                 'express',
                 'priority',
-                'PlainLabel'
+                'plain_label'
             ),
             'options' => array(
                 'standard' => __('Standard', 'woocommerce-shippit'),
                 'express' => __('Express', 'woocommerce-shippit'),
                 'priority' => __('Priority', 'woocommerce-shippit'),
-                'PlainLabel' => __('Plain Label', 'woocommerce-shippit'),
+                'plain_label' => __('Plain Label', 'woocommerce-shippit'),
             )
         );
 

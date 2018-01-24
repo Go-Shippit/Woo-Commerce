@@ -268,21 +268,27 @@ class Mamis_Shippit_Order
             $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
             $shippingOptions = explode('_', $shippingOptions);
 
-            if($shippingOptions[0] != "PlainLabel") {
+            // If the shipping method identified is a plain label service
+            // assign the courier as a plain label
+            if ($shippingOptions[0] == 'plain_label') {
+                $orderData['courier_type'] = null;
+                $orderData['courier_allocation'] = 'PlainLabel';
+            }
+            // otherwise, assign the courier_type to the
+            // identified shipping service
+            else {
                 $orderData['courier_type'] = $shippingOptions[0];
                 $orderData['courier_allocation'] = null;
             }
-            else {
-                $orderData['courier_allocation'] = $shippingOptions[0];
-                $orderData['courier_type'] = null;
-            }
 
-            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[1])) {
-                $orderData['delivery_date'] = $shippingOptions[1];
-            }
+            if ($shippingOptions[0] == 'priority') {
+                if (isset($shippingOptions[1])) {
+                   $orderData['delivery_date'] = $shippingOptions[1];
+                }
 
-            if ($shippingOptions[0] == 'priority' && isset($shippingOptions[2])) {
-                $orderData['delivery_window'] = $shippingOptions[2];
+                if (isset($shippingOptions[2])) {
+                    $orderData['delivery_window'] = $shippingOptions[2];
+                }
             }
         }
         // fallback to couriers please if a method could no longer be mapped
