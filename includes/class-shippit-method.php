@@ -296,9 +296,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($priorityQuote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $method
+                'id'    => 'Mamis_Shippit_' . $method,
                 'label' => $methodTitle,
-                'cost'  => $quotePrice,
+                'cost'  => $quotePrice
             );
 
             $this->add_rate($rate);

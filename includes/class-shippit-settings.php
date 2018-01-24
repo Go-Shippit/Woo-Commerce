@@ -195,10 +195,10 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
             ),
 
-            'plain_label_shipping_methods' => array(
-                'id' => 'wc_settings_shippit_plain_label_shipping_methods',
-                'title' => __('Plain Label Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to the "Plain Label" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
+            'clickandcollect_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_clickandcollect_shipping_methods',
+                'title' => __('Click & Collect Shipping Methods', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Click and Collect" Shippit service level', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -206,10 +206,10 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
             ),
 
-            'clickandcollect_shipping_methods' => array(
-                'id' => 'wc_settings_shippit_clickandcollect_shipping_methods',
-                'title' => __('Click and Collect Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Click and Collect" Shippit service level', 'woocommerce-shippit'),
+            'plainlabel_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_plainlabel_shipping_methods',
+                'title' => __('Plain Label Shipping Methods', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to the "Plain Label" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',

@@ -97,6 +97,7 @@ class Mamis_Shippit_Order
         $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
         $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
         $clickandcollectShippingMethods = get_option('wc_settings_shippit_clickandcollect_shipping_methods');
+        $plainlabelShippingMethods = get_option('wc_settings_shippit_plainlabel_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             if (!empty($standardShippingMethods)
@@ -111,6 +112,11 @@ class Mamis_Shippit_Order
 
             if (!empty($clickandcollectShippingMethods)
                 && in_array($shippingMethod['method_id'], $clickandcollectShippingMethods)) {
+                return true;
+            }
+
+            if (!empty($plainlabelShippingMethods)
+                && in_array($shippingMethod['method_id'], $plainlabelShippingMethods)) {
                 return true;
             }
 
@@ -129,6 +135,7 @@ class Mamis_Shippit_Order
         $standardShippingMethods = get_option('wc_settings_shippit_standard_shipping_methods');
         $expressShippingMethods = get_option('wc_settings_shippit_express_shipping_methods');
         $clickandcollectShippingMethods = get_option('wc_settings_shippit_clickandcollect_shipping_methods');
+        $plainlabelShippingMethods = get_option('wc_settings_shippit_plainlabel_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
             $shippingMethodId = $shippingMethod['method_id'];
@@ -154,6 +161,12 @@ class Mamis_Shippit_Order
             if (!empty($clickandcollectShippingMethods)
                 && in_array($shippingMethodId, $clickandcollectShippingMethods)) {
                 return 'click_and_collect';
+            }
+
+            // Check if shipping method is mapped to plain label
+            if (!empty($plainlabelShippingMethods)
+                && in_array($shippingMethodId, $plainlabelShippingMethods)) {
+                return 'plain_label';
             }
         }
 
@@ -181,9 +194,9 @@ class Mamis_Shippit_Order
             $shippingOptions = explode('_', $shippingOptions);
         }
 
-        if ($shoppingOptions[0] == 'plain_label') {
+        if ($shippingOptions[0] == 'plain_label') {
             $orderData['courier_type'] = null;
-            $orderData['courier_allication'] = 'PlainLabel';
+            $orderData['courier_allocation'] = 'PlainLabel';
         }
         else {
             $orderData['courier_type'] = $shippingOptions[0];
@@ -200,6 +213,8 @@ class Mamis_Shippit_Order
                 $orderData['delivery_window'] = $shippingOptions[2];
             }
         }
+
+        return $orderData;
     }
 
     /**
