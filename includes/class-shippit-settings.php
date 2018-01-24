@@ -195,6 +195,17 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
             ),
 
+            'clickandcollect_shipping_methods' => array(
+                'id' => 'wc_settings_shippit_clickandcollect_shipping_methods',
+                'title' => __('Click and Collect Shipping Methods', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to an "Click and Collect" Shippit service level', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'multiselect',
+                'options' => $shippingMethodOptions,
+                'class' => 'wc-enhanced-select',
+            ),
+
             'section_order_end' => array(
                  'id' => 'shippit-settings-order-end',
                  'type' => 'sectionend',
