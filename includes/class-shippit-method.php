@@ -244,7 +244,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => 'Standard',
                 'cost'  => $quotePrice,
             );
@@ -259,7 +259,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->courier_type,
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => 'Express',
                 'cost'  => $quotePrice,
             );
@@ -272,33 +272,33 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         $timeSlotCount = 0;
 
-        foreach ($shippingQuote->quotes as $premiumQuote) {
+        foreach ($shippingQuote->quotes as $priorityQuote) {
             if (!empty($this->max_timeslots) && $this->max_timeslots <= $timeSlotCount) {
                 break;
             }
 
-            if (property_exists($premiumQuote, 'delivery_date')
-                && property_exists($premiumQuote, 'delivery_window')
-                && property_exists($premiumQuote, 'delivery_window_desc')) {
-                $timeSlotCount++;
-                $carrierTitle = $shippingQuote->courier_type;
-                $method = $shippingQuote->courier_type . '_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window;
-                $premiumQuoteDeliveryDate = $premiumQuote->delivery_date;
-                $premiumQuoteDeliveryDate = date('d/m/Y',strtotime($premiumQuoteDeliveryDate));
-                $methodTitle = 'Scheduled' . ' - Delivered ' . $premiumQuoteDeliveryDate. ' between ' . $premiumQuote->delivery_window_desc;
+            // Increase the timeslot count
+            $timeSlotCount++;
+
+            if (property_exists($priorityQuote, 'delivery_date')
+                && property_exists($priorityQuote, 'delivery_window')
+                && property_exists($priorityQuote, 'delivery_window_desc')) {
+                $method = $shippingQuote->service_level . '_' . $priorityQuote->delivery_date . '_' . $priorityQuote->delivery_window;
+                $priorityQuoteDeliveryDate = $priorityQuote->delivery_date;
+                $priorityQuoteDeliveryDate = date('d/m/Y', strtotime($priorityQuoteDeliveryDate));
+                $methodTitle = 'Scheduled' . ' - Delivered ' . $priorityQuoteDeliveryDate. ' between ' . $priorityQuote->delivery_window_desc;
             }
             else {
-                $carrierTitle = $shippingQuote->courier_type;
-                $method = $shippingQuote->courier_type;
+                $method = $shippingQuote->service_level;
                 $methodTitle = 'Scheduled';
             }
 
-            $quotePrice = $this->_getQuotePrice($premiumQuote->price);
+            $quotePrice = $this->_getQuotePrice($priorityQuote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_'.$carrierTitle .'_' . $premiumQuote->delivery_date . '_' . $premiumQuote->delivery_window,
+                'id'    => 'Mamis_Shippit_' . $method,
                 'label' => $methodTitle,
-                'cost'  => $quotePrice,
+                'cost'  => $quotePrice
             );
 
             $this->add_rate($rate);
