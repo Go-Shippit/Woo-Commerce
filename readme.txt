@@ -60,6 +60,21 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.1 =
+
+- New Features
+-- Added click and collect shipping method as an available shipping method mapping
+
+- Updates
+-- Updated shipping method quotes to utilise the service level name as the shipping method identifier
+-- Removed references to international shipping method mapping services
+—-- We now use service levels of standard, express and priority to indicate service levels for domestic + international services
+—-- Removes the hard-allocation of all non-AU based orders to international, as we now use the service level names
+-- Renamed “premium” services to “priority”
+
+- Cleanup
+-- Cleanup of the shipping method mapping logic to an abstracted function that processes the relevant details and returns the api data required for the order to be sent to Shippit
+
 = 1.4.0 =
 
 - New Features
