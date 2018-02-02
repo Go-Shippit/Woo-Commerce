@@ -160,8 +160,10 @@ class Mamis_Shippit_Core
 
         add_action('admin_notices', array($this, 'order_sync_notice') );
 
-        // Enable suburb field for Shipping calculator
-        add_filter( 'woocommerce_shipping_calculator_enable_city', '__return_true' );
+        if (get_option('wc_settings_shippit_shippingcalculator_city_enabled') == 'yes') {
+            //Enable suburb/city field for Shipping calculator
+            add_filter( 'woocommerce_shipping_calculator_enable_city', '__return_true' );
+        }
     }
 
     /**
