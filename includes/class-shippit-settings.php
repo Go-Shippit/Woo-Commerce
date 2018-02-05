@@ -60,10 +60,10 @@ class Mamis_Shippit_Settings
 
         $settings = array(
             'title_general' => array(
-                'id'       => 'shippit-settings-general-title',
-                'name'     => __( 'General Settings', 'woocommerce-shippit' ),
-                'type'     => 'title',
-                'desc'     => 'General Settings allow you to connect your WooCommerce store with Shippit.',
+                'id' => 'shippit-settings-general-title',
+                'name' => __( 'General Settings', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'General Settings allow you to connect your WooCommerce store with Shippit.',
                 'desc_tip' => true,
             ),
 
@@ -125,12 +125,26 @@ class Mamis_Shippit_Settings
                  'type' => 'sectionend',
             ),
 
-            'title_checkout' => array(
-                'id'       => 'shippit-settings-checkout-title',
-                'name'     => __( 'Checkout Options', 'woocommerce-shippit' ),
-                'type'     => 'title',
-                'desc'     => 'Show/hide additional fields on the checkout.',
+            'title_cart_checkout' => array(
+                'id' => 'shippit-settings-checkout-title',
+                'name' => __( 'Cart & Checkout Options', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'Show/hide additional fields in the cart & checkout areas.',
                 'desc_tip' => true,
+            ),
+
+            'shippingcalculator_city_enabled' => array(
+                'id' => 'wc_settings_shippit_shippingcalculator_city_enabled',
+                'title' => __('Display City Field in Shipping Estimator', 'woocommerce-shippit'),
+                'desc'     => 'Using Shippit Live Quotes? Ensure this is enabled so that we can retrieve quotes for shipping estimations from the Shipping Calculator.',
+                'desc_tip' => true,
+                'class' => 'wc-enhanced-select',
+                'default' => 'yes',
+                'type' => 'select',
+                'options' => array(
+                    'no' => __('No', 'woocommerce-shippit'),
+                    'yes' => __('Yes', 'woocommerce-shippit'),
+                ),
             ),
 
             'atl_enabled' => array(
@@ -147,35 +161,8 @@ class Mamis_Shippit_Settings
                 ),
             ),
 
-            'section_checkout_end' => array(
-                 'id' => 'shippit-settings-checkout-end',
-                 'type' => 'sectionend',
-            ),
-
-            'title_cart' => array(
-                'id'       => 'shippit-settings-cart-title',
-                'name'     => __( 'Cart Options', 'woocommerce-shippit' ),
-                'type'     => 'title',
-                'desc'     => 'Show/hide additional fields on the Shipping Calculator.',
-                'desc_tip' => true,
-            ),
-
-            'shippingcalculator_city_enabled' => array(
-                'id' => 'wc_settings_shippit_shippingcalculator_city_enabled',
-                'title' => __('Display City Field', 'woocommerce-shippit'),
-                'desc'     => 'This is required to show live quotes in shipping calculator.',
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'yes',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-                ),
-            ),
-
-            'section_cart_end' => array(
-                 'id' => 'shippit-settings-cart-end',
+            'section_cart_checkout_end' => array(
+                 'id' => 'shippit-settings-cart-checkout-end',
                  'type' => 'sectionend',
             ),
 
