@@ -164,6 +164,74 @@ class Mamis_Shippit_Core
             // Enable suburb/city field for Shipping calculator
             add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
         }
+
+        /* Call Shipment meta box setup function on the order editor screen. */
+        add_action( 'load-post.php', array($this, 'mamis_shipment_meta_boxes_setup') );
+    }
+
+    /*
+    * Shipment Meta box setup function
+    */
+    function mamis_shipment_meta_boxes_setup() {
+      add_action( 'add_meta_boxes', array($this, 'mamis_add_shipment_meta_boxes'), 10, 2 );
+    }
+
+    /*
+    * Create meta box to be displayed -
+    * on the order editor screen
+    */
+    function mamis_add_shipment_meta_boxes( $post_type, $post ) {
+
+        if ( $post_type != 'shop_order' ||
+            empty(get_post_meta( $post->ID, '_mamis_shippit_shipment' ))
+        ) {
+            return;
+        }
+
+        add_meta_box( 'mamis_shipment_fields', __('Shipments Detail','woocommerce-shippit'), array($this, 'mamis_shipment_fields_for_order'), 'shop_order', 'side', 'core' );
+    }
+
+    /**
+     * Display the shipment details of the order -
+     * if the information exist
+     */
+    function mamis_shipment_fields_for_order( $order ) {
+        $shipmentData = get_post_meta( $order->ID, '_mamis_shippit_shipment', true );
+        $count = count($shipmentData);
+        $shipmentDetails = '';
+        $i = 1;
+
+        foreach ($shipmentData as $shipment) {
+            // Display Courier Name
+            if (!empty($shipment['courier_name'])) {
+                $shipmentDetails .= '<strong>Courier:</strong>&nbsp;';
+                $shipmentDetails .= '<span>' .$shipment['courier_name']. '</span>';
+                $shipmentDetails .= '<br/>';
+            }
+
+            // Display Courier Job ID
+            if (!empty($shipment['courier_job_id'])) {
+                $shipmentDetails .= '<strong>Courier Job ID:</strong>&nbsp;';
+                $shipmentDetails .= '<span>' .$shipment['courier_job_id']. '</span>';
+                $shipmentDetails .= '<br/>';
+            }
+
+            // Display Shippit Tracking
+            if (!empty($shipment['tracking_number'])) {
+                $shipmentDetails .= '<strong>Shippit Track #:</strong>&nbsp;';
+                $shipmentDetails .= '<a target="_blank" href="'. $shipment['tracking_url']. '">';
+                $shipmentDetails .= $shipment['tracking_number'];
+                $shipmentDetails .= '</a><br/>';
+            }
+
+            if ($i < $count) {
+                $shipmentDetails .= '<hr/>';
+            }
+
+            $i++;
+        }
+
+        echo $shipmentDetails;
     }
 
     /**
@@ -419,6 +487,11 @@ class Mamis_Shippit_Core
             ));
         }
 
+        // Save/Update Shipments Data
+        if ($totalItemsShipped > 0) {
+            $this->saveShipmentData($orderId, $requestData);
+        }
+
         $this->log->add(
             'SHIPPIT - WEBHOOK REQUEST',
             'Items Shipped',
@@ -451,6 +524,31 @@ class Mamis_Shippit_Core
         wp_send_json_success(array(
             'message' => self::SUCCESS_SHIPMENT_CREATED
         ));
+    }
+
+    /**
+     * Add shipment information for the order
+     * Update the shipment information if already exist
+     * @param  object $requestData
+     * @return null
+     */
+    public function saveShipmentData($orderId, $requestData)
+    {
+        if (empty($requestData)) {
+            return;
+        }
+
+        $shipmentData['tracking_number'] = $requestData->tracking_number;
+        $shipmentData['tracking_url'] = $requestData->tracking_url;
+        $shipmentData['courier_name'] = $requestData->courier_name;
+        $shipmentData['courier_job_id'] = $requestData->courier_job_id;
+
+        $existingShipments = get_post_meta($orderId, '_mamis_shippit_shipment', true);
+        $existingShipments[] = $shipmentData;
+
+        update_post_meta($orderId, '_mamis_shippit_shipment', $existingShipments);
+
+        return;
     }
 
     public function get_order($orderId, $orderStatus = 'wc-processing')
