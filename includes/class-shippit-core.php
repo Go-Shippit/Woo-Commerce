@@ -166,14 +166,14 @@ class Mamis_Shippit_Core
         }
 
         /* Call Shipment meta box setup function on the order editor screen. */
-        add_action( 'load-post.php', array($this, 'mamis_shipment_meta_boxes_setup') );
+        add_action('load-post.php', array($this, 'mamis_shipment_meta_boxes_setup'));
     }
 
     /*
     * Shipment Meta box setup function
     */
     function mamis_shipment_meta_boxes_setup() {
-      add_action( 'add_meta_boxes', array($this, 'mamis_add_shipment_meta_boxes'), 10, 2 );
+      add_action('add_meta_boxes', array($this, 'mamis_add_shipment_meta_boxes'), 10, 2);
     }
 
     /*
@@ -181,22 +181,20 @@ class Mamis_Shippit_Core
     * on the order editor screen
     */
     function mamis_add_shipment_meta_boxes( $post_type, $post ) {
-
-        if ( $post_type != 'shop_order' ||
-            empty(get_post_meta( $post->ID, '_mamis_shippit_shipment' ))
-        ) {
+    $shipmentsData = get_post_meta($post->ID, '_mamis_shippit_shipment');
+        if ($post_type != 'shop_order' || empty($shipmentsData)) {
             return;
         }
 
-        add_meta_box( 'mamis_shipment_fields', __('Shipments Detail','woocommerce-shippit'), array($this, 'mamis_shipment_fields_for_order'), 'shop_order', 'side', 'core' );
+        add_meta_box('mamis_shipment_fields', __('Shipments Detail','woocommerce-shippit'), array($this, 'mamis_shipment_fields_for_order'), 'shop_order', 'side', 'core');
     }
 
     /**
      * Display the shipment details of the order -
      * if the information exist
      */
-    function mamis_shipment_fields_for_order( $order ) {
-        $shipmentData = get_post_meta( $order->ID, '_mamis_shippit_shipment', true );
+    function mamis_shipment_fields_for_order($order) {
+        $shipmentData = get_post_meta($order->ID, '_mamis_shippit_shipment', true);
         $count = count($shipmentData);
         $shipmentDetails = '';
         $i = 1;
