@@ -141,8 +141,16 @@ class Mamis_Shippit_Order
             $shippingMethodId = $shippingMethod['method_id'];
 
             // Check if the shipping method chosen is Mamis_Shippit
-            if (strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE) {
-                return $shippingMethod['method_id'];
+            if (strpos($shippingMethodId, 'Mamis_Shippit') !== FALSE) {
+                return $shippingMethodId;
+            }
+
+            // If we have anything after shipping_method:instance_id
+            // then ignore it
+            if (substr_count($shippingMethodId, ':') > 1) {
+                $firstOccurence = strrpos($shippingMethodId, ':');
+                $secondOccurence = strpos($shippingMethodId, ':', $firstOccurence);
+                $shippingMethodId = substr($shippingMethodId, 0, $secondOccurence);
             }
 
             // Check if shipping method is mapped to standard
