@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.2 =
+
+- New Features
+-- Added the ability to retrieve live quotes in the cart shipping estimator
+
 = 1.4.1 =
 
 - New Features
