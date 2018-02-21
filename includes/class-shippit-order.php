@@ -147,9 +147,9 @@ class Mamis_Shippit_Order
 
             // If we have anything after shipping_method:instance_id
             // then ignore it
-            if(substr_count($shippingMethodId, ":") > 1) {
-                $firstOccurence = strrpos($shippingMethodId, ":");
-                $secondOccurence = strpos($shippingMethodId, ":", $firstOccurence);
+            if (substr_count($shippingMethodId, ':') > 1) {
+                $firstOccurence = strrpos($shippingMethodId, ':');
+                $secondOccurence = strpos($shippingMethodId, ':', $firstOccurence);
                 $shippingMethodId = substr($shippingMethodId, 0, $secondOccurence);
             }
 
