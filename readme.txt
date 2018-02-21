@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.3 =
+
+- New Features
+-- Added support for the WooCommerce table rates plugin with shipping method mapping functionality
+
 = 1.4.2 =
 
 - New Features
