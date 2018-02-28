@@ -164,6 +164,70 @@ class Mamis_Shippit_Core
             // Enable suburb/city field for Shipping calculator
             add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
         }
+
+        // Add the shipment meta boxes when viewing an order.
+        add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
+    }
+
+    /**
+     * Add the Shippit Shipment Meta Box
+     */
+    function mamis_add_shipment_meta_box()
+    {
+        add_meta_box(
+            'mamis_shipment_fields',
+            __('Shipments', 'woocommerce-shippit'),
+            array(
+                $this,
+                'mamis_add_shipment_meta_box_content'
+            ),
+            'shop_order',
+            'side',
+            'high'
+        );
+    }
+
+    /**
+     * Render the Shippit Shipment Meta Box Content
+     */
+    function mamis_add_shipment_meta_box_content($order)
+    {
+        $shipmentData = get_post_meta($order->ID, '_mamis_shippit_shipment', true);
+        $count = count($shipmentData);
+        $shipmentDetails = '';
+        $i = 1;
+
+        foreach ($shipmentData as $shipment) {
+            // Render the Courier Name
+            if (!empty($shipment['courier_name'])) {
+                $shipmentDetails .= '<strong>Courier:</strong>&nbsp;';
+                $shipmentDetails .= '<span>' .$shipment['courier_name']. '</span>';
+                $shipmentDetails .= '<br/>';
+            }
+
+            // Render the Courier Job ID
+            if (!empty($shipment['courier_job_id'])) {
+                $shipmentDetails .= '<strong>Courier Job ID:</strong>&nbsp;';
+                $shipmentDetails .= '<span>' .$shipment['courier_job_id']. '</span>';
+                $shipmentDetails .= '<br/>';
+            }
+
+            // Render the Shippit Tracking Link
+            if (!empty($shipment['tracking_number'])) {
+                $shipmentDetails .= '<strong>Shippit Track #:</strong>&nbsp;';
+                $shipmentDetails .= '<a target="_blank" href="'. $shipment['tracking_url']. '">';
+                $shipmentDetails .= $shipment['tracking_number'];
+                $shipmentDetails .= '</a><br/>';
+            }
+
+            if ($i < $count) {
+                $shipmentDetails .= '<hr/>';
+            }
+
+            $i++;
+        }
+
+        echo $shipmentDetails;
     }
 
     /**
@@ -175,7 +239,7 @@ class Mamis_Shippit_Core
     public function shippit_add_order_meta_box_action($actions)
     {
         // add "Send to Shippit" custom order action
-        $actions['shippit_order_action'] = __( 'Send to Shippit' );
+        $actions['shippit_order_action'] = __('Send to Shippit');
 
         return $actions;
     }
@@ -189,7 +253,7 @@ class Mamis_Shippit_Core
     public function shippit_send_bulk_orders_action($actions)
     {
         // add "Send to Shippit" bulk action on the orders listing page
-        $actions['shippit_bulk_orders_action'] = __( 'Send to Shippit' );
+        $actions['shippit_bulk_orders_action'] = __('Send to Shippit');
 
         return $actions;
     }
@@ -419,6 +483,9 @@ class Mamis_Shippit_Core
             ));
         }
 
+        // Save/Update Shipments Data
+        $this->save_shipment_data($orderId, $requestData);
+
         $this->log->add(
             'SHIPPIT - WEBHOOK REQUEST',
             'Items Shipped',
@@ -451,6 +518,39 @@ class Mamis_Shippit_Core
         wp_send_json_success(array(
             'message' => self::SUCCESS_SHIPMENT_CREATED
         ));
+    }
+
+    /**
+     * Add shipment information for the order
+     * Update the shipment information if already exist
+     *
+     * @param  object $requestData
+     * @return null
+     */
+    /**
+     * Add shipment information for the order or update the
+     * shipment information if some data already exists
+     *
+     * @param  string $orderId     The order id
+     * @param  object $requestData The webhook request data
+     * @return mixed               The response from update_post_meta,
+     *                             or null if request data is empty
+     */
+    public function save_shipment_data($orderId, $requestData)
+    {
+        if (empty($requestData)) {
+            return;
+        }
+
+        $shipmentData['tracking_number'] = $requestData->tracking_number;
+        $shipmentData['tracking_url'] = $requestData->tracking_url;
+        $shipmentData['courier_name'] = $requestData->courier_name;
+        $shipmentData['courier_job_id'] = $requestData->courier_job_id;
+
+        $existingShipments = get_post_meta($orderId, '_mamis_shippit_shipment', true);
+        $existingShipments[] = $shipmentData;
+
+        return update_post_meta($orderId, '_mamis_shippit_shipment', $existingShipments);
     }
 
     public function get_order($orderId, $orderStatus = 'wc-processing')
