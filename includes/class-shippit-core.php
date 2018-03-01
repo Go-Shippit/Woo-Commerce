@@ -174,6 +174,13 @@ class Mamis_Shippit_Core
      */
     function mamis_add_shipment_meta_box()
     {
+        $orderId = get_the_ID();
+        $shipmentData = get_post_meta($orderId, '_mamis_shippit_shipment', true);
+
+        if (empty($shipmentData)) {
+            return;
+        }
+
         add_meta_box(
             'mamis_shipment_fields',
             __('Shipments', 'woocommerce-shippit'),
