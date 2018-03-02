@@ -183,7 +183,7 @@ class Mamis_Shippit_Core
 
         add_meta_box(
             'mamis_shipment_fields',
-            __('Shipments', 'woocommerce-shippit'),
+            __('Shipments - Powered by Shippit', 'woocommerce-shippit'),
             array(
                 $this,
                 'mamis_add_shipment_meta_box_content'
