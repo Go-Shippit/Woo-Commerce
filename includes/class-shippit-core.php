@@ -174,9 +174,16 @@ class Mamis_Shippit_Core
      */
     function mamis_add_shipment_meta_box()
     {
+        $orderId = get_the_ID();
+        $shipmentData = get_post_meta($orderId, '_mamis_shippit_shipment', true);
+
+        if (empty($shipmentData)) {
+            return;
+        }
+
         add_meta_box(
             'mamis_shipment_fields',
-            __('Shipments', 'woocommerce-shippit'),
+            __('Shipments - Powered by Shippit', 'woocommerce-shippit'),
             array(
                 $this,
                 'mamis_add_shipment_meta_box_content'
@@ -206,9 +213,9 @@ class Mamis_Shippit_Core
             }
 
             // Render the Courier Job ID
-            if (!empty($shipment['courier_job_id'])) {
-                $shipmentDetails .= '<strong>Courier Job ID:</strong>&nbsp;';
-                $shipmentDetails .= '<span>' .$shipment['courier_job_id']. '</span>';
+            if (!empty($shipment['booked_at'])) {
+                $shipmentDetails .= '<strong>Booked At:</strong>&nbsp;';
+                $shipmentDetails .= '<span>' .$shipment['booked_at']. '</span>';
                 $shipmentDetails .= '<br/>';
             }
 
@@ -542,10 +549,19 @@ class Mamis_Shippit_Core
             return;
         }
 
+        $statusList = $requestData->status_history;
+        $status =  array_filter($statusList, function($statusItem) {
+            return ($statusItem->status == 'ready_for_pickup');
+        });
+        $readyForPickUp = reset($status);
+
         $shipmentData['tracking_number'] = $requestData->tracking_number;
         $shipmentData['tracking_url'] = $requestData->tracking_url;
         $shipmentData['courier_name'] = $requestData->courier_name;
-        $shipmentData['courier_job_id'] = $requestData->courier_job_id;
+
+        if (!empty($readyForPickUp)) {
+            $shipmentData['booked_at'] = date("d-m-Y H:i:s", strtotime($readyForPickUp->time));
+        }
 
         $existingShipments = get_post_meta($orderId, '_mamis_shippit_shipment', true);
         $existingShipments[] = $shipmentData;
