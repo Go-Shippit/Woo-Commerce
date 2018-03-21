@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.3 =
+
+- New Features
+-- Added a Shipments Meta box to the Orders Admin Area, with details as to the shipments completed by Shippit
+
 = 1.4.2 =
 
 - New Features
