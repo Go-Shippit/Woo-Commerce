@@ -428,7 +428,7 @@ class Mamis_Shippit_Core
 
         // Add order comment for when items are shipped
         $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';
-        $orderItemsShipped = '';
+        $orderItemsShipped = array();
 
         foreach ($requestItems as $requestItem) {
             // skip requests for quantities not present or less than or equal to 0
