@@ -563,10 +563,14 @@ class Mamis_Shippit_Core
             $shipmentData['booked_at'] = date("d-m-Y H:i:s", strtotime($readyForPickUp->time));
         }
 
-        $existingShipments = get_post_meta($orderId, '_mamis_shippit_shipment', true);
-        $existingShipments[] = $shipmentData;
+        $shipments = array();
+        $existingShipment = get_post_meta($orderId, '_mamis_shippit_shipment', false);
+        if (!empty($existingShipment)) {
+            $shipments = reset($existingShipment);
+        }
+        $shipments[] = $shipmentData;
 
-        return update_post_meta($orderId, '_mamis_shippit_shipment', $existingShipments);
+        return update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
     }
 
     public function get_order($orderId, $orderStatus = 'wc-processing')
