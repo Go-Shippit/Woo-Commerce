@@ -565,9 +565,13 @@ class Mamis_Shippit_Core
 
         $shipments = array();
         $existingShipment = get_post_meta($orderId, '_mamis_shippit_shipment', false);
+
+        // Retrieve the existing shipment data if it's available
         if (!empty($existingShipment)) {
             $shipments = reset($existingShipment);
         }
+
+        // Append the new shipment data
         $shipments[] = $shipmentData;
 
         return update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
