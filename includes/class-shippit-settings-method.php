@@ -97,8 +97,12 @@ class Mamis_Shippit_Settings_Method
         // Only show "filter enabled" and "filter_enabled_products"
         // on the legacy shipping method class
         //
+        // Also enables merchants to avoid this functionality if they have
+        // larger stores by setting the "SHIPPIT_PRODUCT_FILTERING" constant
+        // to false
+        //
         // @Depreciated: this functionality is due to be removed in 2018 Q1;
-        if (!$isInstance) {
+        if (!$isInstance && !defined('SHIPPIT_DISABLE_PRODUCT_FILTER')) {
             $fields['filter_enabled'] = array(
                 'title' => __('Filter by enabled products', 'woocommerce-shippit'),
                 'description' => __('Filter products that are enabled for quoting by shippit', 'woocommerce-shippit'),
