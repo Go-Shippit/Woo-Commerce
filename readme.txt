@@ -60,6 +60,13 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.5 =
+
+- New Features
+-- Added a feature flag that could disable the product filtering functionality on quotes, enabling larger stores to avoid a potentially expensive query
+- Bugfixes
+-- Resolved an issue that could prevent shipments from being registered in php v7.0.x environments.
+
 = 1.4.4 =
 
 - New Features
