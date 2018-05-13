@@ -428,7 +428,7 @@ class Mamis_Shippit_Core
 
         // Add order comment for when items are shipped
         $orderComment = 'The following items have been marked as Shipped in Shippit..<br>';
-        $orderItemsShipped = '';
+        $orderItemsShipped = array();
 
         foreach ($requestItems as $requestItem) {
             // skip requests for quantities not present or less than or equal to 0
@@ -563,10 +563,18 @@ class Mamis_Shippit_Core
             $shipmentData['booked_at'] = date("d-m-Y H:i:s", strtotime($readyForPickUp->time));
         }
 
-        $existingShipments = get_post_meta($orderId, '_mamis_shippit_shipment', true);
-        $existingShipments[] = $shipmentData;
+        $shipments = array();
+        $existingShipment = get_post_meta($orderId, '_mamis_shippit_shipment', false);
 
-        return update_post_meta($orderId, '_mamis_shippit_shipment', $existingShipments);
+        // Retrieve the existing shipment data if it's available
+        if (!empty($existingShipment)) {
+            $shipments = reset($existingShipment);
+        }
+
+        // Append the new shipment data
+        $shipments[] = $shipmentData;
+
+        return update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
     }
 
     public function get_order($orderId, $orderStatus = 'wc-processing')
