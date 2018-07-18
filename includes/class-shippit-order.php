@@ -140,6 +140,11 @@ class Mamis_Shippit_Order
         foreach ($shippingMethods as $shippingMethod) {
             $shippingMethodId = $shippingMethod['method_id'];
 
+            // making this change as woocommerce version 3.4.0 save method_id and instance_id as separate field and not serialize together as it was prior to 3.4.0
+            if (strpos($shippingMethodId, ':') === FALSE) {
+                $shippingMethodId .= ':' .$shippingMethod['instance_id'];
+            }
+
             // Check if the shipping method chosen is Mamis_Shippit
             if (strpos($shippingMethodId, 'Mamis_Shippit') !== FALSE) {
                 return $shippingMethodId;
