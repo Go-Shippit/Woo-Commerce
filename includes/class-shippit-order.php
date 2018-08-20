@@ -140,9 +140,10 @@ class Mamis_Shippit_Order
         foreach ($shippingMethods as $shippingMethod) {
             $shippingMethodId = $shippingMethod['method_id'];
 
-            // making this change as woocommerce version 3.4.0 save method_id and instance_id as separate field and not serialize together as it was prior to 3.4.0
-            if (strpos($shippingMethodId, ':') === FALSE) {
-                $shippingMethodId .= ':' .$shippingMethod['instance_id'];
+            // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
+            // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit
+            if (isset($shippingMethod['instance_id']) && !empty($shippingMethod['instance_id'])) {
+                $shippingMethodId .= ':' . $shippingMethod['instance_id'];
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
