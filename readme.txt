@@ -60,6 +60,13 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.6 =
+
+- New Features
+-- Added support for WooCommerce v1.4.0
+- Bugfixes
+-- Resolved an issue with Shipping Method Mapping for orders created using WooCommerce v1.4.0
+
 = 1.4.5 =
 
 - New Features
