@@ -203,7 +203,8 @@ class Mamis_Shippit_Settings_Method
     {
         $productArgs = array(
             'post_type' => 'product',
-            'posts_per_page' => -1
+            'posts_per_page' => -1,
+            'cache_results' => false
         );
 
         $products = get_posts($productArgs);
