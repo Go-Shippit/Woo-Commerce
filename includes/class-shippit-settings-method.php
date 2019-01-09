@@ -126,6 +126,17 @@ class Mamis_Shippit_Settings_Method
                 'options' => $this->_getProducts(),
             );
         }
+        
+		// Add filter to allow disable of shippit method for certain products (eg. digital downloads or non-courier friendly items)
+		$fields['filter_disabled_products'] = array(
+			'title' => __('Disabled Products', 'woocommerce-shippit'),
+			'description' => __('The products disabled for quoting by Shippit', 'woocommerce-shippit'),
+			'desc_tip' => true,
+			'class' => 'wc-enhanced-select',
+			'default' => '',
+			'type' => 'multiselect',
+			'options' => $this->_getProducts(),
+		);
 
         $fields['filter_attribute'] = array(
             'title' => __('Filter by product attributes', 'woocommerce-shippit'),

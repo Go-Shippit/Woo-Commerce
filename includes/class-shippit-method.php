@@ -64,6 +64,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->max_timeslots           = $this->get_option('max_timeslots');
         $this->filter_enabled          = 'no'; // depreciated
         $this->filter_enabled_products = array(); // depreciated
+        $this->filter_disabled_products = $this->get_option('filter_disabled_products');
         $this->filter_attribute        = $this->get_option('filter_attribute');
         $this->filter_attribute_code   = $this->get_option('filter_attribute_code');
         $this->filter_attribute_value  = $this->get_option('filter_attribute_value');
@@ -124,7 +125,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         if (!$this->_canShipEnabledProducts($package)) {
             return;
         }
-
+        
+        // Check if we can ship the products by disabled filtering
+        if (!$this->_canShipDisabledProducts($package)) {
+            return;
+        }
+        
         // Check if we can ship the products by attribute filtering
         if (!$this->_canShipEnabledAttributes($package)) {
             return;
@@ -371,7 +377,46 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         return true;
     }
+    
+   /**
+     * Checks if we can ship the products in the cart
+     * remove Shippit for some items
+     */
+    private function _canShipDisabledProducts($package)
+    {
+        if ($this->filter_disabled_products == null) {
+            return false;
+        }
 
+        $disallowedProducts = $this->filter_disabled_products;
+
+        $products = $package['contents'];
+        $productIds = array();
+
+        foreach ($products as $itemKey => $product) {
+            $productIds[] = $product['product_id'];
+        }
+
+        if (!empty($disallowedProducts)) {
+            // If item is enabled return false
+            if ($productIds = array_intersect($productIds, $disallowedProducts)) {
+                $this->log->add(
+                    'Can\'t Ship Products - some disabled',
+                    'Returning false'
+                );
+
+                return false;
+            }
+        }
+
+        $this->log->add(
+            'Can Ship Disabled Products',
+            'Returning true'
+        );
+
+        return true;
+    }
+    
     private function _canShipEnabledAttributes($package)
     {
         if ($this->filter_attribute == 'no') {
