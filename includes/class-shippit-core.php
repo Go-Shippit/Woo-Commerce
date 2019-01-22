@@ -341,10 +341,11 @@ class Mamis_Shippit_Core
         }
 
         // Grab the values from the posted JSON object
-        $orderNumber = $requestData->retailer_order_number;
+        $orderNumber = isset($requestData->retailer_order_number) ? $requestData->retailer_order_number : '';
+        $orderId = isset($requestData->retailer_reference) ? $requestData->retailer_reference : '';
         $orderStatus = $requestData->current_state;
 
-        if (empty($orderNumber)) {
+        if (empty($orderNumber) && empty($orderId)) {
             wp_send_json_error(array(
                 'message' => self::ERROR_ORDER_MISSING
             ));
@@ -358,7 +359,7 @@ class Mamis_Shippit_Core
 
         // Get the order by the request order id passed,
         // ensure it's status is processing
-        $order = $this->get_order($orderNumber, 'wc-processing');
+        $order = $this->get_order($orderId, $orderNumber, 'wc-processing');
 
         // Check if an order is returned
         if (!$order) {
@@ -577,27 +578,29 @@ class Mamis_Shippit_Core
         return update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
     }
 
-    public function get_order($orderId, $orderStatus = 'wc-processing')
+    public function get_order($orderId, $orderNumber, $orderStatus = 'wc-processing')
     {
         global $woocommerce;
         global $post;
 
-        // Add support for Wordpress Jetpack - Order Numbers
-        if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled')) {
-            $queryArgs = array(
-                'meta_key' => '_wcj_order_number',
-                'meta_value' => $orderId,
-                'post_type' => 'shop_order',
-                'post_status' => $orderStatus,
-                'posts_per_page' => 1
+        $filters = array(
+            'post_type' => 'shop_order',
+            'post_status' => $orderStatus,
+            'posts_per_page' => 1
+        );
+
+        // Default WC order numbers are always numeric
+        if (is_numeric($orderId) && !empty($orderId)) {
+            $queryArgs = array_merge(
+                array('p' => $orderId),
+                $filters
             );
         }
         else {
-            $queryArgs = array(
-                'p' => $orderId,
-                'post_type' => 'shop_order',
-                'post_status' => $orderStatus,
-                'posts_per_page' => 1
+            $queryArgs = $this->getJetPackOrderQueryArgs(
+                $orderId,
+                $orderNumber,
+                $filters
             );
         }
 
@@ -609,6 +612,46 @@ class Mamis_Shippit_Core
         }
 
         return false;
+    }
+
+    public function getJetPackOrderQueryArgs($orderId, $orderNumber, $filters)
+    {
+        // Add support for Wordpress Jetpack - Order Numbers
+        $wcjSequentialEnabled = get_option('wcj_order_number_sequential_enabled');
+        $orderPrefix = get_option('wcj_order_number_prefix');
+
+        // If set to 'no' order will use WC's increment number
+        // but still considers order prefix config.
+        if ($wcjSequentialEnabled == 'no') {
+
+            if (!empty($orderPrefix) && !empty($orderId)) {
+                $orderIdWCJ = str_replace($orderPrefix, '', $orderId);
+            }
+            elseif (!empty($orderPrefix) && !empty($orderNumber)) {
+                $orderIdWCJ = str_replace($orderPrefix, '', $orderNumber);
+            }
+            else {
+                return false;
+            }
+
+            return array_merge(
+                array('p' => $orderIdWCJ),
+                $filters
+            );
+        }
+        else {
+            if (!empty($orderPrefix)) {
+                $orderIdWCJ = str_replace($orderPrefix, '', $orderNumber);
+            }
+
+            return array_merge(
+                array(
+                'meta_key' => '_wcj_order_number',
+                'meta_value' => $orderIdWCJ
+                ),
+                $filters
+            );
+        }
     }
 
     public function after_options_save()
