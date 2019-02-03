@@ -385,7 +385,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     private function _canShipDisabledProducts($package)
     {
         if ($this->filter_disabled_products == null) {
-            return false;
+            return true;
         }
 
         $disallowedProducts = $this->filter_disabled_products;
