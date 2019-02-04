@@ -583,38 +583,48 @@ class Mamis_Shippit_Core
         global $woocommerce;
         global $post;
 
-        $filters = array(
-            'post_type' => 'shop_order',
-            'post_status' => $orderStatus,
-            'posts_per_page' => 1
-        );
-
-        // Default WC order numbers are always numeric
+        // If "retailer_reference" is available do the direct
+        // db look up
         if (is_numeric($orderId) && !empty($orderId)) {
-            $queryArgs = array_merge(
-                array('p' => $orderId),
-                $filters
+            $queryArgs = array(
+                'p' => $orderId,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1,
             );
+
+            // Get the woocommerce order
+            $order = get_posts($queryArgs);
         }
-        else {
-            $queryArgs = $this->getJetPackOrderQueryArgs(
+        // Add support for Wordpress Jetpack - Order Numbers
+        elseif (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled') == 'yes') {
+            $order = $this->get_jetpack_order(
                 $orderId,
                 $orderNumber,
-                $filters
+                $orderStatus
             );
         }
+        // If "retailer_invoice" is available then query the order
+        // using the standard WP, this also adds backward
+        // compatibility for shippit plugin
+        elseif(is_numeric($orderNumber) && !empty($orderNumber)) {
+            $queryArgs = array(
+                'p' => $orderNumber,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1,
+            );
 
-        // Get the woocommerce order if it's processing
-        $order = get_posts($queryArgs);
+            // Get the woocommerce order
+            $order = get_posts($queryArgs);
+        }
 
         if (!empty($order)) {
             return reset($order);
         }
-
-        return false;
     }
 
-    public function getJetPackOrderQueryArgs($orderId, $orderNumber, $filters)
+    public function get_jetpack_order($orderId, $orderNumber, $orderStatus = 'wc-processing')
     {
         // Add support for Wordpress Jetpack - Order Numbers
         $wcjSequentialEnabled = get_option('wcj_order_number_sequential_enabled');
@@ -634,9 +644,11 @@ class Mamis_Shippit_Core
                 return false;
             }
 
-            return array_merge(
-                array('p' => $orderIdWCJ),
-                $filters
+            $queryArgs = array(
+                'p' => $orderIdWCJ,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1,
             );
         }
         else {
@@ -644,14 +656,17 @@ class Mamis_Shippit_Core
                 $orderIdWCJ = str_replace($orderPrefix, '', $orderNumber);
             }
 
-            return array_merge(
-                array(
+            $queryArgs = array(
                 'meta_key' => '_wcj_order_number',
-                'meta_value' => $orderIdWCJ
-                ),
-                $filters
+                'meta_value' => $orderIdWCJ,
+                'post_type' => 'shop_order',
+                'post_status' => $orderStatus,
+                'posts_per_page' => 1,
             );
         }
+
+        // Get the woocommerce order
+        return get_posts($queryArgs);
     }
 
     public function after_options_save()
