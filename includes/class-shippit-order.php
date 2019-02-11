@@ -393,7 +393,7 @@ class Mamis_Shippit_Order
             $orderData['parcel_attributes'][] = array_merge(
                 array(
                     'sku' => $productSku,
-                    'title' => $product->get_title(),
+                    'title' => $orderItem['name'],
                     'qty' => (float) $orderItem['qty'],
                     'price' => (float) $order->get_item_subtotal($orderItem, true),
                 ),
