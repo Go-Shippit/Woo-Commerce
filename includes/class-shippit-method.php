@@ -251,7 +251,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
-                'label' => 'Standard',
+                'label' => 'Standard Courier',
                 'cost'  => $quotePrice,
             );
 
@@ -266,7 +266,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
-                'label' => 'Express',
+                'label' => 'Express Courier',
                 'cost'  => $quotePrice,
             );
 
@@ -292,11 +292,11 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 $method = $shippingQuote->service_level . '_' . $priorityQuote->delivery_date . '_' . $priorityQuote->delivery_window;
                 $priorityQuoteDeliveryDate = $priorityQuote->delivery_date;
                 $priorityQuoteDeliveryDate = date('d/m/Y', strtotime($priorityQuoteDeliveryDate));
-                $methodTitle = 'Scheduled' . ' - Delivered ' . $priorityQuoteDeliveryDate. ' between ' . $priorityQuote->delivery_window_desc;
+                $methodTitle = 'Scheduled Courier' . ' - Delivered ' . $priorityQuoteDeliveryDate. ' between ' . $priorityQuote->delivery_window_desc;
             }
             else {
                 $method = $shippingQuote->service_level;
-                $methodTitle = 'Scheduled';
+                $methodTitle = 'Scheduled Courier';
             }
 
             $quotePrice = $this->_getQuotePrice($priorityQuote->price);
