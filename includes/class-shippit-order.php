@@ -393,7 +393,7 @@ class Mamis_Shippit_Order
             $orderData['parcel_attributes'][] = array_merge(
                 array(
                     'sku' => $productSku,
-                    'title' => $product->get_title(),
+                    'title' => $orderItem['name'],
                     'qty' => (float) $orderItem['qty'],
                     'price' => (float) $order->get_item_subtotal($orderItem, true),
                 ),
@@ -434,6 +434,7 @@ class Mamis_Shippit_Order
         }
 
         $orderData['authority_to_leave']       = $authorityToLeave;
+        $orderData['retailer_reference']       = $order->get_id();
         $orderData['retailer_invoice']         = $order->get_order_number();
 
         // If no state has been provided, use the suburb

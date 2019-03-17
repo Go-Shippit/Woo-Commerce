@@ -28,6 +28,7 @@ function init_shippit_core()
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
+    include_once('includes/class-shippit-shipment.php');
 
     $shippit = Mamis_Shippit_Core::instance();
 
