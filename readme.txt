@@ -60,6 +60,15 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.4.7 =
+
+- New Features
+-- We'll now include both the woocommerce order internal identifier, and the friendly order reference number when communicating orders and shipments
+
+- Bugfixes
+-- Resolved an issue whereby an incorrect order could be marked as shipped if the order id was not provided in an expected format
+-- Improved support for earlier versions of WooCommerce when retrieving a order items product name
+
 = 1.4.6 =
 
 - New Features
