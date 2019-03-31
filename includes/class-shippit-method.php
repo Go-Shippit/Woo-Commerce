@@ -195,6 +195,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $dropoffSuburb = $quoteDestination['city'];
         $dropoffPostcode = $quoteDestination['postcode'];
         $dropoffState = $quoteDestination['state'];
+        $dropoffCountryCode = $quoteDestination['country'];
         $items = WC()->cart->get_cart();
 
         $quoteData = array(
@@ -202,6 +203,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
+            'dropoff_country_code' => $dropoffCountryCode,
             'parcel_attributes' => $this->getParcelAttributes($items)
         );
 
