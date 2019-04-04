@@ -487,14 +487,14 @@ class Mamis_Shippit_Core
             return;
         }
 
-        echo '<div id="authority_to_leave"><h3>' . __('Authority to leave') . '</h3>';
+        echo '<div id="authority_to_leave"><label class="" for="authority_to_leave">' . __('Authority to leave') . '</label>';
 
         woocommerce_form_field( 'authority_to_leave', array(
             'type'          => 'select',
             'class'         => array('my-field-class form-row-wide'),
             'options'       => array(
-                'No' => 'No',
-                'Yes'  => 'Yes'
+		'Yes' => 'Yes',
+                'No' => 'No'
                 ),
             ),
         $checkout->get_value( 'authority_to_leave' ));
