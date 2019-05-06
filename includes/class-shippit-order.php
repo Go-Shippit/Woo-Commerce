@@ -100,28 +100,41 @@ class Mamis_Shippit_Order
         $plainlabelShippingMethods = get_option('wc_settings_shippit_plainlabel_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
+            // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
+            // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit
+            if (isset($shippingMethod['instance_id']) && !empty($shippingMethod['instance_id'])) {
+                $shippingMethodId = sprintf(
+                    '%s:%s',
+                    $shippingMethod['method_id'],
+                    $shippingMethod['instance_id']
+                );
+            }
+            else {
+                $shippingMethodId = $shippingMethod['method_id'];
+            }
+
             if (!empty($standardShippingMethods)
-                && in_array($shippingMethod['method_id'], $standardShippingMethods)) {
+                && in_array($shippingMethodId, $standardShippingMethods)) {
                 return true;
             }
 
             if (!empty($expressShippingMethods)
-                && in_array($shippingMethod['method_id'], $expressShippingMethods)) {
+                && in_array($shippingMethodId, $expressShippingMethods)) {
                 return true;
             }
 
             if (!empty($clickandcollectShippingMethods)
-                && in_array($shippingMethod['method_id'], $clickandcollectShippingMethods)) {
+                && in_array($shippingMethodId, $clickandcollectShippingMethods)) {
                 return true;
             }
 
             if (!empty($plainlabelShippingMethods)
-                && in_array($shippingMethod['method_id'], $plainlabelShippingMethods)) {
+                && in_array($shippingMethodId, $plainlabelShippingMethods)) {
                 return true;
             }
 
             // Check if the shipping method chosen is a shippit method
-            if (strpos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE) {
+            if (stripos($shippingMethod['method_id'], 'Mamis_Shippit') !== FALSE) {
                 return true;
             }
         }
@@ -138,16 +151,21 @@ class Mamis_Shippit_Order
         $plainlabelShippingMethods = get_option('wc_settings_shippit_plainlabel_shipping_methods');
 
         foreach ($shippingMethods as $shippingMethod) {
-            $shippingMethodId = $shippingMethod['method_id'];
-
             // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
             // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit
             if (isset($shippingMethod['instance_id']) && !empty($shippingMethod['instance_id'])) {
-                $shippingMethodId .= ':' . $shippingMethod['instance_id'];
+                $shippingMethodId = sprintf(
+                    '%s:%s',
+                    $shippingMethod['method_id'],
+                    $shippingMethod['instance_id']
+                );
+            }
+            else {
+                $shippingMethodId = $shippingMethod['method_id'];
             }
 
             // Check if the shipping method chosen is Mamis_Shippit
-            if (strpos($shippingMethodId, 'Mamis_Shippit') !== FALSE) {
+            if (stripos($shippingMethodId, 'Mamis_Shippit') !== FALSE) {
                 return $shippingMethodId;
             }
 
@@ -185,50 +203,6 @@ class Mamis_Shippit_Order
         }
 
         return false;
-    }
-
-    /**
-     * Get the shipping method preferences to be sent to Shippit
-     * @param  $shippingMethodId  The Shipping Method identifier to be processed
-     * @return array              An array of the property values to be used for Shippit
-     */
-    protected function getShippingMethodPreferences($shippingMethodId)
-    {
-        // Check if the shipping method chosen was Mamis_Shippit
-        $shippingOptions = str_replace('Mamis_Shippit_', '', $shippingMethodId);
-
-        // If the method is click_and_collect or plain_label,
-        // set the value without splitting the array
-        if ($shippingOptions == 'click_and_collect' || $shippingOptions == 'plain_label') {
-            $shippingOptions = array($shippingOptions);
-        }
-        // Otherwise, split the array by "_" to pull additional details
-        // such as delivery date + delivery window for priority services
-        else {
-            $shippingOptions = explode('_', $shippingOptions);
-        }
-
-        if ($shippingOptions[0] == 'plain_label') {
-            $orderData['courier_type'] = null;
-            $orderData['courier_allocation'] = 'PlainLabel';
-        }
-        else {
-            $orderData['courier_type'] = $shippingOptions[0];
-        }
-
-        if ($shippingOptions[0] == 'priority') {
-            // Retrieve the delivery_date preference
-            if (isset($shippingOptions[1])) {
-                $orderData['delivery_date'] = $shippingOptions[1];
-            }
-
-            // Retrieve the delivery_window preference
-            if (isset($shippingOptions[2])) {
-                $orderData['delivery_window'] = $shippingOptions[2];
-            }
-        }
-
-        return $orderData;
     }
 
     /**
@@ -311,16 +285,13 @@ class Mamis_Shippit_Order
 
         $shippingMethodId = $this->getShippingMethodId($order);
 
-        // fallback to standard if a method could no longer be mapped
-        if (empty($shippingMethodId)) {
-            $shippingMethodId = 'standard';
-        }
-
         // Retrieve the order shipping method preferences
-        $shippingMethodPreferences = $this->getShippingMethodPreferences($shippingMethodId);
+        $shippingMethodPreferences = (new Mamis_Shippit_Data_Mapper_Order())
+            ->process($order, $shippingMethodId);
 
         $orderData = array_merge($orderData, $shippingMethodPreferences);
 
+        // @TODO: move other mappings to data mappers
         // Set user attributes
         $orderData['user_attributes'] = array(
             'email'      => get_post_meta($orderId, '_billing_email', true),

@@ -245,8 +245,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
-                'label' => 'Standard',
+                'label' => ucwords($shippingQuote->service_level),
                 'cost'  => $quotePrice,
+                'meta_data' =>  array('Service Level' => $shippingQuote->service_level),
             );
 
             $this->add_rate($rate);
@@ -260,8 +261,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
-                'label' => 'Express',
+                'label' => ucwords($shippingQuote->service_level),
                 'cost'  => $quotePrice,
+                'meta_data' => array('Service Level' => $shippingQuote->service_level),
             );
 
             $this->add_rate($rate);
@@ -283,10 +285,21 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             if (property_exists($priorityQuote, 'delivery_date')
                 && property_exists($priorityQuote, 'delivery_window')
                 && property_exists($priorityQuote, 'delivery_window_desc')) {
-                $method = $shippingQuote->service_level . '_' . $priorityQuote->delivery_date . '_' . $priorityQuote->delivery_window;
+
+                $method = sprintf(
+                    '%s_%s_%s',
+                    $shippingQuote->service_level,
+                    $priorityQuote->delivery_date,
+                    $priorityQuote->delivery_window
+                );
+
                 $priorityQuoteDeliveryDate = $priorityQuote->delivery_date;
                 $priorityQuoteDeliveryDate = date('d/m/Y', strtotime($priorityQuoteDeliveryDate));
-                $methodTitle = 'Scheduled' . ' - Delivered ' . $priorityQuoteDeliveryDate. ' between ' . $priorityQuote->delivery_window_desc;
+                $methodTitle = sprintf(
+                    'Scheduled - Delivered %s between %s',
+                    $priorityQuoteDeliveryDate,
+                    $priorityQuote->delivery_window_desc
+                );
             }
             else {
                 $method = $shippingQuote->service_level;
@@ -298,7 +311,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $rate = array(
                 'id'    => 'Mamis_Shippit_' . $method,
                 'label' => $methodTitle,
-                'cost'  => $quotePrice
+                'cost'  => $quotePrice,
+                'meta_data' => array(
+                    'Service Level' => $shippingQuote->service_level,
+                    'Delivery Date' => $priorityQuoteDeliveryDate,
+                    'Delivery Window' => $priorityQuote->delivery_window
+                ),
             );
 
             $this->add_rate($rate);

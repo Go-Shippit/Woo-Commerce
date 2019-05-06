@@ -101,4 +101,33 @@ class Mamis_Shippit_Helper
 
         return $weight;
     }
+
+    /**
+     * Get shippit shipping method metadata attached to order
+     *
+     * @param array shippit metadata
+     * @return void
+     */
+    public function getOrderShippingMeta($shippingMethods)
+    {
+        $orderShippitMeta = array();
+
+        // retrieve and return meta data if shippit method
+        foreach ($shippingMethods as $shippingMethod) {
+            if (stripos($shippingMethod['method_id'], 'Mamis_Shippit') === FALSE) {
+                continue;
+            }
+
+            if (isset($shippingMethod['Service Level'])) {
+                $orderShippitMeta['service_level'] = $shippingMethod['Service Level'];
+            }
+
+            if (isset($shippingMethod['Delivery Date']) && isset($shippingMethod['Delivery Window'])) {
+                $orderShippitMeta['delivery_date'] = $shippingMethod['Delivery Date'];
+                $orderShippitMeta['delivery_window'] = $shippingMethod['Delivery Window'];
+            };
+        }
+
+        return $orderShippitMeta;
+    }
 }
