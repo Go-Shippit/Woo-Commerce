@@ -281,29 +281,10 @@ class Mamis_Shippit_Order
         // Get the orders_item_id meta with key shipping
         $order = new WC_Order($orderId);
         $orderItems = $order->get_items();
-        $orderData = array();
 
-        $shippingMethodId = $this->getShippingMethodId($order);
+        // $shippingMethodId = $this->getShippingMethodId($order);
 
-        // Retrieve the order shipping method preferences
-        $shippingMethodPreferences = (new Mamis_Shippit_Data_Mapper_Order())
-            ->process($order, $shippingMethodId);
-
-        $orderData = array_merge($orderData, $shippingMethodPreferences);
-
-        // @TODO: move other mappings to data mappers
-        // Set user attributes
-        $orderData['user_attributes'] = array(
-            'email'      => get_post_meta($orderId, '_billing_email', true),
-            'first_name' => get_post_meta($orderId, '_billing_first_name', true),
-            'last_name'  => get_post_meta($orderId, '_billing_last_name', true)
-        );
-
-        $orderData['receiver_name'] =
-            get_post_meta($orderId, '_shipping_first_name', true)
-            . ' ' . get_post_meta($orderId, '_shipping_last_name', true);
-
-        $orderData['receiver_contact_number'] = get_post_meta($orderId, '_billing_phone', true);
+        $orderData = (new Mamis_Shippit_Data_Mapper_Order())->__invoke($order)->toArray();
 
         // If there are no order items, return early
         if (count($orderItems) == 0) {
@@ -312,112 +293,12 @@ class Mamis_Shippit_Order
             return;
         }
 
-        foreach ($orderItems as $orderItem) {
-            // If the order item does not have a linked product, skip it
-            if (!isset($orderItem['product_id']) || $orderItem['product_id'] == 0) {
-                continue;
-            }
-
-            $product = $order->get_product_from_item($orderItem);
-
-            // If the product is a virtual item, skip it
-            if ($product->is_virtual()) {
-                continue;
-            }
-
-            if (version_compare(WC()->version, '3.0.0') >= 0) {
-                $productType = $product->get_type();
-            }
-            else {
-                $productType = $product->type;
-            }
-
-            // Append sku with variation_id if it exists
-            if ($productType == 'variation') {
-                $productSku = $product->get_sku() . '|' . $product->get_variation_id();
-            }
-            else {
-                $productSku = $product->get_sku();
-            }
-
-            // Reset the itemDetail to an empty array
-            $itemDetail = array();
-
-            $itemWeight = $product->get_weight();
-
-            // Get the weight if available, otherwise stub weight to 0.2kg
-            $itemDetail['weight'] = (!empty($itemWeight) ? $this->helper->convertWeight($itemWeight) : 0.2);
-
-            if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
-                || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
-                $itemHeight = $product->get_height();
-                $itemLength = $product->get_length();
-                $itemWidth = $product->get_width();
-
-                $itemDetail['depth'] = (!empty($itemHeight) ? $this->helper->convertDimension($itemHeight) : 0);
-
-                $itemDetail['length'] = (!empty($itemLength) ? $this->helper->convertDimension($itemLength) : 0);
-
-                $itemDetail['width'] = (!empty($itemWidth) ? $this->helper->convertDimension($itemWidth) : 0);
-            }
-
-            $orderData['parcel_attributes'][] = array_merge(
-                array(
-                    'sku' => $productSku,
-                    'title' => $orderItem['name'],
-                    'qty' => (float) $orderItem['qty'],
-                    'price' => (float) $order->get_item_subtotal($orderItem, true),
-                ),
-                $itemDetail
-            );
-        }
-
-        // If there are not parcel items, don't sync the order
-        if (!isset($orderData['parcel_attributes'])) {
-            update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
-
-            return;
-        }
-
-        $authorityToLeave = get_post_meta($orderId, 'authority_to_leave', true);
-
-        if (empty($authorityToLeave)) {
-            $authorityToLeave = 'No';
-        }
-
-        if (version_compare(WC()->version, '3.0.0') >= 0) {
-            $orderData['delivery_company']         = $order->get_shipping_company();
-            $orderData['delivery_address']         = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2());
-            $orderData['delivery_country_code']    = $order->get_shipping_country();
-            $orderData['delivery_state']           = $order->get_shipping_state();
-            $orderData['delivery_postcode']        = $order->get_shipping_postcode();
-            $orderData['delivery_suburb']          = $order->get_shipping_city();
-            $orderData['delivery_instructions']    = $order->get_customer_note();
-        }
-        else {
-            $orderData['delivery_company']         = $order->shipping_company;
-            $orderData['delivery_address']         = trim($order->shipping_address_1 . ' ' . $order->shipping_address_2);
-            $orderData['delivery_country_code']    = $order->shipping_country;
-            $orderData['delivery_state']           = $order->shipping_state;
-            $orderData['delivery_postcode']        = $order->shipping_postcode;
-            $orderData['delivery_suburb']          = $order->shipping_city;
-            $orderData['delivery_instructions']    = $order->customer_message;
-        }
-
-        $orderData['authority_to_leave']       = $authorityToLeave;
-        $orderData['retailer_reference']       = $order->get_id();
-        $orderData['retailer_invoice']         = $order->get_order_number();
-
-        // If no state has been provided, use the suburb
-        if (empty($orderData['delivery_state'])) {
-            $orderData['delivery_state'] = $orderData['delivery_suburb'];
-        }
-
         // Send the API request
         $apiResponse = $this->api->sendOrder($orderData);
 
         if ($apiResponse && $apiResponse->tracking_number) {
             update_post_meta($orderId, '_mamis_shippit_sync', 'true', 'false');
+
             $orderComment = 'Order Synced with Shippit. Tracking number: ' . $apiResponse->tracking_number . '.';
             $order->add_order_note($orderComment, 0);
         }

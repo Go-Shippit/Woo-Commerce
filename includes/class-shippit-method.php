@@ -118,8 +118,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
-        // error_log(print_r($package, true));
-
         // Check if we can ship the products by enabled filtering
         if (!$this->_canShipEnabledProducts($package)) {
             return;
@@ -129,8 +127,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         if (!$this->_canShipEnabledAttributes($package)) {
             return;
         }
-
-        // $this->_getItemAttributes($package);
 
         $this->_processShippingQuotes($quoteDestination, $quoteCart);
     }
@@ -244,10 +240,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
-                'cost'  => $quotePrice,
-                'meta_data' =>  array('Service Level' => $shippingQuote->service_level),
+                'cost' => $quotePrice,
+                'meta_data' => array(
+                    'service_level' => $shippingQuote->service_level,
+                    'courier_allocation' => $shippingQuote->courier_type,
+                ),
             );
 
             $this->add_rate($rate);
@@ -260,10 +258,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
-                'cost'  => $quotePrice,
-                'meta_data' => array('Service Level' => $shippingQuote->service_level),
+                'cost' => $quotePrice,
+                'meta_data' => array(
+                    'service_level' => $shippingQuote->service_level,
+                    'courier_allocation' => $shippingQuote->courier_type,
+                ),
             );
 
             $this->add_rate($rate);
@@ -282,40 +282,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             // Increase the timeslot count
             $timeSlotCount++;
 
-            if (property_exists($priorityQuote, 'delivery_date')
-                && property_exists($priorityQuote, 'delivery_window')
-                && property_exists($priorityQuote, 'delivery_window_desc')) {
-
-                $method = sprintf(
-                    '%s_%s_%s',
-                    $shippingQuote->service_level,
-                    $priorityQuote->delivery_date,
-                    $priorityQuote->delivery_window
-                );
-
-                $priorityQuoteDeliveryDate = $priorityQuote->delivery_date;
-                $priorityQuoteDeliveryDate = date('d/m/Y', strtotime($priorityQuoteDeliveryDate));
-                $methodTitle = sprintf(
-                    'Scheduled - Delivered %s between %s',
-                    $priorityQuoteDeliveryDate,
-                    $priorityQuote->delivery_window_desc
-                );
-            }
-            else {
-                $method = $shippingQuote->service_level;
-                $methodTitle = 'Scheduled';
-            }
-
             $quotePrice = $this->_getQuotePrice($priorityQuote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $method,
-                'label' => $methodTitle,
-                'cost'  => $quotePrice,
+                'label' => sprintf(
+                    'Scheduled - Delivered %s between %s',
+                    date('d/m/Y', strtotime($priorityQuote->delivery_date)),
+                    $priorityQuote->delivery_window_desc
+                ),
+                'cost' => $quotePrice,
                 'meta_data' => array(
-                    'Service Level' => $shippingQuote->service_level,
-                    'Delivery Date' => $priorityQuoteDeliveryDate,
-                    'Delivery Window' => $priorityQuote->delivery_window
+                    'service_level' => $shippingQuote->service_level,
+                    'courier_allocation' => $priorityQuote->courier_type,
+                    'delivery_date' => $priorityQuote->delivery_date,
+                    'delivery_window' => $priorityQuote->delivery_window
                 ),
             );
 

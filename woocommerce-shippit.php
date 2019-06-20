@@ -2,15 +2,15 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 1.4.7
+ * Version:                 1.5.0-rc1
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
- * WC requires at least:    2.3.0
- * WC Tested Up To:         3.5.4
+ * WC requires at least:    2.6.0
+ * WC Tested Up To:         3.6.4
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.4.7');
+define('MAMIS_SHIPPIT_VERSION', '1.5.0-rc1');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
@@ -30,6 +30,7 @@ function init_shippit_core()
     include_once('includes/class-shippit-order.php');
     include_once('includes/class-varien-object.php');
     include_once('includes/class-shippit-data-mapper-order.php');
+    include_once('includes/class-shippit-data-mapper-order-item.php');
     include_once('includes/class-shippit-shipment.php');
 
     $shippit = Mamis_Shippit_Core::instance();

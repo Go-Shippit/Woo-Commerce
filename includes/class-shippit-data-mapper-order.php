@@ -16,84 +16,250 @@
 
 class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 {
-    public function process($order, $shippingMethodId)
+    protected $helper;
+    protected $order;
+
+    public function __invoke($order)
     {
-        $shippingMethods = $order->get_shipping_methods();
-        $orderShippingMeta = (new Mamis_Shippit_Helper())
-            ->getOrderShippingMeta($shippingMethods);
+        $this->helper = new Mamis_Shippit_Helper();
+        $this->order = $order;
 
-        // Check if the shipping method chosen was Mamis_Shippit
-        // Legacy WC < 3.0 live quoting methods are saved in this
-        // format e.g. Mamis_Shippit_{service_level}_{additional_data}
-        $shippingMethodId = str_replace('Mamis_Shippit_', '', $shippingMethodId);
+        $this->mapRetailerReference()
+            ->mapRetailerInvoice()
+            ->mapUserAttributes()
+            ->mapRecieverName()
+            ->mapRecieverContactNumber()
+            ->mapCourierType()
+            ->mapCourierAllocation()
+            ->mapDeliveryDate()
+            ->mapDeliveryWindow()
+            ->mapDeliveryCompany()
+            ->mapDeliveryAddress()
+            ->mapDeliverySuburb()
+            ->mapDeliveryState()
+            ->mapDeliveryPostcode()
+            ->mapDeliveryCountryCode()
+            ->mapParcelAttributes();
 
-        if (isset($orderShippingMeta['service_level'])) {
-            $shippingMethodId = $orderShippingMeta['service_level'];
-        }
-        elseif (empty($shippingMethodId)) {
-            // fallback to standard if a method could no longer be mapped
-            $shippingMethodId = 'standard';
-        }
-
-        $this->setCourierType($shippingMethodId)
-            ->setCourierAllocation($shippingMethodId)
-            ->setDeliveryDate($orderShippingMeta, $shippingMethodId)
-            ->setDeliveryWindow($orderShippingMeta, $shippingMethodId);
-
-        return $this->toArray();
+        return $this;
     }
 
-    public function setCourierType($shippingMethodId)
+    public function mapRetailerReference()
     {
-        if ($shippingMethodId == 'plain_label') {
-            return $this->setData('courier_type', null);
-        }
-        // in case of legacy, method id can have additional data
-        elseif (stripos($shippingMethodId, 'priority') !== FALSE) {
-            return $this->setData('courier_type', 'priority');
-        }
+        $retailerReference = $this->order->get_id();
 
-        return $this->setData('courier_type', $shippingMethodId);
+        return $this->setRetailerReference($retailerReference);
     }
 
-    public function setCourierAllocation($shippingMethodId)
+    public function mapRetailerInvoice()
     {
-        if ($shippingMethodId == 'plain_label') {
-            return $this->setData('courier_allocation', 'PlainLabel');
+        $retailerInvoice = $this->order->get_order_number();
+
+        return $this->setRetailerInvoice($retailerInvoice);
+    }
+
+    public function mapRecieverName()
+    {
+        $recieverName = sprintf(
+            '%s %s',
+            $this->order->get_shipping_first_name(),
+            $this->order->get_shipping_last_name()
+        );
+
+        return $this->setRecieverName(trim($recieverName));
+    }
+
+    public function mapRecieverContactNumber()
+    {
+        $recieverContactNumber = $this->order->get_billing_phone();
+
+        return $this->setRecieverContactNumber($recieverContactNumber);
+    }
+
+    public function mapUserAttributes()
+    {
+        $userAttributes = array(
+            'email' => $this->order->get_billing_email(),
+            'first_name' => $this->order->get_billing_first_name(),
+            'last_name' => $this->order->get_billing_last_name(),
+        );
+
+        return $this->setUserAttributes($userAttributes);
+    }
+
+    public function mapCourierType()
+    {
+        if ($this->helper->isShippitLiveQuote($this->order)) {
+            // If a shippit live quote is available, we'll set a courier allocation
+            // as such, return early
+            return $this;
+        }
+
+        $mappedShippingMethod = $this->helper->getMappedShippingMethod($this->order);
+
+        // Plain label services are assigned as a courier allocation
+        if ($mappedShippingMethod == 'plain_label') {
+            return $this;
+        }
+        elseif ($mappedShippingMethod !== false) {
+            return $this->setCourierType($mappedShippingMethod);
+        }
+
+        return $this->setCourierType('standard');
+    }
+
+    public function mapCourierAllocation()
+    {
+        if ($this->helper->isShippitLiveQuote($this->order)) {
+            $courierAllocation = $this->helper->getShippitLiveQuoteDetail($this->order, 'courier_allocation');
+
+            return $this->setCourierAllocation($courierAllocation);
+        }
+
+        $mappedShippingMethod = $this->helper->getMappedShippingMethod($this->order);
+
+        if ($mappedShippingMethod == 'plain_label') {
+            return $this->setCourierAllocation($mappedShippingMethod);
         }
 
         return $this;
     }
 
-    public function setDeliveryDate($orderShippingMeta, $shippingMethodId)
+    public function mapDeliveryDate()
     {
-        if (isset($orderShippingMeta['delivery_date'])) {
-            return $this->setData('delivery_date', $orderShippingMeta['delivery_date']);
+        // Only provide a delivery date if the order has a shippit live quote
+        if (!$this->helper->isShippitLiveQuote($this->order)) {
+            return $this;
         }
 
-        $shippingOptions = $this->getLegacyShippingOptions($shippingMethodId);
-        if (isset($shippingOptions[1])) {
-            return $this->setData('delivery_date', $shippingOptions[1]);
+        $deliveryDate = $this->helper->getShippitLiveQuoteDetail($this->order, 'delivery_date');
+
+        if (empty($deliveryDate)) {
+            return $this;
+        }
+
+        return $this->setDeliveryDate($deliveryDate);
+    }
+
+    public function mapDeliveryWindow()
+    {
+        // Only provide a delivery date if the order has a shippit live quote
+        if (!$this->helper->isShippitLiveQuote($this->order)) {
+            return $this;
+        }
+
+        $deliveryWindow = $this->helper->getShippitLiveQuoteDetail($this->order, 'delivery_window');
+
+        if (empty($deliveryWindow)) {
+            return $this;
+        }
+
+        return $this->setDeliveryWindow($deliveryWindow);
+    }
+
+    public function mapDeliveryCompany()
+    {
+        $deliveryCompany = $this->order->get_shipping_company();
+
+        return $this->setDeliveryCompany($deliveryCompany);
+    }
+
+    public function mapDeliveryAddress()
+    {
+        $deliveryAddress = sprintf(
+            '%s %s',
+            $this->order->get_shipping_address_1(),
+            $this->order->get_shipping_address_2()
+        );
+
+        return $this->setDeliveryAddress(trim($deliveryAddress));
+    }
+
+    public function mapDeliverySuburb()
+    {
+        $deliverySuburb = $this->order->get_shipping_city();
+
+        return $this->setDeliverySuburb($deliverySuburb);
+    }
+
+    public function mapDeliveryPostcode()
+    {
+        $deliveryPostcode = $this->order->get_shipping_postcode();
+
+        return $this->setDeliveryPostcode($deliveryPostcode);
+    }
+
+    public function mapDeliveryState()
+    {
+        $deliveryState = $this->order->get_shipping_state();
+
+        // If no state has been provided, use the suburb
+        if (empty($deliveryState)) {
+            $deliveryState = $this->order->get_shipping_city();
+        }
+
+        return $this->setDeliveryState($deliveryState);
+    }
+
+    public function mapDeliveryCountryCode()
+    {
+        $deliveryCountryCode = $this->order->get_shipping_country();
+
+        return $this->setDeliveryCountryCode(trim($deliveryCountryCode));
+    }
+
+    public function mapDeliveryInstructions()
+    {
+        $deliveryInstructions = $this->order->get_customer_note();
+
+        return $this->setDeliveryInstructions($deliveryInstructions);
+    }
+
+    public function mapAuthorityToLeave()
+    {
+        $authorityToLeaveData = get_post_meta($this->order->get_id(), 'authority_to_leave');
+
+        if (in_array(strtolower($authorityToLeaveData), ['yes', 'y', 'true', 'atl'])) {
+            $this->setAuthorityToLeave('Yes');
+        }
+        elseif (in_array(strtolower($authorityToLeaveData), ['no', 'n', 'false'])) {
+            $this->setAuthorityToLeave('No');
         }
 
         return $this;
     }
 
-    public function setDeliveryWindow($orderShippingMeta, $shippingMethodId)
+    public function mapParcelAttributes()
     {
-        if (isset($orderShippingMeta['delivery_window'])) {
-            return $this->setData('delivery_window', $orderShippingMeta['delivery_window']);
+        $itemsData = array();
+        $orderItems = $this->order->get_items();
+
+        $orderItemDataMapper = new Mamis_Shippit_Data_Mapper_Order_Item();
+
+        foreach ($orderItems as $orderItem) {
+            // If the order item does not have a linked product, skip it
+            if (empty($orderItem['product_id'])) {
+                continue;
+            }
+
+            $product = $this->order->get_product_from_item($orderItem);
+
+            // If the product is a virtual item, skip it
+            if ($product->is_virtual()) {
+                continue;
+            }
+
+            $itemsData[] = $orderItemDataMapper->__invoke(
+                $this->order,
+                $orderItem,
+                $product
+            )->toArray();
         }
 
-        $shippingOptions = $this->getLegacyShippingOptions($shippingMethodId);
-        if (isset($shippingOptions[2])) {
-            return $this->setData('delivery_window', $shippingOptions[2]);
-        }
-
-        return $this;
+        return $this->setParcelAttributes($itemsData);
     }
 
-    public function getLegacyShippingOptions($shippingMethodId)
+    protected function getLegacyShippingOptions($shippingMethodId)
     {
         if (stripos($shippingMethodId, 'priority') === FALSE) {
             return;
