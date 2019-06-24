@@ -107,8 +107,9 @@ class Mamis_Shippit_Helper
         $shippingMethods = $order->get_shipping_methods();
 
         foreach ($shippingMethods as $shippingMethod) {
+            // @TODO: use get_method_id() check if still works on v3.6
             // If the method is a shippit live quote, return the title of the method
-            if ($shippingMethod->get_method_id() == 'mamis_shippit') {
+            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
                 return true;
             }
         }
@@ -122,8 +123,10 @@ class Mamis_Shippit_Helper
 
         foreach ($shippingMethods as $shippingMethod) {
             // If the method is a shippit live quote, return the title of the method
-            if ($shippingMethod->get_method_id() == 'mamis_shippit') {
-                $metaDataItem = $shippingMethod->get_meta($detail);
+            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
+                // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
+                //$metaDataItem = $shippingMethod->get_meta($detail);
+                $metaDataItem = $shippingMethod[$detail];
 
                 return $metaDataItem;
             }
@@ -142,8 +145,10 @@ class Mamis_Shippit_Helper
             $shippingMethodId = $this->getShippingMethodId($shippingMethod);
 
             // If the method is a shippit live quote, return the title of the method
-            if ($shippingMethod->get_method_id() == 'mamis_shippit') {
-                $serviceLevel = $shippingMethod->get_meta('service_level');
+            // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
+            if ($shippingMethod['method_id'] == 'mamis_shippit') {
+                // $serviceLevel = $shippingMethod->get_meta('service_level');
+                $serviceLevel = $shippingMethod['service_level'];
 
                 if (!empty($serviceLevel)) {
                     return $serviceLevel;

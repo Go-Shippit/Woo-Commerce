@@ -30,7 +30,9 @@ function init_shippit_core()
     include_once('includes/class-shippit-order.php');
     include_once('includes/class-varien-object.php');
     include_once('includes/class-shippit-data-mapper-order.php');
+    include_once('includes/class-shippit-data-mapper-order-v26.php');
     include_once('includes/class-shippit-data-mapper-order-item.php');
+    include_once('includes/class-shippit-data-mapper-order-item-v26.php');
     include_once('includes/class-shippit-shipment.php');
 
     $shippit = Mamis_Shippit_Core::instance();

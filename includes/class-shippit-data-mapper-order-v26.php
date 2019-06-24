@@ -14,7 +14,7 @@
  * @license    http://www.mamis.com.au/licencing
  */
 
-class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
+class Mamis_Shippit_Data_Mapper_Order_V26 extends Varien_Object
 {
     protected $helper;
     protected $order;
@@ -48,7 +48,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapRetailerReference()
     {
-        $retailerReference = $this->order->get_id();
+        $retailerReference = $this->order->id;
 
         return $this->setRetailerReference($retailerReference);
     }
@@ -64,8 +64,8 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
     {
         $receiverName = sprintf(
             '%s %s',
-            $this->order->get_shipping_first_name(),
-            $this->order->get_shipping_last_name()
+            $this->order->shipping_first_name,
+            $this->order->shipping_last_name
         );
 
         return $this->setReceiverName(trim($receiverName));
@@ -73,7 +73,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapReceiverContactNumber()
     {
-        $receiverContactNumber = $this->order->get_billing_phone();
+        $receiverContactNumber = $this->order->billing_phone;
 
         return $this->setReceiverContactNumber($receiverContactNumber);
     }
@@ -81,9 +81,9 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
     public function mapUserAttributes()
     {
         $userAttributes = array(
-            'email' => $this->order->get_billing_email(),
-            'first_name' => $this->order->get_billing_first_name(),
-            'last_name' => $this->order->get_billing_last_name(),
+            'email' => $this->order->billing_email,
+            'first_name' => $this->order->billing_first_name,
+            'last_name' => $this->order->billing_last_name,
         );
 
         return $this->setUserAttributes($userAttributes);
@@ -161,7 +161,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapDeliveryCompany()
     {
-        $deliveryCompany = $this->order->get_shipping_company();
+        $deliveryCompany = $this->order->shipping_company;
 
         return $this->setDeliveryCompany($deliveryCompany);
     }
@@ -170,8 +170,8 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
     {
         $deliveryAddress = sprintf(
             '%s %s',
-            $this->order->get_shipping_address_1(),
-            $this->order->get_shipping_address_2()
+            $this->order->shipping_address_1,
+            $this->order->shipping_address_2
         );
 
         return $this->setDeliveryAddress(trim($deliveryAddress));
@@ -179,25 +179,25 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapDeliverySuburb()
     {
-        $deliverySuburb = $this->order->get_shipping_city();
+        $deliverySuburb = $this->order->shipping_city;
 
         return $this->setDeliverySuburb($deliverySuburb);
     }
 
     public function mapDeliveryPostcode()
     {
-        $deliveryPostcode = $this->order->get_shipping_postcode();
+        $deliveryPostcode = $this->order->shipping_postcode;
 
         return $this->setDeliveryPostcode($deliveryPostcode);
     }
 
     public function mapDeliveryState()
     {
-        $deliveryState = $this->order->get_shipping_state();
+        $deliveryState = $this->order->shipping_state;
 
         // If no state has been provided, use the suburb
         if (empty($deliveryState)) {
-            $deliveryState = $this->order->get_shipping_city();
+            $deliveryState = $this->order->shipping_state;
         }
 
         return $this->setDeliveryState($deliveryState);
@@ -205,7 +205,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapDeliveryCountryCode()
     {
-        $deliveryCountryCode = $this->order->get_shipping_country();
+        $deliveryCountryCode = $this->order->shipping_country;
 
         return $this->setDeliveryCountryCode(trim($deliveryCountryCode));
     }
@@ -219,13 +219,13 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
 
     public function mapAuthorityToLeave()
     {
-        $authorityToLeaveData = get_post_meta($this->order->get_id(), 'authority_to_leave', true);
+        $authorityToLeaveData = get_post_meta($this->order->id, 'authority_to_leave', true);
 
         if (in_array(strtolower($authorityToLeaveData), ['yes', 'y', 'true', 'atl'])) {
-            return $this->setAuthorityToLeave('Yes');
+            $this->setAuthorityToLeave('Yes');
         }
         elseif (in_array(strtolower($authorityToLeaveData), ['no', 'n', 'false'])) {
-            return $this->setAuthorityToLeave('No');
+            $this->setAuthorityToLeave('No');
         }
 
         return $this;
@@ -236,7 +236,8 @@ class Mamis_Shippit_Data_Mapper_Order extends Varien_Object
         $itemsData = array();
         $orderItems = $this->order->get_items();
 
-        $orderItemDataMapper = new Mamis_Shippit_Data_Mapper_Order_Item();
+        // map to v2.6 order item data mapper
+        $orderItemDataMapper = new Mamis_Shippit_Data_Mapper_Order_Item_V26();
 
         foreach ($orderItems as $orderItem) {
             // If the order item does not have a linked product, skip it

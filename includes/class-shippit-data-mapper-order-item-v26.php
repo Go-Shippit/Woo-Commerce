@@ -14,7 +14,7 @@
  * @license    http://www.mamis.com.au/licencing
  */
 
-class Mamis_Shippit_Data_Mapper_Order_Item extends Varien_Object
+class Mamis_Shippit_Data_Mapper_Order_Item_V26 extends Varien_Object
 {
     protected $order;
     protected $orderItem;
@@ -52,8 +52,6 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Varien_Object
 
     public function mapSku()
     {
-        // @TODO: since WC version 3.0 get_variation_id is deprecated
-        // suggested to use get_id() instead
         if ($this->product->get_type() == 'variation') {
             $sku = sprintf(
                 '%s|%s',
@@ -70,21 +68,21 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Varien_Object
 
     public function mapTitle()
     {
-        $title = $this->orderItem->get_name();
+        $title = $this->orderItem['name'];
 
         return $this->setTitle($title);
     }
 
     public function mapQty()
     {
-        $qty = $this->orderItem->get_quantity();
+        $qty = $this->orderItem['qty'];
 
         return $this->setQty($qty);
     }
 
     public function mapPrice()
     {
-        $price = $this->orderItem->get_total() / $this->orderItem->get_quantity();
+        $price = $this->orderItem['line_total'] / $this->orderItem['qty'];
 
         return $this->setPrice($price);
     }

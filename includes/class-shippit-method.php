@@ -240,6 +240,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
+                // unique id for each rate
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
                 'meta_data' => array(
@@ -258,6 +260,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($quote->price);
 
             $rate = array(
+                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
                 'meta_data' => array(
@@ -285,6 +288,12 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $quotePrice = $this->_getQuotePrice($priorityQuote->price);
 
             $rate = array(
+                'id'    => sprintf(
+                    'Mamis_Shippit_%s_%s_%s',
+                    $shippingQuote->service_level,
+                    $priorityQuote->delivery_date,
+                    $priorityQuote->delivery_window
+                ),
                 'label' => sprintf(
                     'Scheduled - Delivered %s between %s',
                     date('d/m/Y', strtotime($priorityQuote->delivery_date)),

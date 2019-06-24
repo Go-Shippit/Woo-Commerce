@@ -19,6 +19,7 @@ class Mamis_Shippit_Order
     private $api;
     private $s;
     private $helper;
+    private $woocommerce;
 
     const CARRIER_CODE = 'mamis_shippit';
 
@@ -30,6 +31,7 @@ class Mamis_Shippit_Order
         $this->api = new Mamis_Shippit_Api();
         $this->s = new Mamis_Shippit_Settings();
         $this->helper = new Mamis_Shippit_Helper();
+        $this->woocommerce = $GLOBALS['woocommerce'];
     }
 
     /**
@@ -243,7 +245,12 @@ class Mamis_Shippit_Order
      */
     public function sendOrder($order)
     {
-        $orderId = $order->get_id();
+        if (version_compare($this->woocommerce->version, '2.6.0', '<=')) {
+            $orderId = $order->id;
+        }
+        else {
+            $orderId = $order->get_id();
+        }
 
         update_post_meta($orderId, '_mamis_shippit_sync', 'false');
 
@@ -284,7 +291,14 @@ class Mamis_Shippit_Order
 
         // $shippingMethodId = $this->getShippingMethodId($order);
 
-        $orderData = (new Mamis_Shippit_Data_Mapper_Order())->__invoke($order)->toArray();
+        // if WooCommerce version is equal or less than 2.6 then use
+        // different data mapper for it
+        if (version_compare($this->woocommerce->version, '2.6.0', '<=')) {
+            $orderData = (new Mamis_Shippit_Data_Mapper_Order_V26())->__invoke($order)->toArray();
+        }
+        else {
+            $orderData = (new Mamis_Shippit_Data_Mapper_Order())->__invoke($order)->toArray();
+        }
 
         // If there are no order items, return early
         if (count($orderItems) == 0) {
