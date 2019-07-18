@@ -14,7 +14,7 @@
  * @license    http://www.mamis.com.au/licencing
  */
 
-class Mamis_Shippit_Data_Mapper_Order_Item_V26 extends Varien_Object
+class Mamis_Shippit_Data_Mapper_Order_Item_V26 extends Mamis_Shippit_Object
 {
     protected $order;
     protected $orderItem;
