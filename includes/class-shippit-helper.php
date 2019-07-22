@@ -101,4 +101,104 @@ class Mamis_Shippit_Helper
 
         return $weight;
     }
+
+    public function isShippitLiveQuote($order)
+    {
+        $shippingMethods = $order->get_shipping_methods();
+
+        foreach ($shippingMethods as $shippingMethod) {
+            // @TODO: use get_method_id() check if still works on v3.6
+            // If the method is a shippit live quote, return the title of the method
+            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getShippitLiveQuoteDetail($order, $detail)
+    {
+        $shippingMethods = $order->get_shipping_methods();
+
+        foreach ($shippingMethods as $shippingMethod) {
+            // If the method is a shippit live quote, return the title of the method
+            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
+                // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
+                //$metaDataItem = $shippingMethod->get_meta($detail);
+                $metaDataItem = $shippingMethod[$detail];
+
+                return $metaDataItem;
+            }
+        }
+    }
+
+    public function getMappedShippingMethod($order)
+    {
+        $shippingMethods = $order->get_shipping_methods();
+        $mappingsStandard = get_option('wc_settings_shippit_standard_shipping_methods', array());
+        $mappingsExpress = get_option('wc_settings_shippit_express_shipping_methods', array());
+        $mappingsClickAndCollect = get_option('wc_settings_shippit_clickandcollect_shipping_methods', array());
+        $mappingsPlainLabel = get_option('wc_settings_shippit_plainlabel_shipping_methods', array());
+
+        foreach ($shippingMethods as $shippingMethod) {
+            $shippingMethodId = $this->getShippingMethodId($shippingMethod);
+
+            // If the method is a shippit live quote, return the title of the method
+            // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
+            if ($shippingMethod['method_id'] == 'mamis_shippit') {
+                // $serviceLevel = $shippingMethod->get_meta('service_level');
+                $serviceLevel = $shippingMethod['service_level'];
+
+                if (!empty($serviceLevel)) {
+                    return $serviceLevel;
+                }
+            }
+
+            // Otherwise, attempt to locate a suitable method based on shipping method mappings
+            if (in_array($shippingMethodId, $mappingsStandard)) {
+                return 'standard';
+            }
+            elseif (in_array($shippingMethodId, $mappingsExpress)) {
+                return 'express';
+            }
+            elseif (in_array($shippingMethodId, $mappingsClickAndCollect)) {
+                return 'click_and_collect';
+            }
+            elseif (in_array($shippingMethodId, $mappingsPlainLabel)) {
+                return 'plainlabel';
+            }
+        }
+
+        return false;
+    }
+
+    protected function getShippingMethodId($shippingMethod)
+    {
+        // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
+        // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit
+        if (!empty($shippingMethod['instance_id'])) {
+            $shippingMethodId = sprintf(
+                '%s:%s',
+                $shippingMethod['method_id'],
+                $shippingMethod['instance_id']
+            );
+        }
+        else {
+            $shippingMethodId = $shippingMethod['method_id'];
+        }
+
+        // If the shipping method id has more than 1 ":" occarance,
+        // we only want the {method_id}:{instance_id}
+        // — stripping all other data
+        if (substr_count($shippingMethodId, ':') > 1) {
+            $shippingMethodId = sprintf(
+                '%s:%s',
+                strtok($shippingMethodId, ':'),
+                strtok(':')
+            );
+        }
+
+        return $shippingMethodId;
+    }
 }
