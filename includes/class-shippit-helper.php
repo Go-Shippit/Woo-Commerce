@@ -166,7 +166,7 @@ class Mamis_Shippit_Helper
                 return 'click_and_collect';
             }
             elseif (in_array($shippingMethodId, $mappingsPlainLabel)) {
-                return 'plain_label';
+                return 'plainlabel';
             }
         }
 
