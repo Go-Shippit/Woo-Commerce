@@ -60,6 +60,15 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.0 =
+
+- New Features
+-- We've improved the way we handle order data mappings
+-- We've added support across WooCommerce v2.6 - WooCommerce v3.6
+
+- Bugfixes
+-- Resolved an issue whereby the incorrect shipping method may be selected when utilising live quotes
+
 = 1.4.7 =
 
 - New Features
