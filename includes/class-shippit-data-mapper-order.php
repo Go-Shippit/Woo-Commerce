@@ -100,7 +100,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
         $mappedShippingMethod = $this->helper->getMappedShippingMethod($this->order);
 
         // Plain label services are assigned as a courier allocation
-        if ($mappedShippingMethod == 'plain_label') {
+        if ($mappedShippingMethod == 'plainlabel') {
             return $this;
         }
         elseif ($mappedShippingMethod !== false) {
@@ -120,7 +120,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
 
         $mappedShippingMethod = $this->helper->getMappedShippingMethod($this->order);
 
-        if ($mappedShippingMethod == 'plain_label') {
+        if ($mappedShippingMethod == 'plainlabel') {
             return $this->setCourierAllocation($mappedShippingMethod);
         }
 

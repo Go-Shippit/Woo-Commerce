@@ -200,7 +200,7 @@ class Mamis_Shippit_Order
             // Check if shipping method is mapped to plain label
             if (!empty($plainlabelShippingMethods)
                 && in_array($shippingMethodId, $plainlabelShippingMethods)) {
-                return 'plain_label';
+                return 'plainlabel';
             }
         }
 
