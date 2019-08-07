@@ -32,7 +32,8 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
             ->mapSku()
             ->mapTitle()
             ->mapQty()
-            ->mapPrice();
+            ->mapPrice()
+            ->mapWeight();
 
         if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS') || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
             $this->mapDepth()
@@ -87,6 +88,16 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
         $price = $this->orderItem->get_total() / $this->orderItem->get_quantity();
 
         return $this->setPrice($price);
+    }
+
+    public function mapWeight()
+    {
+        $itemWeight = $this->product->get_weight();
+
+        // Get the weight if available, otherwise stub weight to 0.2kg
+        $weight = (!empty($itemWeight) ? $this->helper->convertWeight($itemWeight) : 0.2);
+
+        return $this->setWeight($weight);
     }
 
     public function mapDepth()
