@@ -86,6 +86,9 @@ class Mamis_Shippit_Helper
                 case 'lbs':
                     $weight *= 0.4535;
                     break;
+                case 'oz':
+                    $weight *= 0.0279798545;
+                    break;
             }
 
             // Output desired unit
@@ -95,6 +98,9 @@ class Mamis_Shippit_Helper
                     break;
                 case 'lbs':
                     $weight *= 2.204;
+                    break;
+                case 'oz':
+                    $weight *= 35.274;
                     break;
             }
         }
