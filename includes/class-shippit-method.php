@@ -205,6 +205,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
+            'dutiable_amount' => WC()->cart->get_cart_contents_total(), 
             'dropoff_country_code' => $dropoffCountryCode,
             'parcel_attributes' => $this->getParcelAttributes($items)
         );
