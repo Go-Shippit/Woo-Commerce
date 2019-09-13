@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.1 =
+
+- Bugfixes
+-- We've resolved an issue with an item's weight not being sent to Shippit
+
 = 1.5.0.1 =
 
 - Changes
