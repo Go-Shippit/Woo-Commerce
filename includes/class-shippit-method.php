@@ -203,6 +203,11 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'parcel_attributes' => $this->getParcelAttributes($items)
         );
 
+        // send dutiable_amount for international destinations
+        if ($dropoffCountryCode != 'AU') {
+            $quoteData['dutiable_amount'] = WC()->cart->get_cart_contents_total();
+        }
+
         $shippingQuotes = $this->api->getQuote($quoteData);
 
         if ($shippingQuotes) {
