@@ -196,7 +196,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $quoteData = array(
             'order_date' => '', // get all available dates
-            'dropoff_address' => $this->getDropOffAddress($quoteDestination),
+            'dropoff_address' => $this->getDropoffAddress($quoteDestination),
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
@@ -237,20 +237,28 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
-    private function getDropOffAddress($quoteDestination)
+    /**
+     * Get the dropoff address value for a quote
+     *
+     * @param array $quoteDestination
+     * @return string|null
+     */
+    private function getDropoffAddress($quoteDestination)
     {
-        if (empty($quoteDestination['address_1'])) {
-            return;
+        $addresses = [
+            $quoteDestination['address'],
+            $quoteDestination['address_2'],
+        ];
+
+        $addresses = array_filter($addresses, function ($address) {
+            return !empty(trim($address));
+        });
+
+        if (empty($addresses)) {
+            return null;
         }
 
-        $dropOffAddress = $quoteDestination['address_1'];
-
-        // append address line 2 if available
-        if (!empty($quoteDestination['address_2'])) {
-            $dropOffAddress .= ', ' . $quoteDestination['address_2'];
-        }
-
-        return $dropOffAddress;
+        return implode(', ', $addresses);
     }
 
     private function _addStandardQuote($shippingQuote)
