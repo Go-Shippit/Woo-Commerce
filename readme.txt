@@ -60,6 +60,12 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.2 =
+
+- New Features
+-- Added the street address to live quote requests, which can now be utilised by on-demand delivery services
+-- Added dutiable amounts to live quote requests
+
 = 1.5.1 =
 
 - Bugfixes
