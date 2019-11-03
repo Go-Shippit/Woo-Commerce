@@ -124,7 +124,7 @@ class Mamis_Shippit_Core
         add_action('woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
-        add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_options_save'), 10, 2);
+        add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
 
 
         //**********************/
@@ -294,15 +294,17 @@ class Mamis_Shippit_Core
         }
     }
 
-    public function after_options_save($currentApiKey, $newApiKey)
+    public function after_api_key_update($currentApiKey, $newApiKey)
     {
         $environment = $_POST['wc_settings_shippit_environment'];
         $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
 
-        if ($isValidApiKey) {
-            $this->register_webhook($newApiKey, $environment);
-            $this->register_shopping_cart_name();
+        if (!$isValidApiKey) {
+            return;
         }
+
+        $this->register_webhook($newApiKey, $environment);
+        $this->register_shopping_cart_name();
     }
 
     private function register_webhook($newApiKey, $environment = null)
@@ -365,7 +367,7 @@ class Mamis_Shippit_Core
     private function register_shopping_cart_name()
     {
         $requestData = array(
-            'shipping_cart_method_name' => 'WooCommerce'
+            'shipping_cart_method_name' => 'woocommerce'
         );
 
         $this->log->add('Registering shopping cart name', '', $requestData);
