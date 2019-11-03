@@ -303,8 +303,8 @@ class Mamis_Shippit_Core
             return;
         }
 
-        $this->register_webhook($newApiKey, $environment);
         $this->register_shopping_cart_name();
+        $this->register_webhook($newApiKey, $environment);
     }
 
     private function register_webhook($newApiKey, $environment = null)
