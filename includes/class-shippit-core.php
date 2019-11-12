@@ -124,8 +124,7 @@ class Mamis_Shippit_Core
         add_action('woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
         // Validate the api key when the setting is changed
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'after_options_save'));
-        add_action('woocommerce_update_options_shippit_settings_tab', array($this, 'after_options_save'));
+        add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
 
 
         //**********************/
@@ -295,22 +294,17 @@ class Mamis_Shippit_Core
         }
     }
 
-    public function after_options_save()
+    public function after_api_key_update($currentApiKey, $newApiKey)
     {
-        // Get key after the options have saved
-        $currentApiKey = get_option('wc_settings_shippit_api_key');
-        $newApiKey = $_POST['wc_settings_shippit_api_key'];
-
         $environment = $_POST['wc_settings_shippit_environment'];
-        $isValidApiKey = null;
+        $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
 
-        if ($newApiKey != $currentApiKey) {
-            $isValidApiKey = $this->validate_apikey($newApiKey, $currentApiKey, $environment);
+        if (!$isValidApiKey) {
+            return;
         }
 
-        if ($isValidApiKey == true || is_null($isValidApiKey)) {
-            $this->register_webhook($newApiKey, $environment);
-        }
+        $this->register_shopping_cart_name();
+        $this->register_webhook($newApiKey, $environment);
     }
 
     private function register_webhook($newApiKey, $environment = null)
@@ -367,6 +361,29 @@ class Mamis_Shippit_Core
         }
         catch (Exception $e) {
             $this->log->exception($e);
+        }
+    }
+
+    private function register_shopping_cart_name()
+    {
+        $requestData = array(
+            'shipping_cart_method_name' => 'woocommerce'
+        );
+
+        $this->log->add('Registering shopping cart name', '', $requestData);
+
+        try {
+            $apiResponse = $this->api->putMerchant($requestData);
+
+            if (empty($apiResponse)
+                || property_exists($apiResponse, 'error')) {
+                $this->show_cart_registration_notice();
+            }
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+
+            $this->show_cart_registration_notice();
         }
     }
 
@@ -451,6 +468,13 @@ class Mamis_Shippit_Core
                 . '<p>Shippit Webhook ' . get_site_url() . '/shippit/shipment_create has now been registered</p>'
                 . '</div>';
         }
+    }
+
+    public function show_cart_registration_notice()
+    {
+        echo '<div class="error notice">'
+            . '<p>The request to update the shopping cart integration name failed - please try again.</p>'
+            . '</div>';
     }
 
     /**
