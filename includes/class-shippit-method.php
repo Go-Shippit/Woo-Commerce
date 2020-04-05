@@ -204,6 +204,15 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'parcel_attributes' => $this->getParcelAttributes($items)
         );
 
+        if ($dropoffSuburb === "" || $dropoffPostcode === "") {
+            // submitting a quote to the API without mandatory attributes would result in an API error.  abort!
+            $this->log->add(
+                'SHIPPIT API VALIDATION',
+                print_r($quoteData, true)
+            );
+            return false;
+        }
+
         // @Workaround
         // - Only add the dutiable_amount for domestic orders
         // - The Shippit Quotes API does not currently support the dutiable_amount
