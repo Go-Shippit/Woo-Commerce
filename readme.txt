@@ -60,6 +60,21 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.3 =
+
+- New Features
+-- We now update your merchant account to indicate it's connected with a woocommerce store  
+
+- Changes
+-- We've adjusted the way we trigger validation of your Shippit API key when updating it's value in the backend settings 
+
+
+= 1.5.2 =
+
+- New Features
+-- Added the street address to live quote requests, which can now be utilised by on-demand delivery services
+-- Added dutiable amounts to live quote requests
+
 = 1.5.1 =
 
 - Bugfixes

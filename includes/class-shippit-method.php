@@ -202,6 +202,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $quoteData = array(
             'order_date' => '', // get all available dates
+            'dropoff_address' => $this->getDropoffAddress($quoteDestination),
             'dropoff_suburb' => $dropoffSuburb,
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
@@ -218,6 +219,16 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             );
             return false;
         }        
+        
+        // @Workaround
+        // - Only add the dutiable_amount for domestic orders
+        // - The Shippit Quotes API does not currently support the dutiable_amount
+        //   field being present for domestic (AU) deliveries — declaring a dutiable
+        //   amount value for these quotes may result in some carrier quotes not
+        //   being available.
+        if ($dropoffCountryCode != 'AU') {
+            $quoteData['dutiable_amount'] = WC()->cart->get_cart_contents_total();
+        }
 
         $shippingQuotes = $this->api->getQuote($quoteData);
 
@@ -250,6 +261,32 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         else {
             return false;
         }
+    }
+
+    /**
+     * Get the dropoff address value for a quote
+     *
+     * @param array $quoteDestination
+     * @return string|null
+     */
+    private function getDropoffAddress($quoteDestination)
+    {
+        $addresses = [
+            $quoteDestination['address'],
+            $quoteDestination['address_2'],
+        ];
+
+        $addresses = array_filter($addresses, function ($address) {
+            $address = trim($address);
+            
+            return !empty($address);
+        });
+
+        if (empty($addresses)) {
+            return null;
+        }
+
+        return implode(', ', $addresses);
     }
 
     private function _addStandardQuote($shippingQuote)
