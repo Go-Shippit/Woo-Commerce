@@ -29,6 +29,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
             ->mapUserAttributes()
             ->mapReceiverName()
             ->mapReceiverContactNumber()
+            ->mapReceiverLanguageCode()
             ->mapCourierType()
             ->mapCourierAllocation()
             ->mapDeliveryDate()
@@ -41,6 +42,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
             ->mapDeliveryCountryCode()
             ->mapDeliveryInstructions()
             ->mapAuthorityToLeave()
+            ->mapProductCurrency()
             ->mapParcelAttributes();
 
         return $this;
@@ -76,6 +78,21 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
         $receiverContactNumber = $this->order->get_billing_phone();
 
         return $this->setReceiverContactNumber($receiverContactNumber);
+    }
+
+    public function mapReceiverLanguageCode()
+    {
+        // WooCommerce does not provide order level
+        // language code, so we rely on store locale
+        $merchantLocale = get_locale();
+
+        if (empty($merchantLocale)) {
+            return $this;
+        }
+
+        $languageCode = explode('_', $merchantLocale);
+
+        return $this->setReceiverLanguageCode(reset($languageCode));
     }
 
     public function mapUserAttributes()
@@ -229,6 +246,15 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
         }
 
         return $this;
+    }
+
+    public function mapProductCurrency()
+    {
+        if (empty($this->order->get_currency())) {
+            return $this;
+        }
+
+        return $this->setProductCurrency($this->order->get_currency());
     }
 
     public function mapParcelAttributes()
