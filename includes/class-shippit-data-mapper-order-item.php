@@ -33,7 +33,11 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
             ->mapTitle()
             ->mapQty()
             ->mapPrice()
-            ->mapWeight();
+            ->mapWeight()
+            ->mapTariffCode()
+            ->mapOriginCountryCode()
+            ->mapDangerousGoodsCode()
+            ->mapDangerousGoodsText();
 
         if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS') || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
             $this->mapDepth()
@@ -137,5 +141,65 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
         $width = $this->helper->convertDimension($width);
 
         return $this->setWidth($width);
+    }
+
+    public function mapTariffCode()
+    {
+        if (!get_option('wc_settings_shippit_tariff_code_attribute')) {
+            return $this;
+        }
+
+        $tariffCode = $this->product->get_attribute('tariff_code');
+
+        if (empty($tariffCode)) {
+            return $this;
+        }
+
+        return $this->setTariffCode($tariffCode);
+    }
+
+    public function mapOriginCountryCode()
+    {
+        if (!get_option('wc_settings_shippit_origin_country_code_attribute')) {
+            return $this;
+        }
+
+        $originCountryCode = $this->product->get_attribute('origin_country_code');
+
+        if (empty($originCountryCode)) {
+            return $this;
+        }
+
+        return $this->setOriginCountryCode($originCountryCode);
+    }
+
+    public function mapDangerousGoodsCode()
+    {
+        if (!get_option('wc_settings_shippit_dangerous_goods_code_attribute')) {
+            return $this;
+        }
+
+        $dangerousGoodsCode = $this->product->get_attribute('dangerous_goods_code');
+
+        if (empty($dangerousGoodsCode)) {
+            return $this;
+        }
+
+        return $this->setDangerousGoodsCode($dangerousGoodsCode);
+    }
+
+    public function mapDangerousGoodsText()
+    {
+        if (!get_option('wc_settings_shippit_dangerous_goods_text_attribute')) {
+            return $this;
+        }
+
+        $dangerousGoodsText = $this->product->get_attribute('dangerous_goods_text');
+
+        if (empty($dangerousGoodsText)) {
+            return $this;
+        }
+
+        return $this->setDangerousGoodsText($dangerousGoodsText);
     }
 }
