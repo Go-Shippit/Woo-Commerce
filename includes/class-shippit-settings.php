@@ -365,7 +365,7 @@ class Mamis_Shippit_Settings
      *
      * @return array
      */
-    public function getProductAttributes()
+    public static function getProductAttributes()
     {
         $productAttributes = array();
         $placeHolder = array('' => '-- Please Select --');
