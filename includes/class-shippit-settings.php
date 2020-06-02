@@ -253,6 +253,16 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
             ),
 
+            'tariff_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_tariff_code_custom_attribute',
+                'title' => __('Tariff Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Tariff Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'tariff_code_custom_attribute',
+                'type' => 'text',
+            ),
+
             'origin_country_code_attribute' => array(
                 'id' => 'wc_settings_shippit_origin_country_code_attribute',
                 'title' => __('Origin Country Code Attribute', 'woocommerce-shippit'),
@@ -262,6 +272,16 @@ class Mamis_Shippit_Settings
                 'type' => 'select',
                 'options' => self::getProductAttributes(),
                 'class' => 'wc-enhanced-select',
+            ),
+
+            'origin_country_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_origin_country_code_custom_attribute',
+                'title' => __('Origin Country Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Origin Country Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'origin_country_code_custom_attribute',
+                'type' => 'text',
             ),
 
             'dangerous_goods_code_attribute' => array(
@@ -275,6 +295,16 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
             ),
 
+            'dangerous_goods_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_code_custom_attribute',
+                'title' => __('Dangerous Goods Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Dangerous Goods Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'dangerous_goods_code_custom_attribute',
+                'type' => 'text',
+            ),
+
             'dangerous_goods_text_attribute' => array(
                 'id' => 'wc_settings_shippit_dangerous_goods_text_attribute',
                 'title' => __('Dangerous Goods Text Attribute', 'woocommerce-shippit'),
@@ -284,6 +314,16 @@ class Mamis_Shippit_Settings
                 'type' => 'select',
                 'options' => self::getProductAttributes(),
                 'class' => 'wc-enhanced-select',
+            ),
+
+            'dangerous_goods_text_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_text_custom_attribute',
+                'title' => __('Dangerous Goods Text Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Dangerous Goods Text Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'dangerous_goods_text_custom_attribute',
+                'type' => 'text',
             ),
 
             'section_order_items_end' => array(

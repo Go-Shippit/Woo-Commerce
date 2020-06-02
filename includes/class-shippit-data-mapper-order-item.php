@@ -145,61 +145,61 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
 
     public function mapTariffCode()
     {
-        if (!get_option('wc_settings_shippit_tariff_code_attribute')) {
-            return $this;
+        $tariffCodeAttibute = get_option('wc_settings_shippit_tariff_code_attribute');
+        $tariffCodeCustomAttibute = get_option('wc_settings_shippit_tariff_code_custom_attribute');
+
+        if (!empty($tariffCodeAttibute)) {
+            return $this->setTariffCode($this->product->get_attribute($tariffCodeAttibute));
+        }
+        elseif (!empty($dangerousGoodsTextCustomAttibute)) {
+            return $this->setTariffCode($this->product->get_attribute($tariffCodeCustomAttibute));
         }
 
-        $tariffCode = $this->product->get_attribute('tariff_code');
-
-        if (empty($tariffCode)) {
-            return $this;
-        }
-
-        return $this->setTariffCode($tariffCode);
+        return $this;
     }
 
     public function mapOriginCountryCode()
     {
-        if (!get_option('wc_settings_shippit_origin_country_code_attribute')) {
-            return $this;
+        $originCountryCodeAttibute = get_option('wc_settings_shippit_origin_country_code_attribute');
+        $originCountryCodeAttibuteCustomAttibute = get_option('wc_settings_shippit_origin_country_code_custom_attribute');
+
+        if (!empty($originCountryCodeAttibute)) {
+            return $this->setOriginCountryCode($this->product->get_attribute($originCountryCodeAttibute));
+        }
+        elseif (!empty($originCountryCodeAttibuteCustomAttibute)) {
+            return $this->setOriginCountryCode($this->product->get_attribute($originCountryCodeAttibuteCustomAttibute));
         }
 
-        $originCountryCode = $this->product->get_attribute('origin_country_code');
-
-        if (empty($originCountryCode)) {
-            return $this;
-        }
-
-        return $this->setOriginCountryCode($originCountryCode);
+        return $this;
     }
 
     public function mapDangerousGoodsCode()
     {
-        if (!get_option('wc_settings_shippit_dangerous_goods_code_attribute')) {
-            return $this;
+        $dangerousGoodsCodeAttibute = get_option('wc_settings_shippit_dangerous_goods_code_attribute');
+        $dangerousGoodsCodeCustomAttibute = get_option('wc_settings_shippit_dangerous_goods_code_custom_attribute');
+
+        if (!empty($dangerousGoodsCodeAttibute)) {
+            return $this->setDangerousGoodsCode($this->product->get_attribute($dangerousGoodsCodeAttibute));
+        }
+        elseif (!empty($dangerousGoodsCodeCustomAttibute)) {
+            return $this->setDangerousGoodsCode($this->product->get_attribute($dangerousGoodsCodeCustomAttibute));
         }
 
-        $dangerousGoodsCode = $this->product->get_attribute('dangerous_goods_code');
-
-        if (empty($dangerousGoodsCode)) {
-            return $this;
-        }
-
-        return $this->setDangerousGoodsCode($dangerousGoodsCode);
+        return $this;
     }
 
     public function mapDangerousGoodsText()
     {
-        if (!get_option('wc_settings_shippit_dangerous_goods_text_attribute')) {
-            return $this;
+        $dangerousGoodsTextAttibute = get_option('wc_settings_shippit_dangerous_goods_text_attribute');
+        $dangerousGoodsTextCustomAttibute = get_option('wc_settings_shippit_dangerous_goods_text_custom_attribute');
+
+        if (!empty($dangerousGoodsTextAttibute)) {
+            return $this->setDangerousGoodsText($this->product->get_attribute($dangerousGoodsTextAttibute));
+        }
+        elseif (!empty($dangerousGoodsTextCustomAttibute)) {
+            return $this->setDangerousGoodsText($this->product->get_attribute($dangerousGoodsTextCustomAttibute));
         }
 
-        $dangerousGoodsText = $this->product->get_attribute('dangerous_goods_text');
-
-        if (empty($dangerousGoodsText)) {
-            return $this;
-        }
-
-        return $this->setDangerousGoodsText($dangerousGoodsText);
+        return $this;
     }
 }
