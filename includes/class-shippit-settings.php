@@ -37,6 +37,9 @@ class Mamis_Shippit_Settings
     public static function addFields()
     {
         woocommerce_admin_fields(self::getFields());
+
+        // include custom script on shippit settings page
+        wp_enqueue_script('shippit-script');
     }
 
     /**
@@ -379,6 +382,9 @@ class Mamis_Shippit_Settings
         foreach ($attributeTaxonomies as $tax) {
             $productAttributes[$tax->attribute_name] = __($tax->attribute_label, 'woocommerce-shippit');
         }
+
+        // Add custom attribute as option
+        $productAttributes['_custom'] = 'Use custom option';
 
         return array_merge($placeHolder, $productAttributes);
     }

@@ -50,6 +50,19 @@ function init_shippit_core()
 // add shippit core functionality
 add_action('woocommerce_init', 'init_shippit_core', 99999);
 
+// register shippit script
+add_action('admin_enqueue_scripts', 'register_shippit_script');
+
+function register_shippit_script()
+{
+    wp_register_script(
+        'shippit-script',
+        plugin_dir_url(__FILE__) . 'assets/js/shippit.js',
+        array('jquery'),
+        MAMIS_SHIPPIT_VERSION,
+        true
+    );
+}
 
 function init_shippit_method()
 {
