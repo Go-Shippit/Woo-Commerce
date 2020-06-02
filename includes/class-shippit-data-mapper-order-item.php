@@ -151,7 +151,7 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
         if (!empty($tariffCodeAttibute)) {
             return $this->setTariffCode($this->product->get_attribute($tariffCodeAttibute));
         }
-        elseif (!empty($dangerousGoodsTextCustomAttibute)) {
+        elseif (!empty($tariffCodeCustomAttibute)) {
             return $this->setTariffCode($this->product->get_attribute($tariffCodeCustomAttibute));
         }
 
