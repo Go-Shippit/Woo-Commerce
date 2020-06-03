@@ -212,7 +212,7 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
 
     public function mapDeliveryInstructions()
     {
-        $deliveryInstructions = $this->order->get_customer_note();
+        $deliveryInstructions = $this->order->customer_message;
 
         return $this->setDeliveryInstructions($deliveryInstructions);
     }

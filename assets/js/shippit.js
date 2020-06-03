@@ -9,7 +9,8 @@ jQuery(document).ready(function () {
 function registerOnchangeEvent(attributeId)
 {
     // Register the event handler
-    jQuery('[name="' + attributeId + '_attribute"]').on('select2:select', function() {
+    // Handle change event for select2 versions > 4.0.0 as well as older versions
+    jQuery('[name="' + attributeId + '_attribute"]').on('select2:select, change', function() {
         visibilityCustomAttribute(attributeId);
     });
 
