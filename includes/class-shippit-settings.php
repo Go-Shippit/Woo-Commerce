@@ -259,7 +259,7 @@ class Mamis_Shippit_Settings
             'tariff_code_custom_attribute' => array(
                 'id' => 'wc_settings_shippit_tariff_code_custom_attribute',
                 'title' => __('Tariff Code Custom Attribute', 'woocommerce-shippit'),
-                'desc' => __('This will be used when you haven\'t set Tariff Code Attribute.', 'woocommerce-shippit'),
+                'desc' => __('The Product Custom Attribute to be used for Tariff Code information sent to Shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'name' => 'tariff_code_custom_attribute',
@@ -280,7 +280,7 @@ class Mamis_Shippit_Settings
             'origin_country_code_custom_attribute' => array(
                 'id' => 'wc_settings_shippit_origin_country_code_custom_attribute',
                 'title' => __('Origin Country Code Custom Attribute', 'woocommerce-shippit'),
-                'desc' => __('This will be used when you haven\'t set Origin Country Code Attribute.', 'woocommerce-shippit'),
+                'desc' => __('The Product Custom Attribute to be used for Origin Country Code information sent to Shippit.', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'name' => 'origin_country_code_custom_attribute',
@@ -301,7 +301,7 @@ class Mamis_Shippit_Settings
             'dangerous_goods_code_custom_attribute' => array(
                 'id' => 'wc_settings_shippit_dangerous_goods_code_custom_attribute',
                 'title' => __('Dangerous Goods Code Custom Attribute', 'woocommerce-shippit'),
-                'desc' => __('This will be used when you haven\'t set Dangerous Goods Code Attribute.', 'woocommerce-shippit'),
+                'desc' => __('The Product Custom Attribute to be used for Dangerous Goods Code information sent to Shippit.', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'name' => 'dangerous_goods_code_custom_attribute',
@@ -322,7 +322,7 @@ class Mamis_Shippit_Settings
             'dangerous_goods_text_custom_attribute' => array(
                 'id' => 'wc_settings_shippit_dangerous_goods_text_custom_attribute',
                 'title' => __('Dangerous Goods Text Custom Attribute', 'woocommerce-shippit'),
-                'desc' => __('This will be used when you haven\'t set Dangerous Goods Text Attribute.', 'woocommerce-shippit'),
+                'desc' => __('The Product Custom Attribute to be used for Dangerous Goods Text information sent to Shippit.', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'name' => 'dangerous_goods_text_custom_attribute',
@@ -384,7 +384,7 @@ class Mamis_Shippit_Settings
         }
 
         // Add custom attribute as option
-        $productAttributes['_custom'] = 'Use custom option';
+        $productAttributes['_custom'] = 'Use custom product attribute';
 
         return array_merge($placeHolder, $productAttributes);
     }
