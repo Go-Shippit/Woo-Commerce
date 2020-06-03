@@ -250,11 +250,13 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
 
     public function mapProductCurrency()
     {
-        if (empty($this->order->get_order_currency())) {
+        $orderCurrency = $this->order->get_order_currency();
+
+        if (empty($orderCurrency)) {
             return $this;
         }
 
-        return $this->setProductCurrency($this->order->get_order_currency());
+        return $this->setProductCurrency($orderCurrency);
     }
 
     public function mapParcelAttributes()
