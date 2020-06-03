@@ -29,6 +29,7 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
             ->mapUserAttributes()
             ->mapReceiverName()
             ->mapReceiverContactNumber()
+            ->mapReceiverLanguageCode()
             ->mapCourierType()
             ->mapCourierAllocation()
             ->mapDeliveryDate()
@@ -41,6 +42,7 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
             ->mapDeliveryCountryCode()
             ->mapDeliveryInstructions()
             ->mapAuthorityToLeave()
+            ->mapProductCurrency()
             ->mapParcelAttributes();
 
         return $this;
@@ -76,6 +78,21 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
         $receiverContactNumber = $this->order->billing_phone;
 
         return $this->setReceiverContactNumber($receiverContactNumber);
+    }
+
+    public function mapReceiverLanguageCode()
+    {
+        // WooCommerce does not provide order level
+        // language code, so we rely on store locale
+        $merchantLocale = get_locale();
+
+        if (empty($merchantLocale)) {
+            return $this;
+        }
+
+        $languageCode = explode('_', $merchantLocale);
+
+        return $this->setReceiverLanguageCode(reset($languageCode));
     }
 
     public function mapUserAttributes()
@@ -212,7 +229,7 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
 
     public function mapDeliveryInstructions()
     {
-        $deliveryInstructions = $this->order->get_customer_note();
+        $deliveryInstructions = $this->order->customer_message;
 
         return $this->setDeliveryInstructions($deliveryInstructions);
     }
@@ -229,6 +246,17 @@ class Mamis_Shippit_Data_Mapper_Order_V26 extends Mamis_Shippit_Object
         }
 
         return $this;
+    }
+
+    public function mapProductCurrency()
+    {
+        $orderCurrency = $this->order->get_order_currency();
+
+        if (empty($orderCurrency)) {
+            return $this;
+        }
+
+        return $this->setProductCurrency($orderCurrency);
     }
 
     public function mapParcelAttributes()

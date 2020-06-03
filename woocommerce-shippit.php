@@ -2,15 +2,15 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 1.5.3
+ * Version:                 1.5.4
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
  * WC requires at least:    2.6.0
- * WC Tested Up To:         3.6.5
+ * WC Tested Up To:         3.9.3
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.5.3');
+define('MAMIS_SHIPPIT_VERSION', '1.5.4');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
@@ -50,6 +50,19 @@ function init_shippit_core()
 // add shippit core functionality
 add_action('woocommerce_init', 'init_shippit_core', 99999);
 
+// register shippit script
+add_action('admin_enqueue_scripts', 'register_shippit_script');
+
+function register_shippit_script()
+{
+    wp_register_script(
+        'shippit-script',
+        plugin_dir_url(__FILE__) . 'assets/js/shippit.js',
+        array('jquery'),
+        MAMIS_SHIPPIT_VERSION,
+        true
+    );
+}
 
 function init_shippit_method()
 {
