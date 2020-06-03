@@ -16,6 +16,8 @@
 
 class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
 {
+    const CUSTOM_OPTION_VALUE = '_custom';
+
     protected $order;
     protected $orderItem;
     protected $product;
@@ -145,61 +147,69 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
 
     public function mapTariffCode()
     {
-        $tariffCodeAttibute = get_option('wc_settings_shippit_tariff_code_attribute');
-        $tariffCodeCustomAttibute = get_option('wc_settings_shippit_tariff_code_custom_attribute');
+        $tariffCodeAttribute = get_option('wc_settings_shippit_tariff_code_attribute');
+        $tariffCodeCustomAttribute = get_option('wc_settings_shippit_tariff_code_custom_attribute');
+        $tariffCodeValue = $this->mapProductAttribute($tariffCodeAttribute, $tariffCodeCustomAttribute);
 
-        if (!empty($tariffCodeAttibute)) {
-            return $this->setTariffCode($this->product->get_attribute($tariffCodeAttibute));
-        }
-        elseif (!empty($tariffCodeCustomAttibute)) {
-            return $this->setTariffCode($this->product->get_attribute($tariffCodeCustomAttibute));
+        if (empty($tariffCodeValue)) {
+            return $this;
         }
 
-        return $this;
+        return $this->setTariffCode($tariffCodeValue);
     }
 
     public function mapOriginCountryCode()
     {
-        $originCountryCodeAttibute = get_option('wc_settings_shippit_origin_country_code_attribute');
-        $originCountryCodeAttibuteCustomAttibute = get_option('wc_settings_shippit_origin_country_code_custom_attribute');
+        $originCountryCodeAttribute = get_option('wc_settings_shippit_origin_country_code_attribute');
+        $originCountryCodeAttibuteCustomAttribute = get_option('wc_settings_shippit_origin_country_code_custom_attribute');
+        $originCountryCodeValue = $this->mapProductAttribute($originCountryCodeAttribute, $originCountryCodeAttibuteCustomAttribute);
 
-        if (!empty($originCountryCodeAttibute)) {
-            return $this->setOriginCountryCode($this->product->get_attribute($originCountryCodeAttibute));
-        }
-        elseif (!empty($originCountryCodeAttibuteCustomAttibute)) {
-            return $this->setOriginCountryCode($this->product->get_attribute($originCountryCodeAttibuteCustomAttibute));
+        if (empty($originCountryCodeValue)) {
+            return $this;
         }
 
-        return $this;
+        return $this->setOriginCountryCode($originCountryCodeValue);
     }
 
     public function mapDangerousGoodsCode()
     {
-        $dangerousGoodsCodeAttibute = get_option('wc_settings_shippit_dangerous_goods_code_attribute');
-        $dangerousGoodsCodeCustomAttibute = get_option('wc_settings_shippit_dangerous_goods_code_custom_attribute');
+        $dangerousGoodsCodeAttribute = get_option('wc_settings_shippit_dangerous_goods_code_attribute');
+        $dangerousGoodsCodeCustomAttribute = get_option('wc_settings_shippit_dangerous_goods_code_custom_attribute');
+        $dangerousGoodsCodeValue = $this->mapProductAttribute($dangerousGoodsCodeAttribute, $dangerousGoodsCodeCustomAttribute);
 
-        if (!empty($dangerousGoodsCodeAttibute)) {
-            return $this->setDangerousGoodsCode($this->product->get_attribute($dangerousGoodsCodeAttibute));
-        }
-        elseif (!empty($dangerousGoodsCodeCustomAttibute)) {
-            return $this->setDangerousGoodsCode($this->product->get_attribute($dangerousGoodsCodeCustomAttibute));
+        if (empty($dangerousGoodsCodeValue)) {
+            return $this;
         }
 
-        return $this;
+        return $this->setDangerousGoodsCode($dangerousGoodsCodeValue);
     }
 
     public function mapDangerousGoodsText()
     {
-        $dangerousGoodsTextAttibute = get_option('wc_settings_shippit_dangerous_goods_text_attribute');
-        $dangerousGoodsTextCustomAttibute = get_option('wc_settings_shippit_dangerous_goods_text_custom_attribute');
+        $dangerousGoodsTextAttribute = get_option('wc_settings_shippit_dangerous_goods_text_attribute');
+        $dangerousGoodsTextCustomAttribute = get_option('wc_settings_shippit_dangerous_goods_text_custom_attribute');
+        $dangerousGoodsTextValue = $this->mapProductAttribute($dangerousGoodsTextAttribute, $dangerousGoodsTextCustomAttribute);
 
-        if (!empty($dangerousGoodsTextAttibute)) {
-            return $this->setDangerousGoodsText($this->product->get_attribute($dangerousGoodsTextAttibute));
-        }
-        elseif (!empty($dangerousGoodsTextCustomAttibute)) {
-            return $this->setDangerousGoodsText($this->product->get_attribute($dangerousGoodsTextCustomAttibute));
+        if (empty($dangerousGoodsTextValue)) {
+            return $this;
         }
 
-        return $this;
+        return $this->setDangerousGoodsText($dangerousGoodsTextValue);
+    }
+
+    public function mapProductAttribute($attribute, $customAttribute)
+    {
+        $value = null;
+
+        // If we have a mapped DG custom value, and the custom value is not empty, use this value
+        if ($attribute == self::CUSTOM_OPTION_VALUE) {
+            $value = $this->product->get_attribute($customAttribute);
+        }
+        // Otherwise, if we have a mapped text attribute, use this value
+        else {
+            $value = $this->product->get_attribute($attribute);
+        }
+
+        return $value;
     }
 }
