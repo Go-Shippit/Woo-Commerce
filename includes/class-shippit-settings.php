@@ -37,6 +37,9 @@ class Mamis_Shippit_Settings
     public static function addFields()
     {
         woocommerce_admin_fields(self::getFields());
+
+        // include custom script on shippit settings page
+        wp_enqueue_script('shippit-script');
     }
 
     /**
@@ -236,6 +239,101 @@ class Mamis_Shippit_Settings
                  'type' => 'sectionend',
             ),
 
+            'title_order_items' => array(
+                'id' => 'shippit-settings-items-title',
+                'name' => __( 'Item Sync Settings', 'woocommerce-shippit' ),
+                'type' => 'title',
+            ),
+
+            'tariff_code_attribute' => array(
+                'id' => 'wc_settings_shippit_tariff_code_attribute',
+                'title' => __('Tariff Code Attribute', 'woocommerce-shippit'),
+                'desc' => __('The Product Attribute to be used for Tariff Code information sent to Shippit.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'select',
+                'options' => self::getProductAttributes(),
+                'class' => 'wc-enhanced-select',
+            ),
+
+            'tariff_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_tariff_code_custom_attribute',
+                'title' => __('Tariff Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Tariff Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'tariff_code_custom_attribute',
+                'type' => 'text',
+            ),
+
+            'origin_country_code_attribute' => array(
+                'id' => 'wc_settings_shippit_origin_country_code_attribute',
+                'title' => __('Origin Country Code Attribute', 'woocommerce-shippit'),
+                'desc' => __('The Product Attribute to be used for Origin Country Code information sent to Shippit.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'select',
+                'options' => self::getProductAttributes(),
+                'class' => 'wc-enhanced-select',
+            ),
+
+            'origin_country_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_origin_country_code_custom_attribute',
+                'title' => __('Origin Country Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Origin Country Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'origin_country_code_custom_attribute',
+                'type' => 'text',
+            ),
+
+            'dangerous_goods_code_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_code_attribute',
+                'title' => __('Dangerous Goods Code Attribute', 'woocommerce-shippit'),
+                'desc' => __('The Product Attribute to be used for Dangerous Goods Code information sent to Shippit.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'select',
+                'options' => self::getProductAttributes(),
+                'class' => 'wc-enhanced-select',
+            ),
+
+            'dangerous_goods_code_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_code_custom_attribute',
+                'title' => __('Dangerous Goods Code Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Dangerous Goods Code Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'dangerous_goods_code_custom_attribute',
+                'type' => 'text',
+            ),
+
+            'dangerous_goods_text_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_text_attribute',
+                'title' => __('Dangerous Goods Text Attribute', 'woocommerce-shippit'),
+                'desc' => __('The Product Attribute to be used for Dangerous Goods Text information sent to Shippit.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'type' => 'select',
+                'options' => self::getProductAttributes(),
+                'class' => 'wc-enhanced-select',
+            ),
+
+            'dangerous_goods_text_custom_attribute' => array(
+                'id' => 'wc_settings_shippit_dangerous_goods_text_custom_attribute',
+                'title' => __('Dangerous Goods Text Custom Attribute', 'woocommerce-shippit'),
+                'desc' => __('This will be used when you haven\'t set Dangerous Goods Text Attribute.', 'woocommerce-shippit'),
+                'desc_tip' => true,
+                'default' => '',
+                'name' => 'dangerous_goods_text_custom_attribute',
+                'type' => 'text',
+            ),
+
+            'section_order_items_end' => array(
+                'id' => 'shippit-settings-order-items-end',
+                'type' => 'sectionend',
+           ),
+
             'title_fulfillment' => array(
                 'id' => 'shippit-settings-fulfillment-title',
                 'name' => __( 'Fulfillment Settings', 'woocommerce-shippit' ),
@@ -263,6 +361,32 @@ class Mamis_Shippit_Settings
         );
 
         return apply_filters('wc_settings_shippit_settings', $settings);
+    }
+
+    /**
+     * Get WooCommerce Product Attributes
+     *
+     * @return array
+     */
+    public static function getProductAttributes()
+    {
+        $productAttributes = array();
+        $placeHolder = array('' => '-- Please Select --');
+
+        $attributeTaxonomies = wc_get_attribute_taxonomies();
+
+        if (empty($attributeTaxonomies)) {
+            return $placeHolder;
+        }
+
+        foreach ($attributeTaxonomies as $tax) {
+            $productAttributes[$tax->attribute_name] = __($tax->attribute_label, 'woocommerce-shippit');
+        }
+
+        // Add custom attribute as option
+        $productAttributes['_custom'] = 'Use custom option';
+
+        return array_merge($placeHolder, $productAttributes);
     }
 
     /**
