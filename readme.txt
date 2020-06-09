@@ -60,6 +60,13 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.4 =
+
+- New Features
+-- We have added the ability to capture the language and currency code of orders
+-- We have added the ability to capture a products `Country of Origin`, `Tariff Code` and `Dangerous Goods` Details
+-- We now capture the `Dutiable Amount` of an order during live quoting, this is based on the product's value in the cart, enabling Live Quotes to consider duties such as customs
+
 = 1.5.3 =
 
 - New Features
