@@ -176,17 +176,19 @@ class Mamis_Shippit_Settings
                 'desc' => 'Order Sync Settings refers to your prefernces for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
             ),
 
-            'send_all_orders' => array(
-                'id' => 'wc_settings_shippit_send_all_orders',
+            'auto_sync_orders' => array(
+                'id' => 'wc_settings_shippit_auto_sync_orders',
                 'title' => __('Auto-Sync New Orders', 'woocommerce-shippit'),
-                'desc' => __('Automatically sync all new order to Shippit', 'woocommerce-shippit'),
+                'desc' => __('Automatically sync all new or shippit quoted orders to Shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
                 'type' => 'select',
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    'all' => __('Yes - All Orders', 'woocommerce-shippit'),
+                    'all_shippit' => __('Yes - Shippit Quoted Orders', 'woocommerce-shippit'),
+
                ),
             ),
 

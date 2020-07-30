@@ -15,6 +15,7 @@ class Mamis_Shippit_Upgrade
 
         $this->upgrade_1_3_0($dbVersion);
         $this->upgrade_1_4_0($dbVersion);
+        $this->upgrade_1_5_5($dbVersion);
 
         // Mark the upgrade as complete
         $this->upgrade_complete($dbVersion);
@@ -99,6 +100,27 @@ class Mamis_Shippit_Upgrade
 
         // Update version
         update_option('wc_shippit_version', '1.4.0');
+    }
+
+    protected function upgrade_1_5_5($dbVersion)
+    {
+        // Avoid running this update if it's not required
+        if (version_compare('1.5.5', $dbVersion, '<=')) {
+            return;
+        }
+
+        $sendAllOrders = get_option(self::OPTIONS_PREFIX . 'send_all_orders');
+
+        $valueToUodate = 'no';
+
+        if ($sendAllOrders == 'yes') {
+            $valueToUodate = 'all';
+        }
+
+        update_option(self::OPTIONS_PREFIX . 'auto_sync_orders', $valueToUodate);
+
+        // Update version
+        update_option('wc_shippit_version', '1.5.5');
     }
 
     protected function upgrade_complete($dbVersion)

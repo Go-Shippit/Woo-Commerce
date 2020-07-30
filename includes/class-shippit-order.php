@@ -61,7 +61,8 @@ class Mamis_Shippit_Order
     public function addPendingSync($orderId)
     {
         $isEnabled = get_option('wc_settings_shippit_enabled');
-        $sendAllOrders = get_option('wc_settings_shippit_send_all_orders');
+        $autoSyncOrders = get_option('wc_settings_shippit_auto_sync_orders');
+
 
         if ($isEnabled != 'yes') {
             return;
@@ -79,17 +80,24 @@ class Mamis_Shippit_Order
             return;
         }
 
-        $isShippitShippingMethod = $order->get_shipping_methods();
+        if ($autoSyncOrders != 'all' && $autoSyncOrders != 'all_shippit') {
+            return;
+        }
 
-        if ($sendAllOrders == 'yes') {
+        // Sync all the orders to Shippit
+        if ($autoSyncOrders == 'all') {
             add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
             // attempt to sync the order now
             $this->syncOrder($orderId);
         }
-        elseif ($this->isShippitShippingMethod($order)) {
-            add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
-            // attempt to sync the order now
-            $this->syncOrder($orderId);
+
+        // Sync only orders where Shippit shipping method is selected during checkout
+        if ($autoSyncOrders == 'all_shippit') {
+            if ($this->isShippitShippingMethod($order)) {
+                add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+                // attempt to sync the order now
+                $this->syncOrder($orderId);
+            }
         }
     }
 
