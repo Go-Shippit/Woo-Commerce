@@ -80,7 +80,7 @@ class Mamis_Shippit_Order
             return;
         }
 
-        if ($autoSyncOrders != 'all' && $autoSyncOrders != 'all_shippit') {
+        if ($autoSyncOrders == 'no') {
             return;
         }
 
@@ -92,12 +92,10 @@ class Mamis_Shippit_Order
         }
 
         // Sync only orders where Shippit shipping method is selected during checkout
-        if ($autoSyncOrders == 'all_shippit') {
-            if ($this->isShippitShippingMethod($order)) {
-                add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
-                // attempt to sync the order now
-                $this->syncOrder($orderId);
-            }
+        if ($autoSyncOrders == 'all_shippit' && $this->isShippitShippingMethod($order)) {
+            add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
+            // attempt to sync the order now
+            $this->syncOrder($orderId);
         }
     }
 
