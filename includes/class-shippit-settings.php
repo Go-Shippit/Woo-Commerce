@@ -188,7 +188,6 @@ class Mamis_Shippit_Settings
                     'no' => __('No', 'woocommerce-shippit'),
                     'all' => __('Yes - All Orders', 'woocommerce-shippit'),
                     'all_shippit' => __('Yes - Shippit Quoted Orders', 'woocommerce-shippit'),
-
                ),
             ),
 

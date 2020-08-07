@@ -111,13 +111,14 @@ class Mamis_Shippit_Upgrade
 
         $sendAllOrders = get_option(self::OPTIONS_PREFIX . 'send_all_orders');
 
-        $valueToUpdate = 'no';
-
         if ($sendAllOrders == 'yes') {
-            $valueToUpdate = 'all';
+            $value = 'all';
+        }
+        else {
+            $value = 'no';
         }
 
-        update_option(self::OPTIONS_PREFIX . 'auto_sync_orders', $valueToUpdate);
+        update_option(self::OPTIONS_PREFIX . 'auto_sync_orders', $value);
 
         // Update version
         update_option('wc_shippit_version', '1.5.5');
