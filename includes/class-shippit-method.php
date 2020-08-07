@@ -194,6 +194,40 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $dropoffCountryCode = $quoteDestination['country'];
         $items = WC()->cart->get_cart();
 
+        // Only make a live quote request if required fields are present
+        if (empty($dropoffSuburb)) {
+            $this->log->add(
+                'Quote Request',
+                'A suburb is required for a live quote'
+            );
+
+            return;
+        }
+        elseif (empty($dropoffPostcode)) {
+            $this->log->add(
+                'Quote Request',
+                'A postcode is required for a live quote'
+            );
+
+            return;
+        }
+        elseif (empty($dropoffState)) {
+            $this->log->add(
+                'Quote Request',
+                'A state is required for a live quote'
+            );
+
+            return;
+        }
+        elseif (empty($dropoffCountryCode)) {
+            $this->log->add(
+                'Quote Request',
+                'A country is required for a live quote'
+            );
+
+            return;
+        }
+
         $quoteData = array(
             'order_date' => '', // get all available dates
             'dropoff_address' => $this->getDropoffAddress($quoteDestination),
