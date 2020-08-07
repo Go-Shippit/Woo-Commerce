@@ -89,7 +89,14 @@ class Mamis_Shippit_Data_Mapper_Order_Item_V26 extends Mamis_Shippit_Object
 
     public function mapPrice()
     {
-        $price = $this->orderItem['line_total'] / $this->orderItem['qty'];
+        $price = round(
+            (
+                ($this->orderItem['line_total'] + $this->orderItem['line_total'])
+                /
+                $this->orderItem['qty']
+            ),
+            2
+        );
 
         return $this->setPrice($price);
     }
