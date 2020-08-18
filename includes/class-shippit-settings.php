@@ -173,21 +173,21 @@ class Mamis_Shippit_Settings
                 'id' => 'shippit-settings-orders-title',
                 'name' => __( 'Order Sync Settings', 'woocommerce-shippit' ),
                 'type' => 'title',
-                'desc' => 'Order Sync Settings refers to your prefernces for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
+                'desc' => 'Order Sync Settings refers to your preferences for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
             ),
 
             'auto_sync_orders' => array(
                 'id' => 'wc_settings_shippit_auto_sync_orders',
                 'title' => __('Auto-Sync New Orders', 'woocommerce-shippit'),
-                'desc' => __('Automatically sync all new or shippit quoted orders to Shippit', 'woocommerce-shippit'),
+                'desc' => __('Determines whether to automatically sync all orders, or only Shippit Quoted or Mapped orders to Shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
                 'type' => 'select',
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
-                    'all' => __('Yes - All Orders', 'woocommerce-shippit'),
-                    'all_shippit' => __('Yes - Shippit Quoted Orders', 'woocommerce-shippit'),
+                    'all' => __('Yes - Auto-sync all new orders', 'woocommerce-shippit'),
+                    'all_shippit' => __('Yes - Auto-sync only order with Shippit Shipping Methods', 'woocommerce-shippit'),
                ),
             ),
 
