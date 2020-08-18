@@ -56,10 +56,6 @@ class Mamis_Shippit_Shipment
 
     public function getOrder($requestData)
     {
-        global $woocommerce;
-        global $post;
-
-        $order = false;
         $retailerOrderNumber = $this->getRequestRetailerOrderNumber($requestData);
         $retailerReference = $this->getRequestRetailerReference($requestData);
 
@@ -72,30 +68,53 @@ class Mamis_Shippit_Shipment
         else {
             // If the WordPress JetPack module is installed + enabled, lookup using this module's order metadata
             if (class_exists('WCJ_Order_Numbers') && get_option('wcj_order_numbers_enabled') == 'yes') {
-                $posts = $this->getOrderJetpack($retailerOrderNumber);
+                $order = $this->getOrderByReferenceJetpack($retailerOrderNumber);
             }
             // Otherwise, attempt the lookup using the standard wordpress lookup methods
             else {
-                $posts = get_posts(
-                    array(
-                        'p' => $retailerOrderNumber,
-                        'post_type' => 'shop_order',
-                        'post_status' => 'wc-processing',
-                        'posts_per_page' => 1,
-                    )
-                );
-            }
-
-            // Keep the first result from the array as the found order number
-            $post = reset($posts);
-
-            // Attempt to load the woocommerce order using the post id
-            if (!empty($post)) {
-                $order = wc_get_order($post->ID);
+                $order = $this->getOrderByReference($retailerOrderNumber);
             }
         }
 
+        if (empty($order)) {
+            wp_send_json_error(array(
+                'message' => self::ERROR_ORDER_MISSING
+            ));
+        }
+
         return $order;
+    }
+
+    /**
+     * Get the order object, querying for the order
+     * using it's reference number
+     *
+     * @param string $orderNumber
+     * @return WP_Post|void
+     */
+    public function getOrderByReference($orderNumber)
+    {
+        if (empty($orderNumber)) {
+            return;
+        }
+
+        $queryArgs = array(
+            'post__in' => [$orderNumber],
+            'post_type' => 'shop_order',
+            'post_status' => 'wc-processing',
+            'posts_per_page' => 1,
+        );
+
+        $posts = get_posts($queryArgs);
+        $post = reset($posts);
+
+        // If no results are found, return early
+        if (empty($post)) {
+            return;
+        }
+
+        // Load the woocommerce order using the post id
+        return wc_get_order($post->ID);
     }
 
     /**
@@ -104,13 +123,18 @@ class Mamis_Shippit_Shipment
      * configuration options
      *
      * @param string $orderNumber
-     * @return void
+     * @return WP_Post|void
      */
-    public function getOrderJetpack($orderNumber)
+    public function getOrderByReferenceJetpack($orderNumber)
     {
+        if (empty($orderNumber)) {
+            return;
+        }
+
         // Add support for Wordpress Jetpack - Order Numbers
         $orderPrefix = get_option('wcj_order_number_prefix');
         $wcjSequentialEnabled = get_option('wcj_order_number_sequential_enabled');
+
 
         // If an order prefix is configured, remove it from the order number to be used for lookup
         if (!empty($orderPrefix)) {
@@ -128,15 +152,23 @@ class Mamis_Shippit_Shipment
         }
         else {
             $queryArgs = array(
-                'p' => $orderNumber,
+                'post__in' => [$orderNumber],
                 'post_type' => 'shop_order',
                 'post_status' => 'wc-processing',
                 'posts_per_page' => 1,
             );
         }
 
-        // Return the WooCommerce order
-        return get_posts($queryArgs);
+        $posts = get_posts($queryArgs);
+        $post = reset($posts);
+
+        // If no results are found, return early
+        if (empty($post)) {
+            return;
+        }
+
+        // Load the woocommerce order using the post id
+        return wc_get_order($post->ID);
     }
 
     public function updateOrder($order, $requestData)
