@@ -62,21 +62,17 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 = 1.5.5 =
 
-New Features
-- Added the ability to only sync orders mapped to a Shippit Service
-- Added support for mapping shipping methods from the "Default Zone" in WooCommerce
+- New Features
+-- Added the ability to only sync orders mapped to a Shippit Service
+-- Added support for mapping shipping methods from the "Default Zone" in WooCommerce
 
-Changes
+- Changes
 -- We have improved the display of shipping methods in our Shipping Method Mapping configuration area to make it easier to identify shipping methods across zones
 -- We will now avoid making a Live Quote request to Shippit if required address details are missing
 
 - Bugfixes
 -- Resolved an issue whereby an item's price details was sent to Shippit without GST, item prices will now include any applicable taxes when sent to Shippit
 -- Resolved an issue whereby manual orders may result the incorrect order may be marked as shipped in WooCommerce
-
-We have added the ability to capture the language and currency code of orders
--- We have added the ability to capture a products `Country of Origin`, `Tariff Code` and `Dangerous Goods` Details
--- We now capture the `Dutiable Amount` of an order during live quoting, this is based on the product's value in the cart, enabling Live Quotes to consider duties such as customs
 
 = 1.5.4 =
 
