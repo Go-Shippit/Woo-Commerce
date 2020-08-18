@@ -435,9 +435,9 @@ class Mamis_Shippit_Settings
                 $shippingMethodLabel = (property_exists($shippingMethod, 'title') ? $shippingMethod->title : $shippingMethod->method_title);
 
                 $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                    '%s (%s)',
-                    $shippingMethodLabel,
-                    $zone['zone_name']
+                    '%s Zone — %s',
+                    $zone['zone_name'],
+                    $shippingMethodLabel
                 );
             }
         }
@@ -454,16 +454,10 @@ class Mamis_Shippit_Settings
     protected static function getShippingMethodsWithoutZones()
     {
         $shippingMethodOptions = array();
-        $shippingMethods = WC()->shipping()->get_shipping_methods();
+        $shippingMethods = WC_Shipping_Zones::get_zone_by()->get_shipping_methods();
 
         foreach ($shippingMethods as $shippingMethod) {
             if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
-                continue;
-            }
-
-            // If the shipping method supports shipping zones,
-            // skip it from the options display
-            if (in_array('shipping-zones', $shippingMethod->supports)) {
                 continue;
             }
 
@@ -471,9 +465,8 @@ class Mamis_Shippit_Settings
             $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
 
             $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                '%s (%s)',
-                $shippingMethodLabel,
-                'Legacy - No Shipping Zone Support'
+                'Default Zone - %s',
+                $shippingMethodLabel
             );
         }
 
