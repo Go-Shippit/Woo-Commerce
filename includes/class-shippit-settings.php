@@ -462,8 +462,8 @@ class Mamis_Shippit_Settings
                 continue;
             }
 
-            $shippingMethodKey = $shippingMethod->id;
-            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
+            $shippingMethodKey = $shippingMethod->id. ':' . $shippingMethod->instance_id;
+            $shippingMethodLabel = (property_exists($shippingMethod, 'title') ? $shippingMethod->title : $shippingMethod->method_title);
 
             $shippingMethodOptions[$shippingMethodKey] = sprintf(
                 'Default Zone - %s',
