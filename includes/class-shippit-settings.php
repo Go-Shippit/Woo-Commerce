@@ -187,14 +187,14 @@ class Mamis_Shippit_Settings
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
                     'all' => __('Yes - Auto-sync all new orders', 'woocommerce-shippit'),
-                    'all_shippit' => __('Yes - Auto-sync only order with Shippit Shipping Methods', 'woocommerce-shippit'),
+                    'all_shippit' => __('Yes - Auto-sync only orders with Shippit Shipping Methods', 'woocommerce-shippit'),
                ),
             ),
 
             'standard_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_standard_shipping_methods',
                 'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Standard" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Standard" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -205,7 +205,7 @@ class Mamis_Shippit_Settings
             'express_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_express_shipping_methods',
                 'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Express" Shippit Service', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Express" Shippit Service', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -216,7 +216,7 @@ class Mamis_Shippit_Settings
             'clickandcollect_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_clickandcollect_shipping_methods',
                 'title' => __('Click & Collect Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Click and Collect" Shippit service level', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Click and Collect" Shippit service level', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
