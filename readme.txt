@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.6 =
+
+- Bugfixes
+-- Resolved an issue whereby multiple instances of the same "Shipping Method" in the "Default Zone" could not be mapped using Shipping Method Mapping
+
 = 1.5.5 =
 
 - New Features
