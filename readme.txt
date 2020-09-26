@@ -60,6 +60,25 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.5.6 =
+
+- Bugfixes
+-- Resolved an issue whereby multiple instances of the same "Shipping Method" in the "Default Zone" could not be mapped using Shipping Method Mapping
+
+= 1.5.5 =
+
+- New Features
+-- Added the ability to only sync orders mapped to a Shippit Service
+-- Added support for mapping shipping methods from the "Default Zone" in WooCommerce
+
+- Changes
+-- We have improved the display of shipping methods in our Shipping Method Mapping configuration area to make it easier to identify shipping methods across zones
+-- We will now avoid making a Live Quote request to Shippit if required address details are missing
+
+- Bugfixes
+-- Resolved an issue whereby an item's price details was sent to Shippit without GST, item prices will now include any applicable taxes when sent to Shippit
+-- Resolved an issue whereby manual orders may result the incorrect order may be marked as shipped in WooCommerce
+
 = 1.5.4 =
 
 - New Features
@@ -70,10 +89,10 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 = 1.5.3 =
 
 - New Features
--- We now update your merchant account to indicate it's connected with a woocommerce store  
+-- We now update your merchant account to indicate it's connected with a woocommerce store
 
 - Changes
--- We've adjusted the way we trigger validation of your Shippit API key when updating it's value in the backend settings 
+-- We've adjusted the way we trigger validation of your Shippit API key when updating it's value in the backend settings
 
 
 = 1.5.2 =

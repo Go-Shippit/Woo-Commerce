@@ -173,27 +173,28 @@ class Mamis_Shippit_Settings
                 'id' => 'shippit-settings-orders-title',
                 'name' => __( 'Order Sync Settings', 'woocommerce-shippit' ),
                 'type' => 'title',
-                'desc' => 'Order Sync Settings refers to your prefernces for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
+                'desc' => 'Order Sync Settings refers to your preferences for when an order should be sent to Shippit and the type of Shipping Service to utilise.',
             ),
 
-            'send_all_orders' => array(
-                'id' => 'wc_settings_shippit_send_all_orders',
+            'auto_sync_orders' => array(
+                'id' => 'wc_settings_shippit_auto_sync_orders',
                 'title' => __('Auto-Sync New Orders', 'woocommerce-shippit'),
-                'desc' => __('Automatically sync all new order to Shippit', 'woocommerce-shippit'),
+                'desc' => __('Determines whether to automatically sync all orders, or only Shippit Quoted or Mapped orders to Shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'class' => 'wc-enhanced-select',
                 'default' => 'no',
                 'type' => 'select',
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
+                    'all' => __('Yes - Auto-sync all new orders', 'woocommerce-shippit'),
+                    'all_shippit' => __('Yes - Auto-sync only orders with Shippit Shipping Methods', 'woocommerce-shippit'),
                ),
             ),
 
             'standard_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_standard_shipping_methods',
                 'title' => __('Standard Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Standard" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Standard" Shippit Service', 'woocommerce-shippit', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -204,7 +205,7 @@ class Mamis_Shippit_Settings
             'express_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_express_shipping_methods',
                 'title' => __('Express Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Express" Shippit Service', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Express" Shippit Service', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -215,7 +216,7 @@ class Mamis_Shippit_Settings
             'clickandcollect_shipping_methods' => array(
                 'id' => 'wc_settings_shippit_clickandcollect_shipping_methods',
                 'title' => __('Click & Collect Shipping Methods', 'woocommerce-shippit'),
-                'desc' => __('The third party shipping methods that should be allocated to an "Click and Collect" Shippit service level', 'woocommerce-shippit'),
+                'desc' => __('The third party shipping methods that should be allocated to a "Click and Collect" Shippit service level', 'woocommerce-shippit'),
                 'desc_tip' => true,
                 'default' => '',
                 'type' => 'multiselect',
@@ -435,9 +436,9 @@ class Mamis_Shippit_Settings
                 $shippingMethodLabel = (property_exists($shippingMethod, 'title') ? $shippingMethod->title : $shippingMethod->method_title);
 
                 $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                    '%s (%s)',
-                    $shippingMethodLabel,
-                    $zone['zone_name']
+                    '%s Zone — %s',
+                    $zone['zone_name'],
+                    $shippingMethodLabel
                 );
             }
         }
@@ -454,26 +455,19 @@ class Mamis_Shippit_Settings
     protected static function getShippingMethodsWithoutZones()
     {
         $shippingMethodOptions = array();
-        $shippingMethods = WC()->shipping()->get_shipping_methods();
+        $shippingMethods = WC_Shipping_Zones::get_zone_by()->get_shipping_methods();
 
         foreach ($shippingMethods as $shippingMethod) {
             if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
                 continue;
             }
 
-            // If the shipping method supports shipping zones,
-            // skip it from the options display
-            if (in_array('shipping-zones', $shippingMethod->supports)) {
-                continue;
-            }
-
-            $shippingMethodKey = $shippingMethod->id;
-            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
+            $shippingMethodKey = $shippingMethod->id. ':' . $shippingMethod->instance_id;
+            $shippingMethodLabel = (property_exists($shippingMethod, 'title') ? $shippingMethod->title : $shippingMethod->method_title);
 
             $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                '%s (%s)',
-                $shippingMethodLabel,
-                'Legacy - No Shipping Zone Support'
+                'Default Zone - %s',
+                $shippingMethodLabel
             );
         }
 
