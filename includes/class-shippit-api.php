@@ -67,7 +67,10 @@ class Mamis_Shippit_Api
             'user-agent'   => self::API_USER_AGENT . 'v' . MAMIS_SHIPPIT_VERSION,
             'headers'      => array(
                 'content-type' => 'application/json',
-                'Authorization' => $this->getApiKey(),
+                'Authorization' => sprintf(
+                    'Bearer %s',
+                    $this->getApiKey()
+                ),
             ),
         );
 
