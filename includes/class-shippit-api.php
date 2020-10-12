@@ -48,13 +48,13 @@ class Mamis_Shippit_Api
         return $this->environment = $environment;
     }
 
-    public function getApiUrl($path, $apiKey)
+    public function getApiUrl($path)
     {
         if ( $this->environment == 'sandbox' ) {
-            return self::API_ENDPOINT_STAGING . '/' . $path . '?auth_token=' . $apiKey;
+            return self::API_ENDPOINT_STAGING . '/' . $path;
         }
         else {
-            return self::API_ENDPOINT_LIVE . '/' . $path . '?auth_token=' . $apiKey;
+            return self::API_ENDPOINT_LIVE . '/' . $path;
         }
     }
 
@@ -67,6 +67,10 @@ class Mamis_Shippit_Api
             'user-agent'   => self::API_USER_AGENT . 'v' . MAMIS_SHIPPIT_VERSION,
             'headers'      => array(
                 'content-type' => 'application/json',
+                'Authorization' => sprintf(
+                    'Bearer %s',
+                    $this->getApiKey()
+                ),
             ),
         );
 
@@ -79,9 +83,7 @@ class Mamis_Shippit_Api
 
     public function call($uri, $requestData, $requestMethod = 'POST', $exceptionOnResponseError = true)
     {
-        $apiKey = $this->getApiKey();
-
-        $url = $this->getApiUrl($uri, $apiKey);
+        $url = $this->getApiUrl($uri);
         $args = $this->getApiArgs($requestData, $requestMethod);
 
         $this->log->add(
