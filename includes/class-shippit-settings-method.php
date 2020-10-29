@@ -195,7 +195,8 @@ class Mamis_Shippit_Settings_Method
             'posts_per_page' => -1
         );
 
-        $products = get_posts($productArgs);
+        //FIXME -- only run slow query if in admin (why is any of this code running in admin anyway?)
+        if(is_admin()) { $products = get_posts($productArgs); }
 
         $productOptions = array();
 
