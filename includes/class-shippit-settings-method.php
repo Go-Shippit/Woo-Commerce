@@ -210,7 +210,7 @@ class Mamis_Shippit_Settings_Method
         $productOptions = array();
 
         //FIXME -- only run slow query if in admin (why is any of this code running in admin anyway?)
-        if(is_admin()) {
+        if( false !== strpos( $_SERVER['REQUEST_URI'], 'page=wc-settings&tab=shipping') ) {
 
                 $products = get_posts($productArgs);
 
