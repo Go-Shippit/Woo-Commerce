@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.0 =
+
+- Changes
+-- We've updated the way we authenticate with the Shippit API - we'll now utilize header-based bearer authorization
+
 = 1.5.6 =
 
 - Bugfixes
