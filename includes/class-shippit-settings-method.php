@@ -126,6 +126,17 @@ class Mamis_Shippit_Settings_Method
                 'options' => $this->_getProducts(),
             );
         }
+        
+		// Add filter to allow disable of shippit method for certain products (eg. digital downloads or non-courier friendly items)
+		$fields['filter_disabled_products'] = array(
+			'title' => __('Disabled Products', 'woocommerce-shippit'),
+			'description' => __('The products disabled for quoting by Shippit', 'woocommerce-shippit'),
+			'desc_tip' => true,
+			'class' => 'wc-enhanced-select',
+			'default' => '',
+			'type' => 'multiselect',
+			'options' => $this->_getProducts(),
+		);
 
         $fields['filter_attribute'] = array(
             'title' => __('Filter by product attributes', 'woocommerce-shippit'),
@@ -192,15 +203,20 @@ class Mamis_Shippit_Settings_Method
     {
         $productArgs = array(
             'post_type' => 'product',
-            'posts_per_page' => -1
+            'posts_per_page' => -1,
+            'cache_results' => false
         );
-
-        $products = get_posts($productArgs);
 
         $productOptions = array();
 
-        foreach ($products as $product) {
-            $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
+        //FIXME -- only run slow query if in admin (why is any of this code running in admin anyway?)
+        if( false !== strpos( $_SERVER['REQUEST_URI'], 'page=wc-settings&tab=shipping') ) {
+
+                $products = get_posts($productArgs);
+
+                foreach ($products as $product) {
+                    $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
+                }
         }
 
         return $productOptions;
