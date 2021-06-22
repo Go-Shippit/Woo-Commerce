@@ -7,7 +7,7 @@
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
  * WC requires at least:    2.6.0
- * WC Tested Up To:         3.9.3
+ * WC Tested Up To:         5.4.1
  */
 
 define('MAMIS_SHIPPIT_VERSION', '1.6.0');

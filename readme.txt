@@ -3,7 +3,7 @@ Contributors: williamonshippit
 Donate link: NA
 Tags: shipping, australia post, couriers please, fastway, shipping method,
 Requires at least: 3.0.0
-Tested up to: 5.2.2
+Tested up to: 5.7.2
 Stable tag: stable
 License: GPLv2 or later
 
