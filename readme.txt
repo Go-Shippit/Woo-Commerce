@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.1 =
+
+- Changes
+-- We have validated this release for WooCommerce version v5.4, and Wordpress v5.7.2
+
 = 1.6.0 =
 
 - Changes
