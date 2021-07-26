@@ -211,18 +211,18 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             return;
         }
-        elseif (empty($dropoffState)) {
-            $this->log->add(
-                'Quote Request',
-                'A state is required for a live quote'
-            );
-
-            return;
-        }
         elseif (empty($dropoffCountryCode)) {
             $this->log->add(
                 'Quote Request',
                 'A country is required for a live quote'
+            );
+
+            return;
+        }
+        elseif ($dropoffCountryCode != "SG" && empty($dropoffState)) {
+            $this->log->add(
+                'Quote Request',
+                'A state is required for a live quote'
             );
 
             return;
