@@ -219,14 +219,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
             return;
         }
-        elseif ($dropoffCountryCode != "SG" && empty($dropoffState)) {
-            $this->log->add(
-                'Quote Request',
-                'A state is required for a live quote'
-            );
-
-            return;
-        }
 
         $quoteData = array(
             'order_date' => '', // get all available dates
