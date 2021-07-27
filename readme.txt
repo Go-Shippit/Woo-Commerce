@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.2 =
+
+- Changes
+-- Removed `state/region` as a required field for live quotes, ensuring live quotes are available in countries without states/regions.
+
 = 1.6.1 =
 
 - Changes
