@@ -2,7 +2,7 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 1.6.3-rc.0
+ * Version:                 1.6.3
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
@@ -10,7 +10,7 @@
  * WC Tested Up To:         5.4.1
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.6.3-rc.0');
+define('MAMIS_SHIPPIT_VERSION', '1.6.3');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
