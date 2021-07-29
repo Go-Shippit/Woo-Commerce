@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.3-rc.0 =
+
+- Changes
+-- Improve handling on `api_key` or `webhook` setting updates
+
 = 1.6.2 =
 
 - Changes
