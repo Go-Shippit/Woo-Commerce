@@ -24,13 +24,21 @@ class Mamis_Shippit_Api
     private $apiKey = null;
     public $debug = false;
 
-    public function __construct()
+    /**
+     * Create a Shippit API Client
+     *
+     * @param string $apiKey        (Optional) The API key to be used for requests
+     * @param string $environment   (Optional) The environment to be used for requests
+     * @param bool $debug           (Optional) The debug mode of the client
+     */
+    public function __construct($apiKey = null, $environment = null, $debug = null)
     {
         $this->settings = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log();
-        $this->apiKey = get_option('wc_settings_shippit_api_key');
-        $this->debug = get_option('wc_settings_shippit_debug');
-        $this->environment = get_option('wc_settings_shippit_environment');
+
+        $this->apiKey = (empty($apiKey) ? get_option('wc_settings_shippit_api_key') : $apiKey);
+        $this->environment = (empty($environment) ? get_option('wc_settings_shippit_environment') : $environment);
+        $this->debug = (empty($debug) ? get_option('wc_settings_shippit_debug') : $debug);
     }
 
     private function getApiKey()
