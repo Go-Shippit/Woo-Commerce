@@ -60,6 +60,12 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= Unreleased =
+
+- Bugfixes
+-- Remove calls to depreciated woocommerce methods
+-- Re-add module resource assets to installation
+
 = 1.6.3 =
 
 - Changes
