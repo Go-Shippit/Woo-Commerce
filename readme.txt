@@ -60,7 +60,7 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
-= Unreleased =
+= 1.6.4 =
 
 - Bugfixes
 -- Remove calls to depreciated woocommerce methods
