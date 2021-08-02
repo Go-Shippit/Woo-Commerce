@@ -59,13 +59,11 @@ class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object
 
     public function mapSku()
     {
-        // @TODO: since WC version 3.0 get_variation_id is deprecated
-        // suggested to use get_id() instead
         if ($this->product->get_type() == 'variation') {
             $sku = sprintf(
                 '%s|%s',
                 $this->product->get_sku(),
-                $this->product->get_variation_id()
+                $this->product->get_id()
             );
         }
         else {

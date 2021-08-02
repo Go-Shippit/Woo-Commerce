@@ -250,7 +250,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
 
     public function mapProductCurrency()
     {
-        $orderCurrency = $this->order->get_order_currency();
+        $orderCurrency = $this->order->get_currency();
 
         if (empty($orderCurrency)) {
             return $this;
@@ -272,7 +272,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
                 continue;
             }
 
-            $product = $this->order->get_product_from_item($orderItem);
+            $product = $orderItem->get_product();
 
             // If the product is a virtual item, skip it
             if ($product->is_virtual()) {
