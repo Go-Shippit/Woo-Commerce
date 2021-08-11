@@ -274,7 +274,12 @@ class Mamis_Shippit_Order
         }
 
         // Create the schedule for the orders to sync
-        wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+        // WP expects UTC time -- not local time 
+        wp_schedule_single_event(time(), 'syncOrders');
+
+        $logger = wc_get_logger();
+        $loggerContext = array( 'source' => 'shippit' );
+        $logger->info('Scheduled single event', $loggerContext );
 
         return add_query_arg(array('shippit_sync' => '2'), $redirectTo);
     }
