@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.5 =
+
+- Bugfixes
+-- Resolved an issue whereby Bulk Sync actions may take a number of hours to run after they are scheduled
+
 = 1.6.4 =
 
 - Bugfixes

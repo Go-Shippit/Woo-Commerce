@@ -520,7 +520,11 @@ class Mamis_Shippit_Core
     public static function order_sync_schedule()
     {
         if (!wp_next_scheduled('syncOrders')) {
-            wp_schedule_event(current_time('timestamp'), 'hourly', 'syncOrders');
+            wp_schedule_event(
+                current_time('timestamp', true),
+                'hourly',
+                'syncOrders'
+            );
         }
     }
 

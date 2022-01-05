@@ -83,7 +83,7 @@ class Mamis_Shippit_Order
         if ($autoSyncOrders == 'all_shippit' && !$this->isShippitShippingMethod($order)) {
             return;
         }
-        
+
         add_post_meta($orderId, '_mamis_shippit_sync', 'false', true);
         // attempt to sync the order now
         $this->syncOrder($orderId);
@@ -274,7 +274,10 @@ class Mamis_Shippit_Order
         }
 
         // Create the schedule for the orders to sync
-        wp_schedule_single_event(current_time('timestamp'), 'syncOrders');
+        wp_schedule_single_event(
+            current_time('timestamp', true),
+            'syncOrders'
+        );
 
         return add_query_arg(array('shippit_sync' => '2'), $redirectTo);
     }
