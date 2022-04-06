@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.6 =
+
+- Bugfixes
+-- Resolved an issue whereby DB upgrades may throw an error if the configuration is empty / not set 
+
 = 1.6.5 =
 
 - Bugfixes
