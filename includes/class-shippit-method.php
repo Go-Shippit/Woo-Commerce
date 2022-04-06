@@ -288,7 +288,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $addresses = array_filter($addresses, function ($address) {
             $address = trim($address);
-            
+
             return !empty($address);
         });
 

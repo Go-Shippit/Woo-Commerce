@@ -79,7 +79,7 @@ class Mamis_Shippit_Upgrade
             foreach ($shippingMethods as $shippingMethod) {
                 // If the standard shipping method is currently mapped,
                 // update the mapping to include zone mapped methods
-                if (in_array($shippingMethod->id, $shippingMethodsStandard)) {
+                if ($shippingMethodsStandard && in_array($shippingMethod->id, $shippingMethodsStandard)) {
                     // determine the mapping key
                     $shippingMethodKey = $shippingMethod->id . ':' . $shippingMethod->instance_id;
                     $shippingMethodsStandardMigrate[] = $shippingMethodKey;
@@ -87,7 +87,7 @@ class Mamis_Shippit_Upgrade
 
                 // If the standard shipping method is currently mapped,
                 // update the mapping to include zone mapped methods
-                if (in_array($shippingMethod->id, $shippingMethodsExpress)) {
+                if ($shippingMethodsExpress && in_array($shippingMethod->id, $shippingMethodsExpress)) {
                     // determine the mapping key
                     $shippingMethodKey = $shippingMethod->id . ':' . $shippingMethod->instance_id;
                     $shippingMethodsExpressMigrate[] = $shippingMethodKey;
