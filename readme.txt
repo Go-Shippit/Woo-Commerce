@@ -3,7 +3,7 @@ Contributors: williamonshippit
 Donate link: NA
 Tags: shipping, australia post, couriers please, fastway, shipping method,
 Requires at least: 3.0.0
-Tested up to: 5.7.2
+Tested up to: 6.0.2
 Stable tag: stable
 License: GPLv2 or later
 
@@ -60,10 +60,15 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.6.7 =
+
+- Changes
+-- Validated plugin is tested on Wordpress v6 and WooCommerce v6.8
+
 = 1.6.6 =
 
 - Bugfixes
--- Resolved an issue whereby DB upgrades may throw an error if the configuration is empty / not set 
+-- Resolved an issue whereby DB upgrades may throw an error if the configuration is empty / not set
 
 = 1.6.5 =
 
