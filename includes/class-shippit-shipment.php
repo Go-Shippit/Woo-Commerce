@@ -348,6 +348,10 @@ class Mamis_Shippit_Shipment
         $shipmentData['tracking_url'] = $requestData->tracking_url;
         $shipmentData['courier_name'] = $requestData->courier_name;
 
+        if (get_option('wc_settings_shippit_fulfillment_tracking_reference') == 'courier_tracking_reference') {
+            $shipmentData['courier_tracking_number'] = $requestData->courier_job_id;
+        }
+
         if (!empty($readyForPickUp)) {
             $shipmentData['booked_at'] = date("d-m-Y H:i:s", strtotime($readyForPickUp->time));
         }

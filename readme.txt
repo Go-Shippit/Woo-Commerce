@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.7.0 =
+
+- Added
+-- Support for capturing the courier tracking number when creating a shipment
+
 = 1.6.7 =
 
 - Changes
