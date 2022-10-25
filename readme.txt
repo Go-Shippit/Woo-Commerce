@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.7.1 =
+
+- Bugfixes
+-- Bumped internal version number in metadata to v1.7.1
+
 = 1.7.0 =
 
 - Added
