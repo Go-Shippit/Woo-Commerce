@@ -222,6 +222,12 @@ class Mamis_Shippit_Core
                 $shipmentDetails .= '</a><br/>';
             }
 
+            if (!empty($shipment['courier_tracking_number'])) {
+                $shipmentDetails .= '<strong>Courier Track #:</strong>&nbsp;';
+                $shipmentDetails .= $shipment['courier_tracking_number'];
+                $shipmentDetails .= '</a><br/>';
+            }
+
             if ($i < $count) {
                 $shipmentDetails .= '<hr/>';
             }

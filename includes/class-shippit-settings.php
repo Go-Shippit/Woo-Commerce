@@ -339,8 +339,6 @@ class Mamis_Shippit_Settings
                 'id' => 'shippit-settings-fulfillment-title',
                 'name' => __( 'Fulfillment Settings', 'woocommerce-shippit' ),
                 'type' => 'title',
-                'desc' => 'Enable this setting to mark orders as fulfilled in WooCommerce. With this setting enabled, Shippit will update all tracking information against the order as it is fulfilled.',
-                'desc_tip' => true,
             ),
 
             'fulfillment_enabled' => array(
@@ -349,16 +347,32 @@ class Mamis_Shippit_Settings
                 'class' => 'wc-enhanced-select',
                 'default' => 'yes',
                 'type' => 'select',
+                'desc' => 'Enable this setting to mark orders as fulfilled in WooCommerce. With this setting enabled, Shippit will update all tracking information against the order as it is fulfilled.',
+                'desc_tip' => true,
                 'options' => array(
                     'no' => __('No', 'woocommerce-shippit'),
                     'yes' => __('Yes', 'woocommerce-shippit'),
                 )
             ),
 
+            'fulfillment_tracking_reference' => array(
+                'id' => 'wc_settings_shippit_fulfillment_tracking_reference',
+                'title' => __('Tracking Reference', 'woocommerce-shippit'),
+                'class' => 'wc-enhanced-select',
+                'default' => 'shippit_tracking_reference',
+                'type' => 'select',
+                'desc' => 'The tracking reference that you wish to capture from Shippit and communicate with customers.',
+                'desc_tip' => true,
+                'options' => array(
+                    'shippit_tracking_reference' => __('Shippit Tracking Reference', 'woocommerce-shippit'),
+                    'courier_tracking_reference' => __('Courier Tracking Reference', 'woocommerce-shippit'),
+                )
+            ),
+
             'section_end' => array(
-                 'id' => 'shippit-settings-fulfillment-end',
-                 'type' => 'sectionend',
-            )
+                'id' => 'shippit-settings-fulfillment-end',
+                'type' => 'sectionend',
+            ),
         );
 
         return apply_filters('wc_settings_shippit_settings', $settings);
