@@ -207,7 +207,7 @@ class Mamis_Shippit_Shipment
         }
 
         // Remove any refunded items from shippable count
-        $totalItemsShippable -= $order->get_total_qty_refunded();
+        $totalItemsShippable += $order->get_total_qty_refunded();
 
         $this->log->add(
             'SHIPPIT - WEBHOOK REQUEST',
