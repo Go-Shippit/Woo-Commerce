@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: williamonshippit
 Donate link: NA
-Tags: shipping, australia post, couriers please, fastway, shipping method,
+Tags: shipping, australia post, couriers please, aramex
 Requires at least: 3.0.0
-Tested up to: 6.0.2
+Tested up to: 6.9.4
 Stable tag: stable
 License: GPLv2 or later
 
@@ -59,6 +59,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 3. You and your customers can track their deliveries simply, elegantly and easily
 
 == Changelog ==
+
+= 1.8.0 =
+
+- Added
+-- Updated tested upto tag to indicate support for WooCommerce 6.9.4
 
 = 1.7.2 =
 
