@@ -60,6 +60,11 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.7.2 =
+
+- Bugfixes
+-- Resolved an issue where orders containing a partial refund would not be marked as completed when goods are shipped
+
 = 1.7.1 =
 
 - Bugfixes
