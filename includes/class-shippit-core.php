@@ -162,6 +162,35 @@ class Mamis_Shippit_Core
 
         // Add the shipment meta boxes when viewing an order.
         add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
+
+        function shippit_legacy_shipping_method_depreciation_notice() {
+            ?>
+            <div class="notice notice-warning is-dismissible">
+                <p>
+                    <strong>Shippit Configuration Issue: "Shippit (Legacy)" Shipping Method</strong><br><br>
+
+                    The "Shippit (Legacy)" Shipping Method is depreciated and has been replaced by shipping method that support <a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=shipping' ); ?>">Shipping Zones</a>. <br><br>
+
+                    Support for "Shippit (Legacy)" shipping method will be removed in an upcoming release. To avoid interruption of your Shippit Live Quotes, please configure your Shippit Live Quotes via <a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=shipping' ); ?>">Shipping Zones</a> and disable the <a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=shipping&section=mamis_shippit_legacy' ); ?>">"Shippit (Legacy)" Shipping Method</a>.
+                </p>
+            </div>
+            <?php
+        }
+
+        function display_legacy_shipping_method_depreciation_notice() {
+            $shippingMethods = (new WC_Shipping)->get_shipping_methods();
+
+            $shippitLegacyShippingMethod = isset($shippingMethods['mamis_shippit_legacy']) ? $shippingMethods['mamis_shippit_legacy'] : null;
+
+            if (
+                !empty($shippitLegacyShippingMethod)
+                && $shippitLegacyShippingMethod->get_option('enabled') == 'yes'
+            ) {
+                add_action('admin_notices', 'shippit_legacy_shipping_method_depreciation_notice');
+            }
+        }
+
+        add_action('admin_init', 'display_shipping_method_depreciation_notice');
     }
 
     /**
