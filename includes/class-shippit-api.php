@@ -19,7 +19,6 @@ class Mamis_Shippit_Api
     const API_ENDPOINT_LIVE = 'https://www.shippit.com/api/3';
     const API_ENDPOINT_STAGING = 'https://staging.shippit.com/api/3';
     const API_TIMEOUT = 30;
-    const API_USER_AGENT = 'Mamis_Shippit for WooCommerce';
 
     private $apiKey = null;
     public $debug = false;
@@ -72,7 +71,7 @@ class Mamis_Shippit_Api
             'blocking'     => true,
             'method'       => $requestMethod,
             'timeout'      => self::API_TIMEOUT,
-            'user-agent'   => self::API_USER_AGENT . 'v' . MAMIS_SHIPPIT_VERSION,
+            'user-agent'   => $this->getUserAgent(),
             'headers'      => array(
                 'content-type' => 'application/json',
                 'Authorization' => sprintf(
@@ -151,6 +150,19 @@ class Mamis_Shippit_Api
         );
 
         return $responseData;
+    }
+
+    /**
+     * Retrieves the user agent for outbound API calls
+     */
+    public function getUserAgent()
+    {
+        return sprintf(
+            'Shippit_WooCommerce/%s WooCommerce/%s PHP/%s',
+            MAMIS_SHIPPIT_VERSION,
+            WC()->version,
+            phpversion()
+        );
     }
 
     public function getQuote($quoteData)
