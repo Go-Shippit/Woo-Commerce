@@ -61,28 +61,25 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
         $this->margin                  = $this->get_option('margin');
         $this->margin_amount           = $this->get_option('margin_amount');
 
-        // *****************
-        // Shipping Method
-        // *****************
-
-        // Load the settings form, but only when the settings form fields is required
-        add_filter('woocommerce_settings_api_form_fields_mamis_shippit', array($this, 'init_form_fields'));
-
         $this->init_form_fields();
         $this->init_settings();
 
-        // *****************
-        // Shipping Method Save Event
-        // *****************
-
-        // Save settings in admin
+        // Add action hook to save the shipping method instance settings when they saved
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
     }
 
     public function init_form_fields()
     {
+        // Filter by Products should only be available when...
+        // - The merchant has it actively enabled in the current settings; and
+        // - The named constant `SHIPPIT_DISABLE_PRODUCT_FILTER` is not present
+        $isFilterByProductsEnabled = (
+            $this->get_option('filter_enabled') === 'yes'
+            && defined('SHIPPIT_DISABLE_PRODUCT_FILTER') === false
+        );
+
         $settings = new Mamis_Shippit_Settings_Method();
-        $this->form_fields = $settings->getFields();
+        $this->form_fields = $settings->getFields($isFilterByProductsEnabled);
 
         return $this->form_fields;
     }

@@ -32,7 +32,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         $this->id                   = 'mamis_shippit';
         $this->instance_id          = absint($instance_id);
-        $this->instance_form_fields = $settings->getFields(true);
+        $this->instance_form_fields = $settings->getFields();
         $this->title                = __('Shippit', 'woocommerce-shippit');
         $this->method_title         = __('Shippit', 'woocommerce-shippit');
         $this->method_description   = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
@@ -70,14 +70,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->margin                  = $this->get_option('margin');
         $this->margin_amount           = $this->get_option('margin_amount');
 
-        // *****************
-        // Shipping Method
-        // *****************
-
-        // *****************
-        // Shipping Method Save Event
-        // *****************
-
+        // Add action hook to save the shipping method instance settings when they saved
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
     }
 

@@ -22,7 +22,7 @@ class Mamis_Shippit_Settings_Method
      * Add fields to the Shippit settings page.
      *
      */
-    public function getFields($isInstance = false)
+    public function getFields($isFilterByProductsAvailable = false)
     {
         $fields['enabled'] = array(
             'id' => 'wc_settings_shippit_enabled',
@@ -98,11 +98,11 @@ class Mamis_Shippit_Settings_Method
         // on the legacy shipping method class
         //
         // Also enables merchants to avoid this functionality if they have
-        // larger stores by setting the "SHIPPIT_PRODUCT_FILTERING" constant
+        // larger stores by setting the "SHIPPIT_DISABLE_PRODUCT_FILTER" constant
         // to false
         //
         // @Depreciated: this functionality is due to be removed in 2018 Q1;
-        if (!$isInstance && !defined('SHIPPIT_DISABLE_PRODUCT_FILTER')) {
+        if ($isFilterByProductsAvailable) {
             $fields['filter_enabled'] = array(
                 'title' => __('Filter by enabled products', 'woocommerce-shippit'),
                 'description' => __('Filter products that are enabled for quoting by shippit', 'woocommerce-shippit'),
