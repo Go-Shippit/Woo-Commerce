@@ -1,81 +1,54 @@
-# Stages
+include:
+  - project: 'mamis/gitlab-templates'
+    ref: v1.13.2
+    file: 'gitlab-ci-includes/php-lint.gitlab-ci.yml'
+
 stages:
-  - linter
-  - code-style
+  - lint
 
-
-###########
-# PHP 5.4 #
-###########
-
-# PHP Linter
-php-5.4-linter:
-  stage: linter
-  image: tetraweb/php:5.4
-  script:
+php-lint-legacy:
+  stage: lint
+  image: tetraweb/php:${PHP_VERSION}
+  parallel:
+    matrix:
+      - PHP_VERSION:
+        - 5.4
+        - 5.5
+  before_script:
     - php -v
+  script:
     - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
 
+php-lint:
+  extends: .php-lint
+  stage: lint
+  image: registry.mamis.com.au/mamis/containers/php:${PHP_VERSION}
+  parallel:
+    matrix:
+      - PHP_VERSION:
+        - 5.6
+        - 7.0
+        - 7.1
+        - 7.2
+        - 7.3
+        - 7.4
+        - 8.0
+        - 8.1
+  before_script:
+    - composer require --quiet --no-interaction php-parallel-lint/php-parallel-lint
+    - !reference [.php-lint, before_script]
 
-###########
-# PHP 5.5 #
-###########
-
-# PHP Linter
-php-5.5-linter:
-  stage: linter
-  image: tetraweb/php:5.5
+php-phpcs:
+  stage: lint
+  image:
+    name: registry.mamis.com.au/mamis/containers/php/build:8.1
+  before_script:
+    - composer require --quiet --no-interaction squizlabs/php_codesniffer
+    - php --version
+    - ./vendor/bin/phpcs --version
+    - ./vendor/bin/phpcs --colors --standard=PSR2 --report=full .
+    - ./vendor/bin/phpcs --colors --standard=PSR2 --report=summary .
+    - ./vendor/bin/phpcs --colors --standard=PSR2 --report=gitblame .
   script:
-    - php -v
-    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
-
-
-###########
-# PHP 5.6 #
-###########
-
-# PHP Linter
-php-5.6-linter:
-  stage: linter
-  image: tetraweb/php:5.6
-  script:
-    - php -v
-    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
-
-
-###########
-# PHP 7.0 #
-###########
-
-# PHP Linter
-php-7.0-linter:
-  stage: linter
-  image: tetraweb/php:7.0
-  script:
-    - php -v
-    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
-
-
-###########
-# PHP 7.1 #
-###########
-
-# PHP Linter
-php-7.1-linter:
-  stage: linter
-  image: tetraweb/php:7.1
-  script:
-    - php -v
-    - sh -c 'if find . -name "*.php" -exec php -l {} 2>&1 \; | grep -v "^No syntax errors detected"; then exit 1; fi'
-
-# PHP CS
-php-7.1-phpcs:
-  stage: code-style
-  image: tetraweb/php:7.1
-  script:
-    - php -v
-    - phpcs --version
-    - phpcs --colors --standard=PSR2 --report=full .
-    - phpcs --colors --standard=PSR2 --report=summary .
-    - phpcs --colors --standard=PSR2 --report=gitblame .
+    - ./vendor/bin/phpcs
   allow_failure: true
