@@ -22,7 +22,7 @@ php-lint-legacy:
 php-lint:
   extends: .php-lint
   stage: lint
-  image: registry.mamis.com.au/mamis/containers/php/cli:${PHP_VERSION}
+  image: registry.mamis.com.au/mamis/containers/php/build:${PHP_VERSION}
   parallel:
     matrix:
       - PHP_VERSION:
