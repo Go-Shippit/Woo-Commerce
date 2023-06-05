@@ -1,11 +1,13 @@
-=== Plugin Name ===
-Contributors: williamonshippit
+=== Shippit for WooCommerce ===
+Contributors: matthewmuscat
 Donate link: NA
 Tags: shipping, australia post, couriers please, aramex
 Requires at least: 3.0.0
-Tested up to: 6.1.0
+Tested up to: 6.2.2
 Stable tag: stable
-License: GPLv2 or later
+Requires PHP: 5.4
+License: Shippit Commercial Licence
+License URI: https://www.shippit.com/terms-of-service
 
 
 == Description ==
@@ -59,6 +61,16 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 3. You and your customers can track their deliveries simply, elegantly and easily
 
 == Changelog ==
+
+= 1.9.0 =
+
+- Added
+-- Added a depreciation notice for users using the "Shippit (Legacy)" shipping method, with details on using Shipping Zones
+-- Add CI linter coverage for PHP 7.2, 7.3, 7.4, 8.0 and 8.1
+
+- Changes
+-- Removed the "filter by product" configuration option if this option is not already configured, resolving a performance issue for large stores
+
 
 = 1.8.1 =
 
@@ -404,5 +416,5 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-First iteration
+= 1.9.0 =
+Resolves a performance issue affecting stores with large catalogs (over 1,000 products)
