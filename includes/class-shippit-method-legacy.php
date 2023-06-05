@@ -35,15 +35,7 @@ class Mamis_Shippit_Method_Legacy extends Mamis_Shippit_Method
             '<p>
                 Have Shippit provide you with live quotes directly from the carriers.
                 Simply enable live quoting and set your preferences to begin.
-            </p>
-
-            <div style="font-style: italic; padding: 5px 20px; background-color: #fcf8e3; border-color: #faf2cc; color: #8a6d3b;">
-                <h4>Depreciation Notice: This setting is for version 2.6 of WooCommerce only and will be depreciated soon.</h4>
-                <p>
-                    This shipping method is depreciated and has been replaced with Shipping Methods that support <a href="https://docs.woocommerce.com/document/setting-up-shipping-zones/">Shipping Zones</a>.
-                    You can enable and configure live quotes via Shipping Zones. <a href="' . admin_url('admin.php?page=wc-settings&tab=shipping') . '">Click here to configure your Shipping Zones</a>.
-                </p>
-            </div>'
+            </p>'
         );
 
         $this->init();
