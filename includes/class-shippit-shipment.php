@@ -17,6 +17,7 @@ class Mamis_Shippit_Shipment
     const ERROR_ORDER_MISSING = 'The order requested was not found or has a status that is not available for shipping';
     const NOTICE_SHIPMENT_STATUS = 'Ignoring the order status update, as we only respond to ready_for_pickup state';
     const SUCCESS_SHIPMENT_CREATED = 'The shipment record was created successfully.';
+    const SUCCESS_SHIPMENT_SKIPPED = 'Ignoring the webhook request — fulfillment sync is turned off.';
 
     protected $log;
 
@@ -40,6 +41,8 @@ class Mamis_Shippit_Shipment
         // Check the request API key is present and matches the configured API key
         $this->checkApiKey();
 
+        $this->checkIfFulfillmentSyncIsEnabled();
+
         // Get the JSON data posted
         $requestData = json_decode(file_get_contents('php://input'));
 
@@ -55,9 +58,12 @@ class Mamis_Shippit_Shipment
         $this->updateOrder($order, $requestData);
 
         // Return a response to the actions completed
-        wp_send_json_success(array(
-            'message' => self::SUCCESS_SHIPMENT_CREATED
-        ));
+        wp_send_json_success(
+            array(
+                'message' => self::SUCCESS_SHIPMENT_CREATED
+            ),
+            202
+        );
     }
 
     /**
@@ -408,6 +414,19 @@ class Mamis_Shippit_Shipment
      * @param object $requestData
      * @return string|void
      */
+    public function checkIfFulfillmentSyncIsEnabled()
+    {
+        if (get_option('wc_settings_shippit_fulfillment_enabled') == 'no') {
+            // Return a response to the actions completed
+            wp_send_json_success(
+                array(
+                    'message' => self::SUCCESS_SHIPMENT_SKIPPED
+                ),
+                200
+            );
+        }
+    }
+
     public function getRequestRetailerOrderNumber($requestData)
     {
         if (isset($requestData->retailer_order_number)) {
