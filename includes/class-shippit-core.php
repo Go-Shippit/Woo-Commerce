@@ -371,7 +371,7 @@ class Mamis_Shippit_Core
     {
         $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
-        if ($isEnabled) {
+        if ($isEnabled == 'yes') {
             $webhookUrl = sprintf(
                 '%s/shippit/shipment_create?shippit_api_key=%s',
                 get_site_url(),
