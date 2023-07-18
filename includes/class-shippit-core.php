@@ -125,7 +125,10 @@ class Mamis_Shippit_Core
         // Validate the api key when the setting is changed, the api key
         // is validated before it is saved to the database, this also
         // enables preventing storage of incorrect api credentials
-        add_action('pre_update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
+        add_action('pre_update_option_wc_settings_shippit_api_key', array($this, 'before_api_key_update'), 10, 2);
+
+        // Action for when the api key gets updated successfully
+        add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
         add_action('update_option_wc_settings_shippit_fulfillment_enabled', array($this, 'after_fulfillment_enabled_update'), 10, 2);
 
 
@@ -321,46 +324,45 @@ class Mamis_Shippit_Core
         $validateApiKey = $this->validate_apikey($apiKey, $newEnvironment);
 
         if ($validateApiKey == false) {
-            return;
+            return null;
         }
-
-        $this->show_environment_notice($validateApiKey);
 
         return $environment;
     }
 
+    public function before_api_key_update($newApiKey, $oldApiKey)
+    {
+        // Retrieve the environment setting from the POST request,
+        // as this may not yet be saved if it was changed in the same request
+        $environment = $_POST['wc_settings_shippit_environment'];
+
+        $isValidApiKey = $this->validate_apikey($newApiKey, $environment);
+
+        // Return null since we do not want to save the incorrect api key
+        // for the currently chosen environnment
+        if ($isValidApiKey == false) {
+            $this->show_api_notice($isValidApiKey);
+
+            return null;
+        }
+
+        $this->show_api_notice($isValidApiKey);
+
+        return $newApiKey;
+    }
+
     public function after_api_key_update($newApiKey, $oldApiKey)
     {
-        $GLOBALS['SHIPPIT_API_KEY_UPDATED'] = true;
-
         // Retrieve the environment setting from the POST request,
         // as this may not yet be saved if it was changed in the same request
         $environment = $_POST['wc_settings_shippit_environment'];
         $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'];
 
-        $isValidApiKey = $this->validate_apikey($newApiKey, $environment);
-
-        $this->show_api_notice($isValidApiKey);
-
-        if ($isValidApiKey == false) {
-            return null;
-        }
-
-        $registerWebhookResult = $this->update_merchant($isFulfillmentEnabled, $newApiKey, $environment);
-
-        $this->show_webhook_notice($registerWebhookResult);
-
-        return $newApiKey;
+        $this->update_merchant($isFulfillmentEnabled, $newApiKey, $environment);
     }
 
     public function after_fulfillment_enabled_update($oldFulfillmentEnabled, $newFulfillmentEnabled)
     {
-        // If the api key was updated in this request, return early
-        // as we don't need to update the webhook again
-        if (isset($GLOBALS['SHIPPIT_API_KEY_UPDATED'])) {
-            return;
-        }
-
         // Retrieve the environment setting from the POST request,
         // as this may not yet be saved if it was changed in the same request
         $apiKey = $_POST['wc_settings_shippit_api_key'];
@@ -369,10 +371,10 @@ class Mamis_Shippit_Core
 
         $isValidApiKey = $this->validate_apikey($apiKey, $environment);
 
-        $this->show_webhook_notice($isValidApiKey);
-
         if ($isValidApiKey == false) {
             // Trigger a failed webhook notice
+            $this->show_webhook_notice($isValidApiKey);
+
             return;
         }
 
@@ -522,26 +524,12 @@ class Mamis_Shippit_Core
     {
         if (!$isValid) {
             echo '<div class="error notice">'
-                . '<p>An invalid Shippit API key has been detected, please check the api key and environment and try again.</p>'
+                . '<p>The Shippit API Key and Environment provided could not be verified. Please check the Shippit API key and Enviroment values and try again.</p>'
                 . '</div>';
         }
         else {
             echo '<div class="updated notice">'
                 . '<p>Your Shippit API Key has been validated and is correct</p>'
-                . '</div>';
-        }
-    }
-
-    public function show_environment_notice($isValid)
-    {
-        if (!$isValid) {
-            echo '<div class="error notice">'
-                . '<p>Shippit Environment is invalid, please check the api key and the environment value and try again.</p>'
-                . '</div>';
-        }
-        else {
-            echo '<div class="updated notice">'
-                . '<p>Shippit Environment has been updated</p>'
                 . '</div>';
         }
     }
