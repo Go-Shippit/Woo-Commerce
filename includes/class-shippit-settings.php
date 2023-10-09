@@ -412,16 +412,10 @@ class Mamis_Shippit_Settings
      */
     public static function getShippingMethodOptions()
     {
-        // If we have a WooCommerce installation
-        // with Shipping Zones Support
-        if (class_exists('WC_Shipping_Zones')) {
-            $shippingMethodsWithZones = self::getShippingMethodsWithZones();
-            $shippingMethodsWithoutZones = self::getShippingMethodsWithoutZones();
+        $shippingMethodsWithZones = self::getShippingMethodsWithZones();
+        $shippingMethodsWithoutZones = self::getShippingMethodsWithoutZones();
 
-            $shippingMethodsOptions = array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
-        }
-
-        return $shippingMethodsOptions;
+        return array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
     }
 
     /**
