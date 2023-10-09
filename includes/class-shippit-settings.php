@@ -420,10 +420,6 @@ class Mamis_Shippit_Settings
 
             $shippingMethodsOptions = array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
         }
-        // Otherwise, fallback to legacy methods only display
-        else {
-            $shippingMethodsOptions = self::getShippingMethodsLegacy();
-        }
 
         return $shippingMethodsOptions;
     }
@@ -481,33 +477,6 @@ class Mamis_Shippit_Settings
 
             $shippingMethodOptions[$shippingMethodKey] = sprintf(
                 'Default Zone - %s',
-                $shippingMethodLabel
-            );
-        }
-
-        return $shippingMethodOptions;
-    }
-
-    /**
-     * Get the shipping method options using the legacy functionality
-     *
-     * @return array
-     */
-    protected static function getShippingMethodsLegacy()
-    {
-        $shippingMethodOptions = array();
-        $shippingMethods = WC()->shipping()->get_shipping_methods();
-
-        foreach ($shippingMethods as $shippingMethod) {
-            if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
-                continue;
-            }
-
-            $shippingMethodKey = $shippingMethod->id;
-            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
-
-            $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                '%s',
                 $shippingMethodLabel
             );
         }

@@ -69,11 +69,9 @@ function init_shippit_method()
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');
-    include_once('includes/class-shippit-method-legacy.php');
 
     // add shipping methods
     add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method', 'add_shipping_method'));
-    add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method_Legacy', 'add_shipping_method'));
 }
 
 // add shipping method class

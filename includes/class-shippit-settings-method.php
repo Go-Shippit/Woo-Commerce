@@ -94,39 +94,6 @@ class Mamis_Shippit_Settings_Method
            ),
         );
 
-        // Only show "filter enabled" and "filter_enabled_products"
-        // on the legacy shipping method class
-        //
-        // Also enables merchants to avoid this functionality if they have
-        // larger stores by setting the "SHIPPIT_DISABLE_PRODUCT_FILTER" constant
-        // to false
-        //
-        // @Depreciated: this functionality is due to be removed in 2018 Q1;
-        if ($isFilterByProductsAvailable) {
-            $fields['filter_enabled'] = array(
-                'title' => __('Filter by enabled products', 'woocommerce-shippit'),
-                'description' => __('Filter products that are enabled for quoting by shippit', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'no',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-               ),
-            );
-
-            $fields['filter_enabled_products'] = array(
-                'title' => __('Enabled Products', 'woocommerce-shippit'),
-                'description' => __('The products enabled for quoting by Shippit', 'woocommerce-shippit'),
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => '',
-                'type' => 'multiselect',
-                'options' => $this->_getProducts(),
-            );
-        }
-
         $fields['filter_attribute'] = array(
             'title' => __('Filter by product attributes', 'woocommerce-shippit'),
             'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
