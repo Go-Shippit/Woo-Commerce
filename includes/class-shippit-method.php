@@ -62,8 +62,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->title                   = $this->get_option('title');
         $this->allowed_methods         = $this->get_option('allowed_methods');
         $this->max_timeslots           = $this->get_option('max_timeslots');
-        $this->filter_enabled          = 'no'; // depreciated
-        $this->filter_enabled_products = array(); // depreciated
         $this->filter_attribute        = $this->get_option('filter_attribute');
         $this->filter_attribute_code   = $this->get_option('filter_attribute_code');
         $this->filter_attribute_value  = $this->get_option('filter_attribute_value');
@@ -390,51 +388,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quotePrice = max(0, $quotePrice);
 
         return $quotePrice;
-    }
-
-    /**
-     * Checks if we can ship the products in the cart
-     *
-     * @depreciated - this functionality is only available on
-     * the legacy shipping method - it will be removed in Q1 2018
-     */
-    private function _canShipEnabledProducts($package)
-    {
-        if ($this->filter_enabled == 'no') {
-            return true;
-        }
-
-        if ($this->filter_enabled_products == null) {
-            return false;
-        }
-
-        $allowedProducts = $this->filter_enabled_products;
-
-        $products = $package['contents'];
-        $productIds = array();
-
-        foreach ($products as $itemKey => $product) {
-            $productIds[] = $product['product_id'];
-        }
-
-        if (!empty($allowedProducts)) {
-            // If item is not enabled return false
-            if ($productIds != array_intersect($productIds, $allowedProducts)) {
-                $this->log->add(
-                    'Can Ship Enabled Products',
-                    'Returning false'
-                );
-
-                return false;
-            }
-        }
-
-        $this->log->add(
-            'Can Ship Enabled Products',
-            'Returning true'
-        );
-
-        return true;
     }
 
     private function _canShipEnabledAttributes($package)
