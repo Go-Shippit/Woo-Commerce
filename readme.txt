@@ -62,6 +62,14 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
+= 1.10.0-alpha =
+
+- Changes
+-- We now require least PHP v7.0, matching the minimum requirements specified by WooCommerce v6
+
+- Removed
+-- Removed support for legacy versions of Wordpress & WooCommerce
+
 = 1.9.0 =
 
 - Added
