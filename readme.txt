@@ -2,10 +2,10 @@
 Contributors: matthewmuscat
 Donate link: NA
 Tags: shipping, australia post, couriers please, aramex
-Requires at least: 3.0.0
-Tested up to: 6.2.2
+Requires at least: 4.0.0
+Tested up to: 6.3.1
 Stable tag: stable
-Requires PHP: 5.4
+Requires PHP: 7.0
 License: Shippit Commercial Licence
 License URI: https://www.shippit.com/terms-of-service
 
