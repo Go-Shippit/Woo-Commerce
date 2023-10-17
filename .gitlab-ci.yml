@@ -9,7 +9,9 @@ stages:
 php-lint:
   extends: .php-lint
   stage: lint
-  image: registry.mamis.com.au/mamis/containers/php/build:${PHP_VERSION}
+  image:
+    name: registry.mamis.com.au/mamis/containers/php/build:${PHP_VERSION}
+    entrypoint: ["/docker-entrypoint.sh"]
   parallel:
     matrix:
       - PHP_VERSION:
@@ -28,7 +30,8 @@ php-lint:
 php-phpcs:
   stage: lint
   image:
-    name: registry.mamis.com.au/mamis/containers/php/build:8.1
+    name: registry.mamis.com.au/mamis/containers/php/build:8.2
+    entrypoint: ["/docker-entrypoint.sh"]
   before_script:
     - composer require --quiet --no-interaction squizlabs/php_codesniffer
     - php --version
