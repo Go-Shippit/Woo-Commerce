@@ -290,14 +290,7 @@ class Mamis_Shippit_Order
 
         // $shippingMethodId = $this->getShippingMethodId($order);
 
-        // if WooCommerce version is equal or less than 2.6 then use
-        // different data mapper for it
-        if (version_compare($this->woocommerce->version, '2.6.0', '<=')) {
-            $orderData = (new Mamis_Shippit_Data_Mapper_Order_V26())->__invoke($order)->toArray();
-        }
-        else {
-            $orderData = (new Mamis_Shippit_Data_Mapper_Order())->__invoke($order)->toArray();
-        }
+        $orderData = (new Mamis_Shippit_Data_Mapper_Order())->__invoke($order)->toArray();
 
         // If there are no order items, return early
         if (count($orderItems) == 0) {

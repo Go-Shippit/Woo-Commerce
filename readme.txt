@@ -2,10 +2,10 @@
 Contributors: matthewmuscat
 Donate link: NA
 Tags: shipping, australia post, couriers please, aramex
-Requires at least: 3.0.0
-Tested up to: 6.2.2
+Requires at least: 4.0.0
+Tested up to: 6.3.1
 Stable tag: stable
-Requires PHP: 5.4
+Requires PHP: 7.0
 License: Shippit Commercial Licence
 License URI: https://www.shippit.com/terms-of-service
 
@@ -61,6 +61,14 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 3. You and your customers can track their deliveries simply, elegantly and easily
 
 == Changelog ==
+
+= 1.10.0-alpha =
+
+- Changes
+-- We now require least PHP v7.0, matching the minimum requirements specified by WooCommerce v6
+
+- Removed
+-- Removed support for legacy versions of Wordpress & WooCommerce
 
 = 1.9.0 =
 
