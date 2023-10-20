@@ -105,11 +105,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $quoteDestination = $package['destination'];
         $quoteCart = $package['contents'];
 
-        // Check if we can ship the products by enabled filtering
-        if (!$this->_canShipEnabledProducts($package)) {
-            return;
-        }
-
         // Check if we can ship the products by attribute filtering
         if (!$this->_canShipEnabledAttributes($package)) {
             return;
