@@ -112,8 +112,9 @@ class Mamis_Shippit_Settings_Method
         );
 
         $fields['margin'] = array(
+            'id' => 'woocommerce_mamis_shippit_margin',
             'title' => __('Margin'),
-            'class' => 'wc-enhanced-select',
+            'class' => 'wc-enhanced-select shippit-margin',
             'default' => 'no',
             'description' => __('Add a margin to the quoted shipping amounts', 'woocommerce-shippit'),
             'desc_tip' => true,
@@ -126,7 +127,9 @@ class Mamis_Shippit_Settings_Method
         );
 
         $fields['margin_amount'] = array(
+            'id' => 'woocommerce_mamis_shippit_margin_amount',
             'title' => __('Margin Amount', 'woocommerce-shippit'),
+            'class' => 'shippit-margin-amount',
             'description' => __('Please enter a margin amount, in either a whole dollar amount (ie: 5.50) or a percentage amount (ie: 5)', 'woocommerce-shippit'),
             'desc_tip' => true,
             'default' => '',
