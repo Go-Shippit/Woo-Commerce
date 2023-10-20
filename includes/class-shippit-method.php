@@ -55,10 +55,6 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function init()
     {
         // Initiate instance settings as class variables
-
-        // Use property "quote_enabled", as "enabled" is used by the parent method
-        $this->quote_enabled           = $this->get_option('enabled');
-
         $this->title                   = $this->get_option('title');
         $this->allowed_methods         = $this->get_option('allowed_methods');
         $this->max_timeslots           = $this->get_option('max_timeslots');
@@ -97,7 +93,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     {
         // Check if the module is enabled and used for shipping quotes
         if (get_option('wc_settings_shippit_enabled') != 'yes'
-            || $this->quote_enabled != 'yes') {
+            || $this->isLiveQuotesEnabled() != true) {
             return;
         }
 
@@ -432,5 +428,28 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         );
 
         return true;
+    }
+
+    /**
+     * Checks if the Shippit Live Quote method is enabled
+     *
+     * @return boolean
+     */
+    private function isLiveQuotesEnabled(): bool
+    {
+        $zones = WC_Shipping_Zones::get_zones();
+
+        foreach ($zones as $zone) {
+            $shippingMethods = $zone['shipping_methods'];
+
+            foreach ($shippingMethods as $shippingMethod) {
+                if ($shippingMethod->id != 'mamis_shippit') {
+                    continue;
+                }
+
+                return $shippingMethod->id = 'mamis_shippit'
+                    && $shippingMethod->enabled == 'yes';
+            }
+        }
     }
 }
