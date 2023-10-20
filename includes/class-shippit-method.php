@@ -33,8 +33,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->id                   = 'mamis_shippit';
         $this->instance_id          = absint($instance_id);
         $this->instance_form_fields = $settings->getFields();
-        $this->title                = __('Shippit', 'woocommerce-shippit');
-        $this->method_title         = __('Shippit', 'woocommerce-shippit');
+        $this->title                = __('Shippit Live Quotes', 'woocommerce-shippit');
+        $this->method_title         = __('Shippit Live Quotes', 'woocommerce-shippit');
         $this->method_description   = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
         $this->supports              = array(
             'shipping-zones',

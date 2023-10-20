@@ -24,24 +24,10 @@ class Mamis_Shippit_Settings_Method
      */
     public function getFields($isFilterByProductsAvailable = false)
     {
-        $fields['enabled'] = array(
-            'id' => 'wc_settings_shippit_enabled',
-            'title' => __('Enabled', 'woocommerce-shippit'),
-            'desc'     => 'Utilise this shipping method for live quoting.',
-            'desc_tip' => true,
-            'class' => 'wc-enhanced-select',
-            'default' => 'no',
-            'type' => 'select',
-            'options' => array(
-                'no' => __('No', 'woocommerce-shippit'),
-                'yes' => __('Yes', 'woocommerce-shippit'),
-            ),
-        );
-
         $fields['title'] = array(
             'title' => __('Title', 'woocommerce-shippit'),
             'type' => 'text',
-            'default' => 'Shippit',
+            'default' => 'Shippit Live Quotes',
         );
 
         $fields['allowed_methods'] = array(
@@ -95,7 +81,7 @@ class Mamis_Shippit_Settings_Method
         );
 
         $fields['filter_attribute'] = array(
-            'title' => __('Filter by product attributes', 'woocommerce-shippit'),
+            'title' => __('Product attributes', 'woocommerce-shippit'),
             'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
             'desc_tip' => true,
             'class' => 'wc-enhanced-select',
@@ -108,7 +94,7 @@ class Mamis_Shippit_Settings_Method
         );
 
         $fields['filter_attribute_code'] = array(
-            'title' => __('Filter by attribute code', 'woocommerce-shippit'),
+            'title' => __('Attribute code', 'woocommerce-shippit'),
             'description' => __('The product attribute code', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'select',
@@ -118,7 +104,7 @@ class Mamis_Shippit_Settings_Method
         );
 
         $fields['filter_attribute_value'] = array(
-            'title' => __('Filter by attribute value', 'woocommerce-shippit'),
+            'title' => __('Attribute value', 'woocommerce-shippit'),
             'description' => __('The product attribute value', 'woocommerce-shippit'),
             'desc_tip' => true,
             'default' => '',
