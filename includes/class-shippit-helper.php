@@ -1,18 +1,10 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
- */
+* Mamis - https://www.mamis.com.au
+* Copyright © Mamis 2023-present. All rights reserved.
+* See https://www.mamis.com.au/license
+*/
 
 class Mamis_Shippit_Helper
 {
@@ -25,7 +17,7 @@ class Mamis_Shippit_Helper
      * @param  string $unit      The unit to be converted to
      * @return float             The converted dimension
      */
-    public function convertDimension($dimension, $unit = 'm')
+    public function convertDimension($dimension, $unit = 'm'): float
     {
         $dimensionCurrentUnit = get_option('woocommerce_dimension_unit');
         $dimensionCurrentUnit = strtolower($dimensionCurrentUnit);
@@ -59,7 +51,7 @@ class Mamis_Shippit_Helper
             }
         }
 
-        return $dimension;
+        return (float) $dimension;
     }
 
     /**
@@ -71,7 +63,7 @@ class Mamis_Shippit_Helper
      * @param  string $unit      The unit to be converted to
      * @return float             The converted weight
      */
-    public function convertWeight($weight, $unit = 'kg')
+    public function convertWeight($weight, $unit = 'kg'): float
     {
         $weightCurrentUnit = get_option('woocommerce_weight_unit');
         $weightCurrentUnit = strtolower($weightCurrentUnit);
@@ -105,17 +97,22 @@ class Mamis_Shippit_Helper
             }
         }
 
-        return $weight;
+        return (float) $weight;
     }
 
-    public function isShippitLiveQuote($order)
+    /**
+     * Determines if the order uses a Shippit Live quote shipping method
+     *
+     * @param WC_Order $order
+     * @return boolean
+     */
+    public function isShippitLiveQuote(WC_Order $order): bool
     {
         $shippingMethods = $order->get_shipping_methods();
 
         foreach ($shippingMethods as $shippingMethod) {
-            // @TODO: use get_method_id() check if still works on v3.6
             // If the method is a shippit live quote, return the title of the method
-            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
+            if ($shippingMethod->get_method_id() === 'mamis_shipit') {
                 return true;
             }
         }
@@ -123,23 +120,32 @@ class Mamis_Shippit_Helper
         return false;
     }
 
-    public function getShippitLiveQuoteDetail($order, $detail)
+    /**
+     * Retrieves the metadata attached to the live quote if it's a Shippit live quote
+     *
+     * @param WC_Order $order
+     * @param string $metaAttribute
+     * @return string|null|void
+     */
+    public function getShippitLiveQuoteMetaAttributeValue(WC_Order $order, $metaAttribute)
     {
         $shippingMethods = $order->get_shipping_methods();
 
         foreach ($shippingMethods as $shippingMethod) {
             // If the method is a shippit live quote, return the title of the method
-            if (stripos($shippingMethod['method_id'], 'mamis_shippit') !== FALSE) {
-                // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
-                //$metaDataItem = $shippingMethod->get_meta($detail);
-                $metaDataItem = $shippingMethod[$detail];
-
-                return $metaDataItem;
+            if ($shippingMethod->get_method_id() === 'mamis_shipit') {
+                return $shippingMethod->get_meta($metaAttribute);
             }
         }
     }
 
-    public function getMappedShippingMethod($order)
+    /**
+     * Retrieve the mapped shipping method for the order
+     *
+     * @param WC_Order $order
+     * @return string|false
+     */
+    public function getMappedShippingMethod(WC_Order $order)
     {
         $shippingMethods = $order->get_shipping_methods();
         $mappingsStandard = get_option('wc_settings_shippit_standard_shipping_methods', array());
@@ -179,7 +185,13 @@ class Mamis_Shippit_Helper
         return false;
     }
 
-    protected function getShippingMethodId($shippingMethod)
+    /**
+     * Retrieve the Shipping Method Id for a shipping method
+     *
+     * @param WC_Shipping_Method $shippingMethod
+     * @return string
+     */
+    protected function getShippingMethodId(WC_Shipping_Method $shippingMethod): string
     {
         // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
         // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit

@@ -1,53 +1,44 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Settings_Method
 {
     /**
-     * Init fields.
+     * Initialize the fields for the Shipping Method settings
      *
-     * Add fields to the Shippit settings page.
-     *
+     * @return array
      */
-    public function getFields($isFilterByProductsAvailable = false)
+    public function getFields()
     {
-        $fields['title'] = array(
+        $fields['title'] = [
             'title' => __('Title', 'woocommerce-shippit'),
             'type' => 'text',
-            'default' => 'Shippit Live Quotes',
-        );
+            'default' => 'Shippit',
+        ];
 
-        $fields['allowed_methods'] = array(
+        $fields['allowed_methods'] = [
             'title' => __('Allowed Methods', 'woocommerce-shippit'),
             'id' => 'allowed_methods',
             'class' => 'wc-enhanced-select',
             'type' => 'multiselect',
-            'default' => array(
+            'default' => [
                 'standard',
                 'express',
                 'priority'
-            ),
-            'options' => array(
+            ],
+            'options' => [
                 'standard' => __('Standard', 'woocommerce-shippit'),
                 'express' => __('Express', 'woocommerce-shippit'),
                 'priority' => __('Priority', 'woocommerce-shippit'),
-            )
-        );
+            ],
+        ];
 
-        $fields['max_timeslots'] = array(
+        $fields['max_timeslots'] = [
             'title' => __('Maximum Timeslots', 'woocommerce-shippit'),
             'description' => __('The maximum amount of timeslots to display', 'woocommerce-shippit'),
             'desc_tip' => true,
@@ -55,7 +46,7 @@ class Mamis_Shippit_Settings_Method
             'class' => 'wc-enhanced-select',
             'default' => '',
             'type' => 'select',
-            'options' => array(
+            'options' => [
                 '' => __('-- No Max Timeslots --', 'woocommerce-shippit'),
                 '1' => __('1 Timeslots', 'woocommerce-shippit'),
                 '2' => __('2 Timeslots', 'woocommerce-shippit'),
@@ -77,41 +68,41 @@ class Mamis_Shippit_Settings_Method
                 '18' => __('18 Timeslots', 'woocommerce-shippit'),
                 '19' => __('19 Timeslots', 'woocommerce-shippit'),
                 '20' => __('20 Timeslots', 'woocommerce-shippit'),
-           ),
-        );
+            ],
+        ];
 
-        $fields['filter_attribute'] = array(
+        $fields['filter_attribute'] = [
             'title' => __('Product attributes', 'woocommerce-shippit'),
             'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
             'desc_tip' => true,
             'class' => 'wc-enhanced-select',
             'default' => 'no',
             'type' => 'select',
-            'options' => array(
+            'options' => [
                 'no' => __('No', 'woocommerce-shippit'),
                 'yes' => __('Yes', 'woocommerce-shippit'),
-           ),
-        );
+            ],
+        ];
 
-        $fields['filter_attribute_code'] = array(
+        $fields['filter_attribute_code'] = [
             'title' => __('Attribute code', 'woocommerce-shippit'),
             'description' => __('The product attribute code', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'select',
             'class' => 'wc-enhanced-select',
             'default' => '',
-            'options' => $this->_getAttributes(),
-        );
+            'options' => wc_get_attribute_taxonomy_labels(),
+        ];
 
-        $fields['filter_attribute_value'] = array(
+        $fields['filter_attribute_value'] = [
             'title' => __('Attribute value', 'woocommerce-shippit'),
             'description' => __('The product attribute value', 'woocommerce-shippit'),
             'desc_tip' => true,
             'default' => '',
             'type' => 'text',
-        );
+        ];
 
-        $fields['margin'] = array(
+        $fields['margin'] = [
             'id' => 'woocommerce_mamis_shippit_margin',
             'title' => __('Margin'),
             'class' => 'wc-enhanced-select shippit-margin',
@@ -119,14 +110,14 @@ class Mamis_Shippit_Settings_Method
             'description' => __('Add a margin to the quoted shipping amounts', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'select',
-            'options' => array(
+            'options' => [
                 'no' => __('No', 'woocommerce-shippit'),
                 'yes-percentage' => __('Yes - Percentage', 'woocommerce-shippit'),
                 'yes-fixed' => __('Yes - Fixed Dollar Amount', 'woocommerce-shippit'),
-           ),
-        );
+            ],
+        ];
 
-        $fields['margin_amount'] = array(
+        $fields['margin_amount'] = [
             'id' => 'woocommerce_mamis_shippit_margin_amount',
             'title' => __('Margin Amount', 'woocommerce-shippit'),
             'class' => 'shippit-margin-amount',
@@ -134,44 +125,8 @@ class Mamis_Shippit_Settings_Method
             'desc_tip' => true,
             'default' => '',
             'type' => 'text',
-        );
+        ];
 
         return $fields;
-    }
-
-    /**
-     * Get products with id/name for a multiselect
-     *
-     * @return array     An associative array of product ids and name
-     */
-    private function _getProducts()
-    {
-        $productArgs = array(
-            'post_type' => 'product',
-            'posts_per_page' => -1
-        );
-
-        $products = get_posts($productArgs);
-
-        $productOptions = array();
-
-        foreach ($products as $product) {
-            $productOptions[$product->ID] = __($product->post_title, 'woocommerce-shippit');
-        }
-
-        return $productOptions;
-    }
-
-    public function _getAttributes()
-    {
-        $productAttributes = array();
-
-        $attributeTaxonomies = wc_get_attribute_taxonomies();
-
-        foreach ($attributeTaxonomies as $tax) {
-            $productAttributes[$tax->attribute_name] = __($tax->attribute_name, 'woocommerce-shippit');
-        }
-
-        return $productAttributes;
     }
 }

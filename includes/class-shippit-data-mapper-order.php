@@ -1,17 +1,9 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
@@ -130,7 +122,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
     public function mapCourierAllocation()
     {
         if ($this->helper->isShippitLiveQuote($this->order)) {
-            $courierAllocation = $this->helper->getShippitLiveQuoteDetail($this->order, 'courier_allocation');
+            $courierAllocation = $this->helper->getShippitLiveQuoteMetaAttributeValue($this->order, 'courier_allocation');
 
             return $this->setCourierAllocation($courierAllocation);
         }
@@ -151,7 +143,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
             return $this;
         }
 
-        $deliveryDate = $this->helper->getShippitLiveQuoteDetail($this->order, 'delivery_date');
+        $deliveryDate = $this->helper->getShippitLiveQuoteMetaAttributeValue($this->order, 'delivery_date');
 
         if (empty($deliveryDate)) {
             return $this;
@@ -167,7 +159,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
             return $this;
         }
 
-        $deliveryWindow = $this->helper->getShippitLiveQuoteDetail($this->order, 'delivery_window');
+        $deliveryWindow = $this->helper->getShippitLiveQuoteMetaAttributeValue($this->order, 'delivery_window');
 
         if (empty($deliveryWindow)) {
             return $this;
@@ -236,7 +228,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
 
     public function mapAuthorityToLeave()
     {
-        $authorityToLeaveData = get_post_meta($this->order->get_id(), 'authority_to_leave', true);
+        $authorityToLeaveData = $this->order->get_meta('authority_to_leave', true);
 
         if (in_array(strtolower($authorityToLeaveData), ['yes', 'y', 'true', 'atl'])) {
             return $this->setAuthorityToLeave('Yes');

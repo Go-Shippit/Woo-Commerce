@@ -2,15 +2,15 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 1.10.0-alpha
+ * Version:                 2.0.0-alpha
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
  * WC requires at least:    6.0.0
- * WC Tested Up To:         8.1.1
+ * WC Tested Up To:         8.2.1
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.10.0');
+define('MAMIS_SHIPPIT_VERSION', '2.0.0');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
@@ -25,6 +25,7 @@ function init_shippit_core()
     $upgrade->run();
 
     // import helper classes
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
@@ -45,6 +46,20 @@ function init_shippit_core()
     );
 }
 
+// Declare copmatability with HPOS
+add_action(
+    'before_woocommerce_init',
+    function() {
+        if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+                'custom_order_tables',
+                __FILE__,
+                true
+            );
+        }
+    }
+);
+
 // add shippit core functionality
 add_action('woocommerce_init', 'init_shippit_core', 99999);
 
@@ -64,6 +79,7 @@ function register_shippit_script()
 
 function init_shippit_method()
 {
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');

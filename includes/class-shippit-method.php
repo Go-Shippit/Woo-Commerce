@@ -1,48 +1,91 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
- */
+* Mamis - https://www.mamis.com.au
+* Copyright © Mamis 2023-present. All rights reserved.
+* See https://www.mamis.com.au/license
+*/
 
 class Mamis_Shippit_Method extends WC_Shipping_Method
 {
+    /**
+     * @var Mamis_Shippit_Api
+     */
     protected $api;
+
+    /**
+     * @var Mamis_Shippit_Helper
+     */
     protected $helper;
+
+    /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
+     * @var array
+     */
+    protected $allowed_methods;
+
+    /**
+     * @var array
+     */
+    protected $max_timeslots;
+
+    /**
+     * @var string|null
+     */
+    protected $quote_enabled;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute_code;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute_value;
+
+    /**
+     * @var string|null
+     */
+    protected $margin;
+
+    /**
+     * @var string|null
+     */
+    protected $margin_amount;
 
     /**
      * Constructor.
      */
-    public function __construct($instance_id = 0)
+    public function __construct(int $instance_id = 0)
     {
-        $this->api = new Mamis_Shippit_Api();
-        $this->log = new Mamis_Shippit_Log();
-        $this->helper = new Mamis_Shippit_Helper();
-
-        $settings = new Mamis_Shippit_Settings_Method();
-
-        $this->id                   = 'mamis_shippit';
-        $this->instance_id          = absint($instance_id);
-        $this->instance_form_fields = $settings->getFields();
-        $this->title                = __('Shippit Live Quotes', 'woocommerce-shippit');
-        $this->method_title         = __('Shippit Live Quotes', 'woocommerce-shippit');
-        $this->method_description   = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
-        $this->supports              = array(
+        $this->supports = [
             'shipping-zones',
             'instance-settings',
-            // Disable instance modal settings due to array not saving correctly
-            // https://github.com/bobbingwide/woocommerce/commit/1e8d9d4c95f519df090e3ec94d8ea08eb8656c9f
-            // 'instance-settings-modal',
-        );
+            'instance-settings-modal',
+        ];
+
+        $this->id = 'mamis_shippit';
+        $this->title = __('Shippit', 'woocommerce-shippit');
+        $this->method_title = __('Shippit', 'woocommerce-shippit');
+        $this->method_description = __('Have Shippit provide you with live quotes directly from the carriers. Simply enable live quoting and set your preferences to begin.');
+
+        $settings = new Mamis_Shippit_Settings_Method();
+        $this->instance_id = absint($instance_id);
+        $this->instance_form_fields = $settings->getFields();
+
+        $this->api = new Mamis_Shippit_Api();
+        $this->log = new Mamis_Shippit_Log(['area' => 'live-quote']);
+        $this->helper = new Mamis_Shippit_Helper();
 
         $this->init();
     }
@@ -100,8 +143,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function calculate_shipping($package = array())
     {
         // Check if the module is enabled and used for shipping quotes
-        if (get_option('wc_settings_shippit_enabled') != 'yes'
-            || $this->isLiveQuotesEnabled() != true) {
+        if (get_option('wc_settings_shippit_enabled') != 'yes') {
             return;
         }
 
@@ -111,68 +153,24 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
 
         $quoteDestination = $package['destination'];
-        $quoteCart = $package['contents'];
+        $quoteContents = $package['contents'];
 
         // Check if we can ship the products by attribute filtering
-        if (!$this->_canShipEnabledAttributes($package)) {
+        if ($this->canShipEnabledAttributes($quoteContents) === false) {
             return;
         }
 
-        $this->_processShippingQuotes($quoteDestination, $quoteCart);
+        $this->fetchQuotes($quoteDestination, $quoteContents);
     }
 
-    private function getParcelAttributes($items)
-    {
-        $itemDetails = array();
-
-        foreach ($items as $cartItemId => $item) {
-            $itemDetail = array();
-
-            // If product is variation, load variation ID
-            if ($item['variation_id']) {
-                $cartItem = wc_get_product($item['variation_id']);
-            }
-            else {
-                $cartItem = wc_get_product($item['product_id']);
-            }
-
-            $itemWeight = $cartItem->get_weight();
-            $itemHeight = $cartItem->get_height();
-            $itemLength = $cartItem->get_length();
-            $itemWidth = $cartItem->get_width();
-
-            $itemDetail['qty'] = $item['quantity'];
-
-            if (!empty($itemWeight)) {
-                $itemDetail['weight'] = $this->helper->convertWeight($itemWeight);
-            }
-            else {
-                // stub weight to 0.2kg
-                $itemDetail['weight'] = 0.2;
-            }
-
-            if (!defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
-                || !SHIPPIT_IGNORE_ITEM_DIMENSIONS) {
-                if (!empty($itemHeight)) {
-                    $itemDetail['depth'] = $this->helper->convertDimension($itemHeight);
-                }
-
-                if (!empty($itemLength)) {
-                    $itemDetail['length'] = $this->helper->convertDimension($itemLength);
-                }
-
-                if (!empty($itemWidth)) {
-                    $itemDetail['width'] = $this->helper->convertDimension($itemWidth);
-                }
-            }
-
-            $itemDetails[] = $itemDetail;
-        }
-
-        return $itemDetails;
-    }
-
-    private function _processShippingQuotes($quoteDestination, $quoteCart)
+    /**
+     * Perform a request for a shipping quotes based on the destination + contents provided
+     *
+     * @param array $quoteDestination
+     * @param array $quoteContents
+     * @return void
+     */
+    protected function fetchQuotes($quoteDestination, $quoteContents)
     {
         $isPriorityAvailable = in_array('priority', $this->allowed_methods);
         $isExpressAvailable = in_array('express', $this->allowed_methods);
@@ -182,28 +180,24 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $dropoffPostcode = $quoteDestination['postcode'];
         $dropoffState = $quoteDestination['state'];
         $dropoffCountryCode = $quoteDestination['country'];
-        $items = WC()->cart->get_cart();
 
         // Only make a live quote request if required fields are present
         if (empty($dropoffSuburb)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A suburb is required for a live quote'
             );
 
             return;
         }
         elseif (empty($dropoffPostcode)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A postcode is required for a live quote'
             );
 
             return;
         }
         elseif (empty($dropoffCountryCode)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A country is required for a live quote'
             );
 
@@ -217,7 +211,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
             'dropoff_country_code' => $dropoffCountryCode,
-            'parcel_attributes' => $this->getParcelAttributes($items)
+            'parcel_attributes' => $this->getParcelAttributes($quoteContents)
         );
 
         // @Workaround
@@ -238,19 +232,19 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                     switch ($shippingQuote->service_level) {
                         case 'priority':
                             if ($isPriorityAvailable) {
-                                $this->_addPriorityQuote($shippingQuote);
+                                $this->addPriorityQuote($shippingQuote);
                             }
 
                             break;
                         case 'express':
                             if ($isExpressAvailable) {
-                                $this->_addExpressQuote($shippingQuote);
+                                $this->addExpressQuote($shippingQuote);
                             }
 
                             break;
                         case 'standard':
                             if ($isStandardAvailable) {
-                                $this->_addStandardQuote($shippingQuote);
+                                $this->addStandardQuote($shippingQuote);
                             }
 
                             break;
@@ -264,12 +258,71 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     }
 
     /**
+     * Retrieve the parcel attributes from the quote contents
+     *
+     * @param array $quoteContents
+     * @return array
+     */
+    protected function getParcelAttributes($quoteContents)
+    {
+        $parcelAttributes = [];
+
+        foreach ($quoteContents as $quoteItem) {
+            $parcel = [];
+
+            // If product is variation, load variation ID
+            if ($quoteItem['variation_id']) {
+                $cartItem = wc_get_product($quoteItem['variation_id']);
+            }
+            else {
+                $cartItem = wc_get_product($quoteItem['product_id']);
+            }
+
+            $itemWeight = $cartItem->get_weight();
+            $itemHeight = $cartItem->get_height();
+            $itemLength = $cartItem->get_length();
+            $itemWidth = $cartItem->get_width();
+
+            $parcel['qty'] = $quoteItem['quantity'];
+
+            if (!empty($itemWeight)) {
+                $parcel['weight'] = $this->helper->convertWeight($itemWeight);
+            }
+            else {
+                // stub weight to 0.2kg
+                $parcel['weight'] = 0.2;
+            }
+
+            if (
+                !defined('SHIPPIT_IGNORE_ITEM_DIMENSIONS')
+                || !SHIPPIT_IGNORE_ITEM_DIMENSIONS
+            ) {
+                if (!empty($itemHeight)) {
+                    $parcel['depth'] = $this->helper->convertDimension($itemHeight);
+                }
+
+                if (!empty($itemLength)) {
+                    $parcel['length'] = $this->helper->convertDimension($itemLength);
+                }
+
+                if (!empty($itemWidth)) {
+                    $parcel['width'] = $this->helper->convertDimension($itemWidth);
+                }
+            }
+
+            $parcelAttributes[] = $parcel;
+        }
+
+        return $parcelAttributes;
+    }
+
+    /**
      * Get the dropoff address value for a quote
      *
      * @param array $quoteDestination
      * @return string|null
      */
-    private function getDropoffAddress($quoteDestination)
+    protected function getDropoffAddress($quoteDestination)
     {
         $addresses = [
             $quoteDestination['address'],
@@ -289,14 +342,20 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         return implode(', ', $addresses);
     }
 
-    private function _addStandardQuote($shippingQuote)
+    /**
+     * Add a standard quote rate(s) to the list of available shipping methods
+     *
+     * @param object $shippingQuote
+     * @return void
+     */
+    protected function addStandardQuote($shippingQuote)
     {
         foreach ($shippingQuote->quotes as $quote) {
-            $quotePrice = $this->_getQuotePrice($quote->price);
+            $quotePrice = $this->getQuotePrice($quote->price);
 
             $rate = array(
                 // unique id for each rate
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
+                'id' => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
                 'meta_data' => array(
@@ -309,13 +368,19 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
-    private function _addExpressQuote($shippingQuote)
+    /**
+     * Add a express quote rate(s) to the list of available shipping methods
+     *
+     * @param object $shippingQuote
+     * @return void
+     */
+    protected function addExpressQuote($shippingQuote)
     {
         foreach ($shippingQuote->quotes as $quote) {
-            $quotePrice = $this->_getQuotePrice($quote->price);
+            $quotePrice = $this->getQuotePrice($quote->price);
 
             $rate = array(
-                'id'    => 'Mamis_Shippit_' . $shippingQuote->service_level,
+                'id' => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
                 'meta_data' => array(
@@ -328,7 +393,13 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         }
     }
 
-    private function _addPriorityQuote($shippingQuote)
+    /**
+     * Add a priority quote rate(s) to the list of available shipping methods
+     *
+     * @param object $shippingQuote
+     * @return void
+     */
+    protected function addPriorityQuote($shippingQuote)
     {
         $timeSlotCount = 0;
 
@@ -340,10 +411,10 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             // Increase the timeslot count
             $timeSlotCount++;
 
-            $quotePrice = $this->_getQuotePrice($priorityQuote->price);
+            $quotePrice = $this->getQuotePrice($priorityQuote->price);
 
             $rate = array(
-                'id'    => sprintf(
+                'id' => sprintf(
                     'Mamis_Shippit_%s_%s_%s',
                     $shippingQuote->service_level,
                     $priorityQuote->delivery_date,
@@ -373,7 +444,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      * @return float             The quote amount, with margin
      *                           if applicable
      */
-    private function _getQuotePrice($quotePrice)
+    protected function getQuotePrice($quotePrice)
     {
         switch ($this->margin) {
             case 'yes-fixed':
@@ -389,9 +460,15 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         return $quotePrice;
     }
 
-    private function _canShipEnabledAttributes($package)
+    /**
+     * Determine if the quote package content contains items we can quote on
+     *
+     * @param array $package
+     * @return boolean
+     */
+    protected function canShipEnabledAttributes($products)
     {
-        if ($this->filter_attribute == 'no') {
+        if ($this->filter_attribute === 'no') {
             return true;
         }
 
@@ -409,25 +486,21 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             return true;
         }
 
-        $products = $package['contents'];
-
-        foreach ($products as $itemKey => $product) {
+        foreach ($products as $product) {
             $productObject = new WC_Product($product['product_id']);
             $productAttributeValue = $productObject->get_attribute($attributeCode);
 
             if (strpos($productAttributeValue, $attributeValue) === false) {
-                $this->log->add(
-                    'Can Ship Enabled Attributes',
-                    'Returning false'
+                $this->log->info(
+                    'A product in the cart does not match enabled filter attributes, skipping quoting'
                 );
 
                 return false;
             }
         }
 
-        $this->log->add(
-            'Can Ship Enabled Attributes',
-            'Returning true'
+        $this->log->debug(
+            'The products in the cart matches enabled filter attributes'
         );
 
         return true;

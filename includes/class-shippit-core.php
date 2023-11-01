@@ -35,6 +35,11 @@ class Mamis_Shippit_Core
     private static $instance;
 
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -48,8 +53,7 @@ class Mamis_Shippit_Core
             return;
         }
 
-        $this->s = new Mamis_Shippit_Settings();
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'core']);
 
         $this->init();
     }
@@ -87,10 +91,10 @@ class Mamis_Shippit_Core
         // *****************
 
         $order = new Mamis_Shippit_Order;
-        // If a new order is recieved, add pending sync
-        add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
+
         // If a order transitions into "processing", add pending sync
         add_action('woocommerce_order_status_processing', array($order, 'addPendingSync'));
+
         // If the order transition into "on-hold", remove pending sync
         add_action('woocommerce_order_status_on-hold', array($order, 'removePendingSync'));
 
@@ -107,16 +111,9 @@ class Mamis_Shippit_Core
         // Display the authority to leave on the orders edit page
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
-        function authority_to_leave_display_admin_order_meta($order)
+        function authority_to_leave_display_admin_order_meta(WC_Order $order)
         {
-            if (version_compare(WC()->version, '3.0.0') >= 0) {
-                $orderId = $order->get_id();
-            }
-            else {
-                $orderId = $order->id;
-            }
-
-            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $orderId, 'authority_to_leave', true ) . '</p>';
+            echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $order->get_meta('authority_to_leave') . '</p>';
         }
 
         // Add the shippit settings tab functionality
@@ -151,7 +148,7 @@ class Mamis_Shippit_Core
         add_action('bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
 
         // Process Shippit bulk orders send action
-        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendOrders'), 10, 3 );
 
         add_action('admin_notices', array($this, 'order_sync_notice') );
 
@@ -195,10 +192,16 @@ class Mamis_Shippit_Core
 
     /**
      * Render the Shippit Shipment Meta Box Content
+     *
+     * @param WP_Post $post
+     * @return void
      */
-    function mamis_add_shipment_meta_box_content($order)
+    function mamis_add_shipment_meta_box_content(WP_Post $post)
     {
-        $shipmentData = get_post_meta($order->ID, '_mamis_shippit_shipment', true);
+        // Retrieve the order using the Post ID
+        $order = new WC_Order($post->ID);
+
+        $shipmentData = $order->get_meta('_mamis_shippit_shipment', true);
         $count = count($shipmentData);
         $shipmentDetails = '';
         $i = 1;
@@ -366,7 +369,7 @@ class Mamis_Shippit_Core
      */
     private function update_webhook($isEnabled, $apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         if ($isEnabled) {
             $webhookUrl = sprintf(
@@ -383,28 +386,36 @@ class Mamis_Shippit_Core
             'webhook_url' => $webhookUrl
         );
 
-        $this->log->add(
-            'Webhook',
-            'Registering Webhook Url'
+        $this->log->info(
+            'Registering Webhook Url',
+            [
+                'webhook_url' => $webhookUrl,
+            ]
         );
 
         try {
-            $apiResponse = $this->api->putMerchant($requestData);
+            $apiResponse = $this->api->updateMerchant($requestData);
 
-            if ($apiResponse
+            if (
+                $apiResponse
                 && !property_exists($apiResponse, 'error')
-                && property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Webhook',
-                    'Webhook Registration Successful'
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info(
+                    'Webhook Registration Successful',
+                    [
+                        'webhook_url' => $webhookUrl,
+                    ]
                 );
 
                 return true;
             }
             else {
-                $this->log->add(
-                    'Webhook',
-                    'An error occurred while attempting to register the webhook'
+                $this->log->error(
+                    'An error occurred while attempting to register the webhook',
+                    [
+                        'webhook_url' => $webhookUrl,
+                    ]
                 );
 
                 return false;
@@ -426,16 +437,16 @@ class Mamis_Shippit_Core
      */
     private function register_shopping_cart_name($apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         $requestData = array(
             'shipping_cart_method_name' => 'woocommerce'
         );
 
-        $this->log->add('Registering shopping cart name', '', $requestData);
+        $this->log->info('Registering shopping cart name');
 
         try {
-            $apiResponse = $this->api->putMerchant($requestData);
+            $apiResponse = $this->api->updateMerchant($requestData);
 
             if (empty($apiResponse)
                 || property_exists($apiResponse, 'error')) {
@@ -458,25 +469,19 @@ class Mamis_Shippit_Core
      */
     private function validate_apikey($apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         try {
-            $apiResponse = $this->api->getMerchant();
+            $apiResponse = $apiService->getMerchant();
 
             if (property_exists($apiResponse, 'error')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is INVALID'
-                );
+                $this->log->error('Validating API Key Result - API Key is INVALID');
 
                 return false;
             }
 
             if (property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is VALID'
-                );
+                $this->log->info('Validating API Key Result - API Key is VALID');
 
                 return true;
             }

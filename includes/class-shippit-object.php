@@ -1,17 +1,9 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2019 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2021-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 // Contents of this class are based on string
@@ -276,7 +268,9 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @link http://www.php.net/manual/en/arrayaccess.offsetset.php
      * @param string $offset
      * @param mixed $value
+     * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->_data[$offset] = $value;
@@ -289,7 +283,7 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @param string $offset
      * @return boolean
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->_data[$offset]);
     }
@@ -299,7 +293,9 @@ class Mamis_Shippit_Object implements ArrayAccess
      *
      * @link http://www.php.net/manual/en/arrayaccess.offsetunset.php
      * @param string $offset
+     * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->_data[$offset]);
@@ -312,6 +308,7 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @param string $offset
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return isset($this->_data[$offset]) ? $this->_data[$offset] : null;

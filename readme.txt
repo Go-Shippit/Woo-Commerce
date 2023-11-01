@@ -3,7 +3,7 @@ Contributors: matthewmuscat
 Donate link: NA
 Tags: shipping, australia post, couriers please, aramex
 Requires at least: 4.0.0
-Tested up to: 6.3.1
+Tested up to: 6.3.2
 Stable tag: stable
 Requires PHP: 7.0
 License: Shippit Commercial Licence
@@ -62,7 +62,7 @@ Go to www.shippit.com and sign up for an account. We will email you an API key
 
 == Changelog ==
 
-= 1.10.0-alpha =
+= 2.0.0-alpha =
 
 - Changes
 -- We now require least PHP v7.0, matching the minimum requirements specified by WooCommerce v6
