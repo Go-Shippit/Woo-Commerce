@@ -75,7 +75,7 @@ class Mamis_Shippit_Settings_Method
             'title' => __('Product attributes', 'woocommerce-shippit'),
             'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
             'desc_tip' => true,
-            'class' => 'wc-enhanced-select',
+            'class' => 'wc-enhanced-select woocommerce-mamis-shippit-filter-attribute',
             'default' => 'no',
             'type' => 'select',
             'options' => [
@@ -89,7 +89,7 @@ class Mamis_Shippit_Settings_Method
             'description' => __('The product attribute code', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'select',
-            'class' => 'wc-enhanced-select',
+            'class' => 'wc-enhanced-select woocommerce-mamis-shippit-filter-attribute-code',
             'default' => '',
             'options' => wc_get_attribute_taxonomy_labels(),
         ];
@@ -100,6 +100,7 @@ class Mamis_Shippit_Settings_Method
             'desc_tip' => true,
             'default' => '',
             'type' => 'text',
+            'class' => 'woocommerce-mamis-shippit-filter-attribute-value'
         ];
 
         $fields['margin'] = [
