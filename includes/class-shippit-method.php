@@ -107,6 +107,14 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->margin                  = $this->get_option('margin');
         $this->margin_amount           = $this->get_option('margin_amount');
 
+        wp_enqueue_script(
+            'shippit-live-script',
+            plugin_dir_url(__DIR__) . '/assets/js/shippit-live-quote.js',
+            array('jquery'),
+            '1.0',
+            false
+        );
+
         // Add action hook to save the shipping method instance settings when they saved
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
     }
@@ -496,5 +504,28 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         );
 
         return true;
+    }
+
+    /**
+     * Checks if the Shippit Live Quote method is enabled
+     *
+     * @return boolean
+     */
+    private function isLiveQuotesEnabled(): bool
+    {
+        $zones = WC_Shipping_Zones::get_zones();
+
+        foreach ($zones as $zone) {
+            $shippingMethods = $zone['shipping_methods'];
+
+            foreach ($shippingMethods as $shippingMethod) {
+                if ($shippingMethod->id != 'mamis_shippit') {
+                    continue;
+                }
+
+                return $shippingMethod->id = 'mamis_shippit'
+                    && $shippingMethod->enabled == 'yes';
+            }
+        }
     }
 }

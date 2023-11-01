@@ -128,20 +128,6 @@ class Mamis_Shippit_Settings
                 'desc_tip' => true,
             ),
 
-            'shippingcalculator_city_enabled' => array(
-                'id' => 'wc_settings_shippit_shippingcalculator_city_enabled',
-                'title' => __('Display City Field in Shipping Estimator', 'woocommerce-shippit'),
-                'desc'     => 'Using Shippit Live Quotes? Ensure this is enabled so that we can retrieve quotes for shipping estimations from the Shipping Calculator.',
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'yes',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-                ),
-            ),
-
             'atl_enabled' => array(
                 'id' => 'wc_settings_shippit_atl_enabled',
                 'title' => __('Display Authority to Leave', 'woocommerce-shippit'),
@@ -181,6 +167,18 @@ class Mamis_Shippit_Settings
                     'all' => __('Yes - Auto-sync all new orders', 'woocommerce-shippit'),
                     'all_shippit' => __('Yes - Auto-sync only orders with Shippit Shipping Methods', 'woocommerce-shippit'),
                ),
+            ),
+
+            'section_order_sync_settings_end' => array(
+                'id' => 'shippit-settings-order-sync-settings-end',
+                'type' => 'sectionend',
+           ),
+
+            'title_shipping_options' => array(
+                'id' => 'shippit-settings-shipping-options-title',
+                'name' => __( 'Shipping Options', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'Match your store\'s shipping options to a Shippit service type so we can automatically allocate the correct shipping service for your orders.',
             ),
 
             'standard_shipping_methods' => array(

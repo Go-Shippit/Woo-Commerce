@@ -72,7 +72,7 @@ class Mamis_Shippit_Settings_Method
         ];
 
         $fields['filter_attribute'] = [
-            'title' => __('Filter by product attributes', 'woocommerce-shippit'),
+            'title' => __('Product attributes', 'woocommerce-shippit'),
             'description' => __('Filter products that are enabled for quoting by shippit via their attributes', 'woocommerce-shippit'),
             'desc_tip' => true,
             'class' => 'wc-enhanced-select',
@@ -85,7 +85,7 @@ class Mamis_Shippit_Settings_Method
         ];
 
         $fields['filter_attribute_code'] = [
-            'title' => __('Filter by attribute code', 'woocommerce-shippit'),
+            'title' => __('Attribute code', 'woocommerce-shippit'),
             'description' => __('The product attribute code', 'woocommerce-shippit'),
             'desc_tip' => true,
             'type' => 'select',
@@ -95,7 +95,7 @@ class Mamis_Shippit_Settings_Method
         ];
 
         $fields['filter_attribute_value'] = [
-            'title' => __('Filter by attribute value', 'woocommerce-shippit'),
+            'title' => __('Attribute value', 'woocommerce-shippit'),
             'description' => __('The product attribute value', 'woocommerce-shippit'),
             'desc_tip' => true,
             'default' => '',
@@ -103,8 +103,9 @@ class Mamis_Shippit_Settings_Method
         ];
 
         $fields['margin'] = [
+            'id' => 'woocommerce_mamis_shippit_margin',
             'title' => __('Margin'),
-            'class' => 'wc-enhanced-select',
+            'class' => 'wc-enhanced-select shippit-margin',
             'default' => 'no',
             'description' => __('Add a margin to the quoted shipping amounts', 'woocommerce-shippit'),
             'desc_tip' => true,
@@ -117,7 +118,9 @@ class Mamis_Shippit_Settings_Method
         ];
 
         $fields['margin_amount'] = [
+            'id' => 'woocommerce_mamis_shippit_margin_amount',
             'title' => __('Margin Amount', 'woocommerce-shippit'),
+            'class' => 'shippit-margin-amount',
             'description' => __('Please enter a margin amount, in either a whole dollar amount (ie: 5.50) or a percentage amount (ie: 5)', 'woocommerce-shippit'),
             'desc_tip' => true,
             'default' => '',
