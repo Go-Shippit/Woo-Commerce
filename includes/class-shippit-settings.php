@@ -1,17 +1,9 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Settings
@@ -20,7 +12,7 @@ class Mamis_Shippit_Settings
      * Add a new settings tab to the WooCommerce settings tabs array.
      *
      * @param array $settingsTab Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
-     * @return array $settingsTab Array of WooCommerce setting tabs & their labels, including the Subscription tab.
+     * @return array
      */
     public static function addSettingsTab($settingsTab)
     {
@@ -57,7 +49,7 @@ class Mamis_Shippit_Settings
      *
      * @return array Array of settings for @see woocommerce_admin_fields() function.
      */
-    public static function getFields()
+    public static function getFields(): array
     {
         $shippingMethodOptions = self::getShippingMethodOptions();
 

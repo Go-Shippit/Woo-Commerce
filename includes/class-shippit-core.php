@@ -87,10 +87,10 @@ class Mamis_Shippit_Core
         // *****************
 
         $order = new Mamis_Shippit_Order;
-        // If a new order is recieved, add pending sync
-        add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
+
         // If a order transitions into "processing", add pending sync
         add_action('woocommerce_order_status_processing', array($order, 'addPendingSync'));
+
         // If the order transition into "on-hold", remove pending sync
         add_action('woocommerce_order_status_on-hold', array($order, 'removePendingSync'));
 
@@ -151,7 +151,7 @@ class Mamis_Shippit_Core
         add_action('bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
 
         // Process Shippit bulk orders send action
-        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendOrders'), 10, 3 );
 
         add_action('admin_notices', array($this, 'order_sync_notice') );
 
@@ -391,7 +391,7 @@ class Mamis_Shippit_Core
         );
 
         try {
-            $apiResponse = $this->api->putMerchant($requestData);
+            $apiResponse = $this->api->updateMerchant($requestData);
 
             if (
                 $apiResponse
@@ -443,7 +443,7 @@ class Mamis_Shippit_Core
         $this->log->info('Registering shopping cart name');
 
         try {
-            $apiResponse = $this->api->putMerchant($requestData);
+            $apiResponse = $this->api->updateMerchant($requestData);
 
             if (empty($apiResponse)
                 || property_exists($apiResponse, 'error')) {
