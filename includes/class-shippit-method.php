@@ -211,18 +211,9 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             'dropoff_postcode' => $dropoffPostcode,
             'dropoff_state' => $dropoffState,
             'dropoff_country_code' => $dropoffCountryCode,
-            'parcel_attributes' => $this->getParcelAttributes($quoteContents)
+            'parcel_attributes' => $this->getParcelAttributes($quoteContents),
+            'dutiable_amount' => WC()->cart->get_cart_contents_total(),
         );
-
-        // @Workaround
-        // - Only add the dutiable_amount for domestic orders
-        // - The Shippit Quotes API does not currently support the dutiable_amount
-        //   field being present for domestic (AU) deliveries — declaring a dutiable
-        //   amount value for these quotes may result in some carrier quotes not
-        //   being available.
-        if ($dropoffCountryCode != 'AU') {
-            $quoteData['dutiable_amount'] = WC()->cart->get_cart_contents_total();
-        }
 
         $shippingQuotes = $this->api->getQuote($quoteData);
 
