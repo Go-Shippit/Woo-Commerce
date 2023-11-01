@@ -35,6 +35,11 @@ class Mamis_Shippit_Core
     private static $instance;
 
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -48,7 +53,6 @@ class Mamis_Shippit_Core
             return;
         }
 
-        $this->s = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log(['area' => 'core']);
 
         $this->init();
@@ -366,7 +370,7 @@ class Mamis_Shippit_Core
      */
     private function update_webhook($isEnabled, $apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         if ($isEnabled) {
             $webhookUrl = sprintf(
@@ -434,7 +438,7 @@ class Mamis_Shippit_Core
      */
     private function register_shopping_cart_name($apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         $requestData = array(
             'shipping_cart_method_name' => 'woocommerce'
@@ -466,10 +470,10 @@ class Mamis_Shippit_Core
      */
     private function validate_apikey($apiKey = null, $environment = null)
     {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
         try {
-            $apiResponse = $this->api->getMerchant();
+            $apiResponse = $apiService->getMerchant();
 
             if (property_exists($apiResponse, 'error')) {
                 $this->log->error('Validating API Key Result - API Key is INVALID');

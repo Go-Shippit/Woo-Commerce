@@ -12,14 +12,30 @@ class Mamis_Shippit_Api
     const API_ENDPOINT_STAGING = 'https://app.staging.shippit.com/api/3';
     const API_TIMEOUT = 30;
 
+    /**
+     * @var string|null
+     */
     protected $apiKey = null;
-    protected $debug = false;
-    protected $environment;
 
+    /**
+     * @var bool
+     */
+    protected $debug = false;
+    
     /**
      * @var Mamis_Shippit_Log
      */
     protected $log;
+
+    /**
+     * @var Mamis_Shippit_settings
+     */
+    protected $settings;
+
+    /**
+     * @var string|null
+     */
+    protected $environment;
 
     /**
      * Create a Shippit API Client

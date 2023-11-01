@@ -268,7 +268,9 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @link http://www.php.net/manual/en/arrayaccess.offsetset.php
      * @param string $offset
      * @param mixed $value
+     * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->_data[$offset] = $value;
@@ -281,7 +283,7 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @param string $offset
      * @return boolean
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->_data[$offset]);
     }
@@ -291,7 +293,9 @@ class Mamis_Shippit_Object implements ArrayAccess
      *
      * @link http://www.php.net/manual/en/arrayaccess.offsetunset.php
      * @param string $offset
+     * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->_data[$offset]);
@@ -304,6 +308,7 @@ class Mamis_Shippit_Object implements ArrayAccess
      * @param string $offset
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return isset($this->_data[$offset]) ? $this->_data[$offset] : null;

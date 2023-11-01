@@ -8,14 +8,63 @@
 
 class Mamis_Shippit_Method extends WC_Shipping_Method
 {
+    /**
+     * @var Mamis_Shippit_Api
+     */
     protected $api;
-    protected $log;
+
+    /**
+     * @var Mamis_Shippit_Helper
+     */
     protected $helper;
 
     /**
-     * Initialse the Shipping Method instance
-     *
-     * @param int $instance_id
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
+     * @var array
+     */
+    protected $allowed_methods;
+
+    /**
+     * @var array
+     */
+    protected $max_timeslots;
+
+    /**
+     * @var string|null
+     */
+    protected $quote_enabled;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute_code;
+
+    /**
+     * @var string|null
+     */
+    protected $filter_attribute_value;
+
+    /**
+     * @var string|null
+     */
+    protected $margin;
+
+    /**
+     * @var string|null
+     */
+    protected $margin_amount;
+
+    /**
+     * Constructor.
      */
     public function __construct(int $instance_id = 0)
     {
