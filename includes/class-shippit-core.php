@@ -111,16 +111,9 @@ class Mamis_Shippit_Core
         // Display the authority to leave on the orders edit page
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
-        function authority_to_leave_display_admin_order_meta($order)
+        function authority_to_leave_display_admin_order_meta(WC_Order $order)
         {
-            if (version_compare(WC()->version, '3.0.0') >= 0) {
-                $orderId = $order->get_id();
-            }
-            else {
-                $orderId = $order->id;
-            }
-
-            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $orderId, 'authority_to_leave', true ) . '</p>';
+            echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $order->get_meta('authority_to_leave') . '</p>';
         }
 
         // Add the shippit settings tab functionality
@@ -199,10 +192,16 @@ class Mamis_Shippit_Core
 
     /**
      * Render the Shippit Shipment Meta Box Content
+     *
+     * @param WP_Post $post
+     * @return void
      */
-    function mamis_add_shipment_meta_box_content($order)
+    function mamis_add_shipment_meta_box_content(WP_Post $post)
     {
-        $shipmentData = get_post_meta($order->ID, '_mamis_shippit_shipment', true);
+        // Retrieve the order using the Post ID
+        $order = new WC_Order($post->ID);
+
+        $shipmentData = $order->get_meta('_mamis_shippit_shipment', true);
         $count = count($shipmentData);
         $shipmentDetails = '';
         $i = 1;
