@@ -24,6 +24,11 @@ class Mamis_Shippit_Api
     public $debug = false;
 
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
      * Create a Shippit API Client
      *
      * @param string $apiKey        (Optional) The API key to be used for requests
@@ -33,7 +38,7 @@ class Mamis_Shippit_Api
     public function __construct($apiKey = null, $environment = null, $debug = null)
     {
         $this->settings = new Mamis_Shippit_Settings();
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'api']);
 
         $this->apiKey = (empty($apiKey) ? get_option('wc_settings_shippit_api_key') : $apiKey);
         $this->environment = (empty($environment) ? get_option('wc_settings_shippit_environment') : $environment);
@@ -93,15 +98,6 @@ class Mamis_Shippit_Api
         $url = $this->getApiUrl($uri);
         $args = $this->getApiArgs($requestData, $requestMethod);
 
-        $this->log->add(
-            'SHIPPIT - API REQUEST',
-            $uri,
-            array(
-                'url' => $url,
-                'requestData' => $requestData
-            )
-        );
-
         try {
             $response = wp_remote_request(
                 $url,
@@ -118,18 +114,13 @@ class Mamis_Shippit_Api
             }
         }
         catch (Exception $e) {
-            $metaData = array(
-                'url' => $url,
-                'requestData' => $requestData,
-                'responseData' => wp_remote_retrieve_body($response)
-            );
-
-            $this->log->exception($e, $metaData);
-            $this->log->add(
-                'SHIPPIT - API REQUEST ERROR',
-                $uri,
-                $metaData,
-                'error'
+            $this->log->exception(
+                $e,
+                [
+                    'url' => $url,
+                    'request' => $requestData,
+                    'response' => wp_remote_retrieve_body($response)
+                ]
             );
 
             return false;
@@ -139,14 +130,13 @@ class Mamis_Shippit_Api
 
         $responseData = json_decode($jsonResponseData);
 
-        $this->log->add(
-            'SHIPPIT - API RESPONSE',
-            $uri,
-            array(
+        $this->log->debug(
+            'Shippit API Request',
+            [
                 'url' => $url,
-                'requestData' => $requestData,
-                'responseData' => $responseData
-            )
+                'request' => $requestData,
+                'response' => $responseData,
+            ]
         );
 
         return $responseData;

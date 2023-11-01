@@ -25,6 +25,7 @@ function init_shippit_core()
     $upgrade->run();
 
     // import helper classes
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
@@ -78,6 +79,7 @@ function register_shippit_script()
 
 function init_shippit_method()
 {
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');

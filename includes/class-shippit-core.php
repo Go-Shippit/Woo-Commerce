@@ -49,7 +49,7 @@ class Mamis_Shippit_Core
         }
 
         $this->s = new Mamis_Shippit_Settings();
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'core']);
 
         $this->init();
     }
@@ -383,28 +383,36 @@ class Mamis_Shippit_Core
             'webhook_url' => $webhookUrl
         );
 
-        $this->log->add(
-            'Webhook',
-            'Registering Webhook Url'
+        $this->log->info(
+            'Registering Webhook Url',
+            [
+                'webhook_url' => $webhookUrl,
+            ]
         );
 
         try {
             $apiResponse = $this->api->putMerchant($requestData);
 
-            if ($apiResponse
+            if (
+                $apiResponse
                 && !property_exists($apiResponse, 'error')
-                && property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Webhook',
-                    'Webhook Registration Successful'
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info(
+                    'Webhook Registration Successful',
+                    [
+                        'webhook_url' => $webhookUrl,
+                    ]
                 );
 
                 return true;
             }
             else {
-                $this->log->add(
-                    'Webhook',
-                    'An error occurred while attempting to register the webhook'
+                $this->log->error(
+                    'An error occurred while attempting to register the webhook',
+                    [
+                        'webhook_url' => $webhookUrl,
+                    ]
                 );
 
                 return false;
@@ -432,7 +440,7 @@ class Mamis_Shippit_Core
             'shipping_cart_method_name' => 'woocommerce'
         );
 
-        $this->log->add('Registering shopping cart name', '', $requestData);
+        $this->log->info('Registering shopping cart name');
 
         try {
             $apiResponse = $this->api->putMerchant($requestData);
@@ -464,19 +472,13 @@ class Mamis_Shippit_Core
             $apiResponse = $this->api->getMerchant();
 
             if (property_exists($apiResponse, 'error')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is INVALID'
-                );
+                $this->log->error('Validating API Key Result - API Key is INVALID');
 
                 return false;
             }
 
             if (property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is VALID'
-                );
+                $this->log->info('Validating API Key Result - API Key is VALID');
 
                 return true;
             }

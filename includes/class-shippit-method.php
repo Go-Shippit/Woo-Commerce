@@ -17,6 +17,7 @@
 class Mamis_Shippit_Method extends WC_Shipping_Method
 {
     protected $api;
+    protected $log;
     protected $helper;
 
     /**
@@ -25,7 +26,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
     public function __construct($instance_id = 0)
     {
         $this->api = new Mamis_Shippit_Api();
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'live-quote']);
+
         $this->helper = new Mamis_Shippit_Helper();
 
         $settings = new Mamis_Shippit_Settings_Method();
@@ -187,24 +189,21 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
 
         // Only make a live quote request if required fields are present
         if (empty($dropoffSuburb)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A suburb is required for a live quote'
             );
 
             return;
         }
         elseif (empty($dropoffPostcode)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A postcode is required for a live quote'
             );
 
             return;
         }
         elseif (empty($dropoffCountryCode)) {
-            $this->log->add(
-                'Quote Request',
+            $this->log->debug(
                 'A country is required for a live quote'
             );
 
@@ -417,18 +416,16 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
             $productAttributeValue = $productObject->get_attribute($attributeCode);
 
             if (strpos($productAttributeValue, $attributeValue) === false) {
-                $this->log->add(
-                    'Can Ship Enabled Attributes',
-                    'Returning false'
+                $this->log->info(
+                    'A product in the cart does not match enabled filter attributes, skipping quoting'
                 );
 
                 return false;
             }
         }
 
-        $this->log->add(
-            'Can Ship Enabled Attributes',
-            'Returning true'
+        $this->log->debug(
+            'The products in the cart matches enabled filter attributes'
         );
 
         return true;
