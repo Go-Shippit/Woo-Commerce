@@ -19,7 +19,7 @@ class Mamis_Shippit_Shipment
      */
     public function __construct()
     {
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'shipment']);
     }
 
     /**
@@ -209,13 +209,13 @@ class Mamis_Shippit_Shipment
         // Remove any refunded items from shippable count
         $totalItemsShippable += $order->get_total_qty_refunded();
 
-        $this->log->add(
-            'SHIPPIT - WEBHOOK REQUEST',
-            'Order Contents',
-            array(
-                'orderItems' => $orderItemsData,
-                'totalItemsShippable' => $totalItemsShippable
-            )
+        $this->log->info(
+            'Order items marked as shipped',
+            [
+                'order_id' => $order->get_id(),
+                'order_items' => $orderItemsData,
+                'total_items_shippable' => $totalItemsShippable
+            ]
         );
 
         // Check for count of items that have been shipped
@@ -292,14 +292,14 @@ class Mamis_Shippit_Shipment
             ));
         }
 
-        $this->log->add(
-            'SHIPPIT - WEBHOOK REQUEST',
-            'Items Shipped',
-            array(
-                'orderItems' => $orderItemsData,
-                'orderItemsShipped' => $orderItemsShipped,
-                'totalItemsShipped' => $totalItemsShipped
-            )
+        $this->log->info(
+            'Order items marked as shipped',
+            [
+                'order_id' => $order->get_id(),
+                'order_items' => $orderItemsData,
+                'order_items_shipped' => $orderItemsShipped,
+                'total_items_shipped' => $totalItemsShipped
+            ]
         );
 
         // Update Order Shipments Metadata
@@ -433,13 +433,12 @@ class Mamis_Shippit_Shipment
         // Grab the posted shippit API key
         $requestApiKey = $wp->query_vars['shippit_api_key'];
 
-        $this->log->add(
-            'SHIPPIT - WEBHOOK REQUEST',
+        $this->log->debug(
             'Webhook Request Received',
-            array(
-                'url' => get_site_url() . '/shippit/shipment_create?shippit_api_key=' . $requestApiKey,
-                'requestData' => $requestData
-            )
+            [
+                'url' => get_site_url() . '/shippit/shipment_create',
+                'request' => $requestData,
+            ]
         );
 
         // Check if the request has a body of data
