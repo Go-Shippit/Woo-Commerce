@@ -394,7 +394,7 @@ class Mamis_Shippit_Core
         );
 
         try {
-            $apiResponse = $this->api->updateMerchant($requestData);
+            $apiResponse = $apiService->updateMerchant($requestData);
 
             if (
                 $apiResponse
@@ -446,7 +446,7 @@ class Mamis_Shippit_Core
         $this->log->info('Registering shopping cart name');
 
         try {
-            $apiResponse = $this->api->updateMerchant($requestData);
+            $apiResponse = $apiService->updateMerchant($requestData);
 
             if (empty($apiResponse)
                 || property_exists($apiResponse, 'error')) {
