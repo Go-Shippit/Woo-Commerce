@@ -228,7 +228,7 @@ class Mamis_Shippit_Data_Mapper_Order extends Mamis_Shippit_Object
 
     public function mapAuthorityToLeave()
     {
-        $authorityToLeaveData = get_post_meta($this->order->get_id(), 'authority_to_leave', true);
+        $authorityToLeaveData = $this->order->get_meta('authority_to_leave', true);
 
         if (in_array(strtolower($authorityToLeaveData), ['yes', 'y', 'true', 'atl'])) {
             return $this->setAuthorityToLeave('Yes');

@@ -74,7 +74,7 @@ class Mamis_Shippit_Shipment
         // If a retailer_reference is available and numeric, do a direct lookup via the database identifier
         // Note: Numeric check is required as WooCommerce will ignore queries filters for non-numeric identifiers
         if (!empty($retailerReference) && is_numeric($retailerReference)) {
-            $order = wc_get_order($retailerReference);
+            $order = $this->getOrderByReference($retailerReference);
         }
         // Otherwise, attempt to locate the order using the friendly reference number
         else {
@@ -103,45 +103,25 @@ class Mamis_Shippit_Shipment
      * Get the order object, querying for the order
      * using it's reference number
      *
-     * @param string $orderNumber
-     * @return WP_Post|void
+     * @param string $orderReference
+     * @return WC_Order|bool
      */
-    public function getOrderByReference($orderNumber)
+    public function getOrderByReference($orderReference)
     {
-        if (empty($orderNumber)) {
-            return;
-        }
-
-        $queryArgs = array(
-            'post__in' => [$orderNumber],
-            'post_type' => 'shop_order',
-            'post_status' => 'wc-processing',
-            'posts_per_page' => 1,
-        );
-
-        $posts = get_posts($queryArgs);
-        $post = reset($posts);
-
-        // If no results are found, return early
-        if (empty($post)) {
-            return;
-        }
-
-        // Load the woocommerce order using the post id
-        return wc_get_order($post->ID);
+        return wc_get_order($orderReference);
     }
 
     /**
-     * Get the order object, querying for the order
+     * Get the WooCommerce order, querying for the order
      * using JetPack Metadata and considering it's
      * configuration options
      *
-     * @param string $orderNumber
-     * @return WP_Post|void
+     * @param string $orderReference
+     * @return WC_Order|void
      */
-    public function getOrderByReferenceJetpack($orderNumber)
+    public function getOrderByReferenceJetpack($orderReference)
     {
-        if (empty($orderNumber)) {
+        if (empty($orderReference)) {
             return;
         }
 
@@ -149,40 +129,39 @@ class Mamis_Shippit_Shipment
         $orderPrefix = get_option('wcj_order_number_prefix');
         $wcjSequentialEnabled = get_option('wcj_order_number_sequential_enabled');
 
-
         // If an order prefix is configured, remove it from the order number to be used for lookup
         if (!empty($orderPrefix)) {
-            $orderNumber = str_replace($orderPrefix, '', $orderNumber);
+            $orderReference = str_replace($orderPrefix, '', $orderReference);
         }
 
         if ($wcjSequentialEnabled == 'yes') {
-            $queryArgs = array(
-                'meta_key' => '_wcj_order_number',
-                'meta_value' => $orderNumber,
-                'post_type' => 'shop_order',
-                'post_status' => 'wc-processing',
-                'posts_per_page' => 1,
+            $orders = wc_get_orders(
+                [
+                    'type' => 'shop_order',
+                    'status' => ['wc-processing'],
+                    'meta_query' => [
+                        [
+                            'key' => '_wcj_order_number',
+                            'value' => $orderReference,
+                            'compare' => '=',
+                        ]
+                    ],
+                    'limit' => 1,
+                ]
             );
+
+            $order = reset($orders);
         }
         else {
-            $queryArgs = array(
-                'post__in' => [$orderNumber],
-                'post_type' => 'shop_order',
-                'post_status' => 'wc-processing',
-                'posts_per_page' => 1,
-            );
+            $order = wc_get_order($orderReference);
         }
 
-        $posts = get_posts($queryArgs);
-        $post = reset($posts);
-
         // If no results are found, return early
-        if (empty($post)) {
+        if (empty($order)) {
             return;
         }
 
-        // Load the woocommerce order using the post id
-        return wc_get_order($post->ID);
+        return $order;
     }
 
     /**
@@ -195,7 +174,6 @@ class Mamis_Shippit_Shipment
     public function updateOrder($order, $requestData)
     {
         // Grab item details from order
-        $orderId = $order->get_id();
         $orderItems = $order->get_items();
 
         // Grab item details from request data
@@ -240,12 +218,12 @@ class Mamis_Shippit_Shipment
         );
 
         // Check for count of items that have been shipped
-        if (get_post_meta($orderId, '_mamis_shippit_shipped_items', true)) {
-            $totalItemsShipped = get_post_meta($orderId, '_mamis_shippit_shipped_items', true);
+        if ($order->meta_exists('_mamis_shippit_shipped_items')) {
+            $totalItemsShipped = $order->get_meta('_mamis_shippit_shipped_items', true);
         }
         // If no items have been shipped previously set count to 0
         else {
-            add_post_meta($orderId, '_mamis_shippit_shipped_items', 0, true);
+            $order->add_meta_data('_mamis_shippit_shipped_items', 0, true);
             $totalItemsShipped = 0;
         }
 
@@ -324,7 +302,7 @@ class Mamis_Shippit_Shipment
         );
 
         // Update Order Shipments Metadata
-        $this->updateShipmentMetadata($orderId, $requestData, $totalItemsShipped);
+        $this->updateShipmentMetadata($order, $requestData, $totalItemsShipped);
 
         // Add order comment for shipped items
         $order->add_order_note($orderComment, 0);
@@ -342,20 +320,21 @@ class Mamis_Shippit_Shipment
         }
 
         // Update the total of all items shipped
-        update_post_meta($orderId, '_mamis_shippit_shipped_items', $totalItemsShipped);
+        $order->update_meta_data('_mamis_shippit_shipped_items', $totalItemsShipped);
+        $order->save_meta_data();
     }
 
     /**
      * Add shipment information for the order or update the
      * shipment information if some data already exists
      *
-     * @param  string $orderId              The order id
+     * @param  WC_Order $order              The woocommerce order
      * @param  object $requestData          The webhook request data
      * @param  object $totalItemsShipped    The webhook request data
      * @return mixed                        The response from update_post_meta,
      *                                      or null if request data is empty
      */
-    public function updateShipmentMetadata($orderId, $requestData, $totalItemsShipped)
+    public function updateShipmentMetadata($order, $requestData, $totalItemsShipped)
     {
         $statusHistory = $requestData->status_history;
 
@@ -378,21 +357,19 @@ class Mamis_Shippit_Shipment
         }
 
         $shipments = array();
-        $existingShipment = get_post_meta($orderId, '_mamis_shippit_shipment', false);
 
-        // Retrieve the existing shipment data if it's available
-        if (!empty($existingShipment)) {
-            $shipments = reset($existingShipment);
+        if ($order->meta_exists('_mamis_shippit_shipment')) {
+            $shipments[] = $order->get_meta_data('_mamis_shippit_shipment', true);
         }
 
         // Append the new shipment data
         $shipments[] = $shipmentData;
 
         // Update the total of all items shipped
-        update_post_meta($orderId, '_mamis_shippit_shipped_items', $totalItemsShipped);
+        $order->update_meta_data('_mamis_shippit_shipped_items', $totalItemsShipped);
 
         // Update the order shipment metadata
-        update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
+        $order->update_meta_data('_mamis_shippit_shipment', $shipments);
     }
 
     /**
