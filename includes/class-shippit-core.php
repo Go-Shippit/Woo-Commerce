@@ -315,20 +315,20 @@ class Mamis_Shippit_Core
         }
     }
 
-    public function validate_environment($environment)
-    {
-        $apiKey = $_POST['wc_settings_shippit_api_key'];
-        $newEnvironment = $_POST['wc_settings_shippit_environment'];
+    // public function validate_environment($environment)
+    // {
+    //     $apiKey = $_POST['wc_settings_shippit_api_key'];
+    //     $newEnvironment = $_POST['wc_settings_shippit_environment'];
 
 
-        $validateApiKey = $this->validate_apikey($apiKey, $newEnvironment);
+    //     $validateApiKey = $this->validate_apikey($apiKey, $newEnvironment);
 
-        if ($validateApiKey == false) {
-            return null;
-        }
+    //     if ($validateApiKey == false) {
+    //         return null;
+    //     }
 
-        return $environment;
-    }
+    //     return $environment;
+    // }
 
     public function before_api_key_update($newApiKey, $oldApiKey)
     {
@@ -500,13 +500,19 @@ class Mamis_Shippit_Core
         try {
             $apiResponse = $apiService->getMerchant();
 
-            if (property_exists($apiResponse, 'error')) {
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'error')
+            ) {
                 $this->log->error('Validating API Key Result - API Key is INVALID');
 
                 return false;
             }
 
-            if (property_exists($apiResponse, 'response')) {
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'response')
+            ) {
                 $this->log->info('Validating API Key Result - API Key is VALID');
 
                 return true;
