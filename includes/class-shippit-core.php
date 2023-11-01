@@ -120,8 +120,6 @@ class Mamis_Shippit_Core
         add_action('woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
         add_action('woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
 
-        add_action('pre_update_option_wc_settings_shippit_environment', array($this, 'validate_environment'), 10, 2);
-
         // Validate the api key when the setting is changed, the api key
         // is validated before it is saved to the database, this also
         // enables preventing storage of incorrect api credentials
@@ -314,21 +312,6 @@ class Mamis_Shippit_Core
             exit;
         }
     }
-
-    // public function validate_environment($environment)
-    // {
-    //     $apiKey = $_POST['wc_settings_shippit_api_key'];
-    //     $newEnvironment = $_POST['wc_settings_shippit_environment'];
-
-
-    //     $validateApiKey = $this->validate_apikey($apiKey, $newEnvironment);
-
-    //     if ($validateApiKey == false) {
-    //         return null;
-    //     }
-
-    //     return $environment;
-    // }
 
     public function before_api_key_update($newApiKey, $oldApiKey)
     {
