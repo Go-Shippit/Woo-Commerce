@@ -409,14 +409,17 @@ class Mamis_Shippit_Shipment
     }
 
     /**
-     * Retrieve the retailer_order_number from the request
+     * Ensures to reject shipment request if the shipment sync is turned off
      *
      * @param object $requestData
      * @return string|void
      */
     public function checkIfFulfillmentSyncIsEnabled()
     {
-        if (get_option('wc_settings_shippit_fulfillment_enabled') == 'no') {
+        if (
+            get_option('wc_settings_shippit_enabled') != 'yes'
+            || get_option('wc_settings_shippit_fulfillment_enabled') != 'yes'
+        ) {
             // Return a response to the actions completed
             wp_send_json_success(
                 array(
