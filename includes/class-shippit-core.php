@@ -326,7 +326,7 @@ class Mamis_Shippit_Core
         if ($isValidApiKey == false) {
             $this->show_api_notice($isValidApiKey);
 
-            return null;
+            return $oldApiKey;
         }
 
         $this->show_api_notice($isValidApiKey);
