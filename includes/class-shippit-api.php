@@ -1,27 +1,20 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Api
 {
-    const API_ENDPOINT_LIVE = 'https://www.shippit.com/api/3';
-    const API_ENDPOINT_STAGING = 'https://staging.shippit.com/api/3';
+    const API_ENDPOINT_LIVE = 'https://app.shippit.com/api/3';
+    const API_ENDPOINT_STAGING = 'https://app.staging.shippit.com/api/3';
     const API_TIMEOUT = 30;
 
-    private $apiKey = null;
-    public $debug = false;
+    protected $apiKey = null;
+    protected $debug = false;
+    protected $environment;
 
     /**
      * @var Mamis_Shippit_Log
@@ -37,7 +30,6 @@ class Mamis_Shippit_Api
      */
     public function __construct($apiKey = null, $environment = null, $debug = null)
     {
-        $this->settings = new Mamis_Shippit_Settings();
         $this->log = new Mamis_Shippit_Log(['area' => 'api']);
 
         $this->apiKey = (empty($apiKey) ? get_option('wc_settings_shippit_api_key') : $apiKey);
@@ -45,32 +37,61 @@ class Mamis_Shippit_Api
         $this->debug = (empty($debug) ? get_option('wc_settings_shippit_debug') : $debug);
     }
 
-    private function getApiKey()
+    /**
+     * Retrieve the Shippit Merchant API key for the HTTP Client
+     *
+     * @return string
+     */
+    private function getApiKey(): string
     {
         return $this->apiKey;
     }
 
-    public function setApiKey($apiKey)
+    /**
+     * Set the Shippit Merchant API Key for the HTTP Client
+     *
+     * @param string $apiKey
+     * @return this
+     */
+    public function setApiKey(string $apiKey): string
     {
         return $this->apiKey = $apiKey;
     }
 
-    public function setEnvironment($environment)
+    /**
+     * Set the environment for the HTTP client
+     *
+     * @param string $environment
+     * @return this
+     */
+    public function setEnvironment(string $environment): string
     {
         return $this->environment = $environment;
     }
 
-    public function getApiUrl($path)
+    /**
+     * Retrieve the Shippit API url, based on the currently set environment
+     *
+     * @param string $path
+     * @return string
+     */
+    public function getApiUrl(string $path): string
     {
-        if ( $this->environment == 'sandbox' ) {
+        if ($this->environment == 'sandbox' ) {
             return self::API_ENDPOINT_STAGING . '/' . $path;
         }
-        else {
-            return self::API_ENDPOINT_LIVE . '/' . $path;
-        }
+
+        return self::API_ENDPOINT_LIVE . '/' . $path;
     }
 
-    public function getApiArgs($requestData, $requestMethod)
+    /**
+     * Retrieve the HTTP Client arguments
+     *
+     * @param string $requestMethod
+     * @param array|null $requestData
+     * @return void
+     */
+    public function getApiArgs(string $requestMethod, $requestData = null)
     {
         $apiArgs = array(
             'blocking'     => true,
@@ -93,10 +114,19 @@ class Mamis_Shippit_Api
         return $apiArgs;
     }
 
-    public function call($uri, $requestData, $requestMethod = 'POST', $exceptionOnResponseError = true)
+    /**
+     * Perform a remote HTTP API call using the HTTP Client
+     *
+     * @param string $requestMethod
+     * @param string $uri
+     * @param array|null $requestData
+     * @param boolean $throwExceptionOnResponseError
+     * @return object|bool
+     */
+    public function call(string $requestMethod, string $uri, $requestData = null, $throwExceptionOnResponseError = true)
     {
         $url = $this->getApiUrl($uri);
-        $args = $this->getApiArgs($requestData, $requestMethod);
+        $args = $this->getApiArgs($requestMethod, $requestData);
 
         try {
             $response = wp_remote_request(
@@ -106,7 +136,7 @@ class Mamis_Shippit_Api
 
             $responseCode = wp_remote_retrieve_response_code($response);
 
-            if ($exceptionOnResponseError) {
+            if ($throwExceptionOnResponseError) {
                 if ($responseCode < 200 ||
                     $responseCode > 300) {
                     throw new Exception('An API Request Error Occured');
@@ -143,9 +173,11 @@ class Mamis_Shippit_Api
     }
 
     /**
-     * Retrieves the user agent for outbound API calls
+     * Retrieves the user agent to be used for all outbound API calls for the HTTP Client
+     *
+     * @return void
      */
-    public function getUserAgent()
+    public function getUserAgent(): string
     {
         return sprintf(
             'Shippit_WooCommerce/%s WooCommerce/%s PHP/%s',
@@ -155,47 +187,72 @@ class Mamis_Shippit_Api
         );
     }
 
-    public function getQuote($quoteData)
+    /**
+     * Perform a Quote with the Shippit API
+     *
+     * @param array $quoteData
+     * @return object|bool
+     */
+    public function getQuote(array $quoteData)
     {
         $requestData = array(
             'quote' => $quoteData
         );
 
-        $quote = $this->call('quotes', $requestData);
-
-        if (!$quote) {
+        try {
+            $quote = $this->call('POST', 'quotes', $requestData);
+        }
+        catch (Exception $e) {
             return false;
         }
 
         return $quote->response;
     }
 
-    public function sendOrder($orderData)
+    /**
+     * Create an order with the Shippit API
+     *
+     * @param array $orderData
+     * @return object|bool
+     */
+    public function createOrder($orderData)
     {
         $requestData = array(
             'order' => $orderData
         );
 
-        $order = $this->call('orders', $requestData, 'POST', false);
-
-        if (!$order) {
+        try {
+            $order = $this->call('POST', 'orders', $requestData, false);
+        }
+        catch (Exception $e) {
             return false;
         }
 
         return $order->response;
     }
 
+    /**
+     * Retrieve the merchant details
+     *
+     * @return void
+     */
     public function getMerchant()
     {
-        return $this->call('merchant', null, 'GET', false);
+        return $this->call('GET', 'merchant');
     }
 
-    public function putMerchant($merchantData)
+    /**
+     * Update the merchant
+     *
+     * @param array $merchantData
+     * @return object|bool
+     */
+    public function updateMerchant(array $merchantData)
     {
         $requestData = array(
             'merchant' => $merchantData
         );
 
-        return $this->call('merchant', $requestData, 'PUT');
+        return $this->call('PUT', 'merchant', $requestData);
     }
 }

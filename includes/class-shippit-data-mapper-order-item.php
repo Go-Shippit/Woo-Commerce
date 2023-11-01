@@ -1,17 +1,9 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) 2016 by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Data_Mapper_Order_Item extends Mamis_Shippit_Object

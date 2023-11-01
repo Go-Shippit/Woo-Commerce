@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
+ */
+
 class Mamis_Shippit_Shipment
 {
     /**
@@ -23,7 +29,7 @@ class Mamis_Shippit_Shipment
     }
 
     /**
-     * Handle a Shippit Shipment Request
+     * Handle the request to the Shippit Shipment Endpoint
      *
      * @return void
      */
@@ -54,6 +60,12 @@ class Mamis_Shippit_Shipment
         ));
     }
 
+    /**
+     * Retrieve the WooCommerce Order, based on the request data payload provided
+     *
+     * @param object $requestData
+     * @return WC_Order|void
+     */
     public function getOrder($requestData)
     {
         $retailerOrderNumber = $this->getRequestRetailerOrderNumber($requestData);
@@ -80,6 +92,8 @@ class Mamis_Shippit_Shipment
             wp_send_json_error(array(
                 'message' => self::ERROR_ORDER_MISSING
             ));
+
+            return;
         }
 
         return $order;
@@ -171,6 +185,13 @@ class Mamis_Shippit_Shipment
         return wc_get_order($post->ID);
     }
 
+    /**
+     * Update the order with the Shipment Details provided to the endpoint
+     *
+     * @param WC_Order $order
+     * @param Object $requestData
+     * @return void
+     */
     public function updateOrder($order, $requestData)
     {
         // Grab item details from order
@@ -374,6 +395,11 @@ class Mamis_Shippit_Shipment
         update_post_meta($orderId, '_mamis_shippit_shipment', $shipments);
     }
 
+    /**
+     * Check the api key provided on the request matches the configured api key for the store
+     *
+     * @return void
+     */
     public function checkApiKey()
     {
         global $wp;
@@ -399,6 +425,12 @@ class Mamis_Shippit_Shipment
         }
     }
 
+    /**
+     * Retrieve the retailer_order_number from the request
+     *
+     * @param object $requestData
+     * @return string|void
+     */
     public function getRequestRetailerOrderNumber($requestData)
     {
         if (isset($requestData->retailer_order_number)) {
@@ -406,6 +438,12 @@ class Mamis_Shippit_Shipment
         }
     }
 
+    /**
+     * Retrieve the retailer_reference from the request
+     *
+     * @param object $requestData
+     * @return string|void
+     */
     public function getRequestRetailerReference($requestData)
     {
         if (isset($requestData->retailer_reference)) {
@@ -413,6 +451,12 @@ class Mamis_Shippit_Shipment
         }
     }
 
+    /**
+     * Retrieve the current state of the order shipment update
+     *
+     * @param object $requestData
+     * @return string|void
+     */
     public function getRequestCurrentState($requestData)
     {
         if (isset($requestData->current_state)) {
@@ -423,7 +467,7 @@ class Mamis_Shippit_Shipment
     /**
      * Checks the request data is valid and in a state that can be worked with
      *
-     * @param [type] $requestData
+     * @param object $requestData
      * @return void
      */
     public function checkRequest($requestData)
@@ -467,6 +511,12 @@ class Mamis_Shippit_Shipment
         }
     }
 
+    /**
+     * Check the order is a valid object for shipping
+     *
+     * @param WC_Order|void $order
+     * @return void
+     */
     public function checkOrder($order)
     {
         // Check if an order is returned
