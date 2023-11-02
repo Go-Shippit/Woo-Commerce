@@ -156,10 +156,8 @@ class Mamis_Shippit_Core
 
         add_action('admin_notices', array($this, 'order_sync_notice') );
 
-        if (get_option('wc_settings_shippit_shippingcalculator_city_enabled') == 'yes') {
-            // Enable suburb/city field for Shipping calculator
-            add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
-        }
+        // Enable suburb/city field for Shipping calculator
+        add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
 
         // Add the shipment meta boxes when viewing an order.
         add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
