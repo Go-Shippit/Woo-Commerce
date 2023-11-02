@@ -188,10 +188,10 @@ class Mamis_Shippit_Helper
     /**
      * Retrieve the Shipping Method Id for a shipping method
      *
-     * @param WC_Shipping_Method $shippingMethod
+     * @param WC_Order_Item_Shipping $shippingMethod
      * @return string
      */
-    protected function getShippingMethodId(WC_Shipping_Method $shippingMethod): string
+    protected function getShippingMethodId(WC_Order_Item_Shipping $shippingMethod): string
     {
         // Since Woocommerce v3.4.0, the instance_id is saved in a seperate property of the shipping method
         // To add support for v3.4.0, we'll append the instance_id, as this is how we store a mapping in Shippit
