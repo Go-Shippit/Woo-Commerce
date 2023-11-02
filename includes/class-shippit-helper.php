@@ -112,7 +112,7 @@ class Mamis_Shippit_Helper
 
         foreach ($shippingMethods as $shippingMethod) {
             // If the method is a shippit live quote, return the title of the method
-            if ($shippingMethod->get_method_id() === 'mamis_shipit') {
+            if ($shippingMethod->get_method_id() === 'mamis_shippit') {
                 return true;
             }
         }
@@ -133,7 +133,7 @@ class Mamis_Shippit_Helper
 
         foreach ($shippingMethods as $shippingMethod) {
             // If the method is a shippit live quote, return the title of the method
-            if ($shippingMethod->get_method_id() === 'mamis_shipit') {
+            if ($shippingMethod->get_method_id() === 'mamis_shippit') {
                 return $shippingMethod->get_meta($metaAttribute);
             }
         }
