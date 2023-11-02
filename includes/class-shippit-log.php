@@ -37,7 +37,7 @@ class Mamis_Shippit_Log
             // If debug is enabled, log all events
             // otherwise, only log for levels of warning and above
             (
-                !defined(WC_LOG_THRESHOLD)
+                !defined('WC_LOG_THRESHOLD')
                 && get_option('wc_settings_shippit_debug') === 'yes'
                     ? WC_Log_Levels::DEBUG
                     : WC_Log_Levels::ERROR
