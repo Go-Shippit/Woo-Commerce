@@ -127,7 +127,6 @@ class Mamis_Shippit_Core
 
         // Action for when the api key gets updated successfully
         add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
-        add_action('update_option_wc_settings_shippit_fulfillment_enabled', array($this, 'after_fulfillment_enabled_update'), 10, 2);
 
 
         //**********************/
@@ -313,13 +312,19 @@ class Mamis_Shippit_Core
         }
     }
 
-    public function before_api_key_update($newApiKey, $oldApiKey)
+    /**
+     * Validate the api key credentials for the configured environment
+     * 
+     * @param string $newApiKey
+     * @param string|null $oldApiKey
+     */
+    public function before_api_key_update(string $newApiKey, ?string $oldApiKey)
     {
         // Retrieve the environment setting from the POST request,
         // as this may not yet be saved if it was changed in the same request
         $environment = $_POST['wc_settings_shippit_environment'];
 
-        $isValidApiKey = $this->validate_apikey($newApiKey, $environment);
+        $isValidApiKey = $this->validate_credentials($newApiKey, $environment);
 
         // Return null since we do not want to save the incorrect api key
         // for the currently chosen environnment
@@ -334,70 +339,62 @@ class Mamis_Shippit_Core
         return $newApiKey;
     }
 
+    /**
+    * Validate the api key credentials for the configured environment
+    * 
+    * @param string $newApiKey
+    * @param string|null $oldApiKey
+    */
     public function after_api_key_update($newApiKey, $oldApiKey)
     {
         // Retrieve the environment setting from the POST request,
         // as this may not yet be saved if it was changed in the same request
         $environment = $_POST['wc_settings_shippit_environment'];
-        $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'];
 
-        $this->update_merchant($isFulfillmentEnabled, $newApiKey, $environment);
-    }
-
-    public function after_fulfillment_enabled_update($oldFulfillmentEnabled, $newFulfillmentEnabled)
-    {
-        // Retrieve the environment setting from the POST request,
-        // as this may not yet be saved if it was changed in the same request
-        $apiKey = $_POST['wc_settings_shippit_api_key'];
-        $environment = $_POST['wc_settings_shippit_environment'];
-        $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'];
-
-        $isValidApiKey = $this->validate_apikey($apiKey, $environment);
-
-        if ($isValidApiKey == false) {
-            // Trigger a failed webhook notice
-            $this->show_webhook_notice($isValidApiKey);
-
-            return;
-        }
-
-        $registerWebhookResult = $this->update_merchant($isFulfillmentEnabled, $apiKey, $environment);
-
-        $this->show_webhook_notice($registerWebhookResult);
+        $this->update_merchant($newApiKey, $environment);
     }
 
     /**
      * Update the merchant details in Shippit
+     * - If the integration is enabled, register a webhook url + shopping cart
+     *   - The webhook url is conditionally registered based on fulfillment settings
+     * - If the integration is disabled, deregister the webhook url + shopping cart
      *
      * @param string $apiKey        The api key to be validated
-     * @param string $environment   The enviornment in which the api key is validated against
+     * @param string $environment   The enviornment in which the request is performed against
      * @return bool
      */
-    private function update_merchant($isEnabled, $apiKey = null, $environment = null)
+    protected function update_merchant($apiKey = null, $environment = null)
     {
         $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+        $isEnabled = $_POST['wc_settings_shippit_enabled'] === 'yes';
 
-        if ($isEnabled == 'yes') {
-            $webhookUrl = sprintf(
-                '%s/shippit/shipment_create?shippit_api_key=%s',
-                get_site_url(),
-                $apiKey
-            );
+        if ($isEnabled) {
+            $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'] === 'yes';
+         
+            $requestData = [
+                'webhook_url' => (
+                    $isFulfillmentEnabled
+                        ? sprintf(
+                            '%s/shippit/shipment_create?shippit_api_key=%s',
+                            get_site_url(),
+                            $apiKey
+                        )
+                        : null
+                ),            
+                'shipping_cart_method_name' => 'woocommerce',
+            ];
         }
         else {
-            $webhookUrl = null;
+            $requestData = [
+                'webhook_url' => null,
+                'shipping_cart_method_name' => null,
+            ];
         }
 
-        $requestData = array(
-            'webhook_url' => $webhookUrl,
-            'shipping_cart_method_name' => 'woocommerce',
-        );
-
         $this->log->info(
-            'Registering Webhook Url',
-            [
-                'webhook_url' => $webhookUrl,
-            ]
+            'Update Merchant Details',
+            $requestData
         );
 
         try {
@@ -409,7 +406,7 @@ class Mamis_Shippit_Core
                 && property_exists($apiResponse, 'response')
             ) {
                 $this->log->info(
-                    'Webhook Registration Successful',
+                    'Update Merchant Successful',
                     [
                         'webhook_url' => $webhookUrl,
                     ]
@@ -419,10 +416,8 @@ class Mamis_Shippit_Core
             }
             else {
                 $this->log->error(
-                    'An error occurred while attempting to register the webhook',
-                    [
-                        'webhook_url' => $webhookUrl,
-                    ]
+                    'An error occurred while attempting to update the merchant',
+                    $requestData
                 );
 
                 return false;
@@ -436,47 +431,13 @@ class Mamis_Shippit_Core
     }
 
     /**
-     * Registers the webhook url with Shippit
-     *
-     * @deprecated Replaced by the `update_merchant` function
+     * Determines if the credentials are valid for the environment
      *
      * @param string $apiKey        The api key to be validated
      * @param string $environment   The enviornment in which the api key is validated against
      * @return bool
      */
-    private function register_shopping_cart_name($apiKey = null, $environment = null)
-    {
-        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
-
-        $requestData = array(
-            'shipping_cart_method_name' => 'woocommerce'
-        );
-
-        $this->log->info('Registering shopping cart name');
-
-        try {
-            $apiResponse = $apiService->updateMerchant($requestData);
-
-            if (empty($apiResponse)
-                || property_exists($apiResponse, 'error')) {
-                $this->show_cart_registration_notice();
-            }
-        }
-        catch (Exception $e) {
-            $this->log->exception($e);
-
-            $this->show_cart_registration_notice();
-        }
-    }
-
-    /**
-     * Determines if the api key is valid
-     *
-     * @param string $apiKey        The api key to be validated
-     * @param string $environment   The enviornment in which the api key is validated against
-     * @return bool
-     */
-    private function validate_apikey($apiKey = null, $environment = null)
+    private function validate_credentials($apiKey = null, $environment = null)
     {
         $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
