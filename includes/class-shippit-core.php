@@ -318,7 +318,7 @@ class Mamis_Shippit_Core
      * @param string $newApiKey
      * @param string|null $oldApiKey
      */
-    public function before_api_key_update(string $newApiKey, ?string $oldApiKey)
+    public function before_api_key_update(string $newApiKey, string $oldApiKey = null)
     {
         // Retrieve the environment setting from the POST request,
         // as this may not yet be saved if it was changed in the same request
