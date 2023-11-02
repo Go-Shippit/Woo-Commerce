@@ -106,13 +106,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
         $this->margin                  = $this->get_option('margin');
         $this->margin_amount           = $this->get_option('margin_amount');
 
-        wp_enqueue_script(
-            'shippit-live-script',
-            plugin_dir_url(__DIR__) . '/assets/js/shippit-live-quote.js',
-            array('jquery'),
-            '1.0',
-            false
-        );
+        wp_enqueue_script('shippit-script');
 
         // Add action hook to save the shipping method instance settings when they saved
         add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
