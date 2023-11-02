@@ -314,7 +314,7 @@ class Mamis_Shippit_Core
 
     /**
      * Validate the api key credentials for the configured environment
-     * 
+     *
      * @param string $newApiKey
      * @param string|null $oldApiKey
      */
@@ -341,7 +341,7 @@ class Mamis_Shippit_Core
 
     /**
     * Validate the api key credentials for the configured environment
-    * 
+    *
     * @param string $newApiKey
     * @param string|null $oldApiKey
     */
@@ -371,17 +371,19 @@ class Mamis_Shippit_Core
 
         if ($isEnabled) {
             $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'] === 'yes';
-         
+
+            $webhookUrl =  sprintf(
+                '%s/shippit/shipment_create?shippit_api_key=%s',
+                get_site_url(),
+                $apiKey
+            );
+
             $requestData = [
                 'webhook_url' => (
                     $isFulfillmentEnabled
-                        ? sprintf(
-                            '%s/shippit/shipment_create?shippit_api_key=%s',
-                            get_site_url(),
-                            $apiKey
-                        )
+                        ? $webhookUrl
                         : null
-                ),            
+                ),
                 'shipping_cart_method_name' => 'woocommerce',
             ];
         }
