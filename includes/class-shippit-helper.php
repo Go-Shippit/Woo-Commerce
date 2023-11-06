@@ -157,10 +157,8 @@ class Mamis_Shippit_Helper
             $shippingMethodId = $this->getShippingMethodId($shippingMethod);
 
             // If the method is a shippit live quote, return the title of the method
-            // @TODO: use get_method_id() and get_meta() when support for 2.6 deprecated
-            if ($shippingMethod['method_id'] == 'mamis_shippit') {
-                // $serviceLevel = $shippingMethod->get_meta('service_level');
-                $serviceLevel = $shippingMethod['service_level'];
+            if ($shippingMethod->get_method_id() == 'mamis_shippit') {
+                $serviceLevel = $shippingMethod->get_meta('service_level');
 
                 if (!empty($serviceLevel)) {
                     return $serviceLevel;
