@@ -161,10 +161,6 @@ class Mamis_Shippit_Core
 
         // Add the shipment meta boxes when viewing an order.
         add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
-
-        // Add notification if the merchant has this shipping method still enabled
-        add_action('admin_notices', array($this, 'add_depreciation_notice'));
-        add_action('network_admin_notices', array($this, 'add_depreciation_notice'));
     }
 
     /**
@@ -565,28 +561,5 @@ class Mamis_Shippit_Core
                 sanitize_text_field($_POST['authority_to_leave'])
             );
         }
-    }
-
-    /**
-     * Add a depreciation notice for merchants that have the legacy shipping method active and in use
-     *
-     * @return void
-     */
-    public function add_depreciation_notice()
-    {
-        $legacyOptions = get_option('woocommerce_mamis_shippit_legacy_settings');
-
-        // If there are no options present, we don't require the depreciation notice
-        if (empty($legacyOptions)) {
-            return;
-        }
-
-        // If the `enabled` configuration option is not present, or not yes, we don't require the depreciation notice
-        if (!isset($legacyOptions['enabled']) || $legacyOptions['enabled'] !== 'yes') {
-            return;
-        }
-
-        // Render the depreciation notice
-        include_once __DIR__ . '/../views/notices/shippit-legacy-depreciation.php';
     }
 }
