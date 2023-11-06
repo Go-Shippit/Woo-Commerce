@@ -9,6 +9,19 @@
 class Mamis_Shippit_Settings
 {
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->log = new Mamis_Shippit_Log(['area' => 'settings']);
+    }
+
+    /**
      * Add a new settings tab to the WooCommerce settings tabs array.
      *
      * @param array $settingsTab Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
@@ -26,9 +39,9 @@ class Mamis_Shippit_Settings
      *
      * @uses woocommerce_admin_fields()
      */
-    public static function addFields()
+    public function addFields()
     {
-        woocommerce_admin_fields(self::getFields());
+        woocommerce_admin_fields($this->getFields());
 
         // include custom script on shippit settings page
         wp_enqueue_script('shippit-script');
@@ -39,9 +52,33 @@ class Mamis_Shippit_Settings
      *
      * @uses woocommerce_update_options()
      */
-    public static function updateSettings()
+    public function updateSettings()
     {
+        $apiKey = $_POST['wc_settings_shippit_api_key'];
+        $environment = $_POST['wc_settings_shippit_environment'];
+
+        // Validate the api key + environment variable combination
+        if ($this->validateCredentails($apiKey, $environment) === false) {
+            add_action('admin_notices', array($this, 'noticeCredentialsInvalid'));
+
+            return;
+        }
+
+        // If the API Key or Environment being saved differs to the current key,
+        // unregister the merchant associated with the current key
+        if (
+            get_option('wc_settings_shippit_api_key') !== ''
+            && (
+                $apiKey != get_option('wc_settings_shippit_api_key')
+                || $environment != get_option('wc_settings_shippit_environment')
+            )
+        ) {
+            $this->unregisterMerchant($apiKey, $environment);
+        }
+
         woocommerce_update_options(self::getFields());
+
+        $this->registerMerchant();
     }
 
     /**
@@ -49,7 +86,7 @@ class Mamis_Shippit_Settings
      *
      * @return array Array of settings for @see woocommerce_admin_fields() function.
      */
-    public static function getFields(): array
+    public function getFields(): array
     {
         $shippingMethodOptions = self::getShippingMethodOptions();
 
@@ -466,5 +503,174 @@ class Mamis_Shippit_Settings
         }
 
         return $shippingMethodOptions;
+    }
+
+    /**
+     * Register the merchant to the WooCommerce Integration
+     *
+     * @param string|null $apiKey
+     * @param string|null $environment
+     * @return bool
+     */
+    public function registerMerchant($apiKey = null, $environment = null): bool
+    {
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+
+        $requestData = [
+            'webhook_url' => (
+                get_option('wc_settings_shippit_fulfillment_enabled') === 'yes'
+                    ? sprintf(
+                        '%s/shippit/shipment_create?shippit_api_key=%s',
+                        get_site_url(),
+                        get_option('wc_settings_shippit_api_key')
+                    )
+                    : null
+            ),
+            'shipping_cart_method_name' => 'woocommerce',
+        ];
+
+        $this->log->info(
+            'Registering Merchant',
+            $requestData
+        );
+
+        try {
+            $apiResponse = $apiService->updateMerchant($requestData);
+
+            if (
+                $apiResponse
+                && !property_exists($apiResponse, 'error')
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info(
+                    'Merchant registration successful',
+                    $requestData
+                );
+
+                add_action('admin_notices', [$this, 'noticeRegisteredMerchant']);
+
+                return true;
+            }
+            else {
+                $this->log->error(
+                    'Merchant registration failed',
+                    $requestData
+                );
+
+                return false;
+            }
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * Unregister the merchant from the WooCommerce Integration
+     *
+     * @param string|null $apiKey
+     * @param string|null $environment
+     * @return bool
+     */
+    public function unregisterMerchant($apiKey = null, $environment = null): bool
+    {
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+
+        // Merchant Details
+        $requestData = [
+            'webhook_url' => null,
+            'shipping_cart_method_name' => null,
+        ];
+
+        try {
+            $apiService->updateMerchant($requestData);
+
+            add_action('admin_notices', [$this, 'noticeUnregisteredMerchant']);
+
+            return true;
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if the credentials are valid for the environment
+     *
+     * @param string $apiKey        The api key to be validated
+     * @param string $environment   The enviornment in which the api key is validated against
+     * @return bool
+     */
+    protected function validateCredentails($apiKey = null, $environment = null)
+    {
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+
+        try {
+            $apiResponse = $apiService->getMerchant();
+
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'error')
+            ) {
+                $this->log->error('Validating API Key Result - API Key is INVALID');
+
+                return false;
+            }
+
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info('Validating API Key Result - API Key is VALID');
+
+                return true;
+            }
+
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeCredentialsInvalid()
+    {
+        echo '<div class="notice notice-error">'
+            . '<p>The Shippit API Key / Environment provided could not be verified. Please check the Shippit API key and Enviroment values and try again.</p>'
+            . '</div>';
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeUnregisteredMerchant()
+    {
+        echo '<div class="notice notice-warning">'
+            . '<p>We\'ve unregistered the Shippit Store previously associated with the Shippit API Key / Environment settings.</p>'
+            . '</div>';
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeRegisteredMerchant()
+    {
+        echo '<div class="notice notice-success">'
+            . '<p>Your WooCommerce Store has been successfully registered with your Shippit store.</p>'
+            . '</div>';
     }
 }
