@@ -154,16 +154,24 @@ class Mamis_Shippit_Core
         add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
 
         // Add the shipment meta boxes when viewing an order.
-        add_action('add_meta_boxes', array($this, 'registerShipmentMetaBox'));
+        add_action('add_meta_boxes_shop_order', array($this, 'registerShipmentMetaBoxLegacy'));
+        add_action('add_meta_boxes_woocommerce_page_wc-orders', array($this, 'registerShipmentMetaBoxHpos'));
     }
 
     /**
      * Register the Shipment Details meta box for a sales order
      *
+     * @param WC_Order $order
+     * @param string $screen
      * @return void
      */
-    public function registerShipmentMetaBox()
+    public function registerShipmentMetaBox(WC_Order $order, string $screen)
     {
+        // If shipment metadata is empty, return early
+        if ($order->meta_exists('_mamis_shippit_shipment') === false) {
+            return;
+        }
+
         add_meta_box(
             'mamis_shipment_fields',
             __('Shipments - Powered by Shippit', 'woocommerce-shippit'),
@@ -171,29 +179,36 @@ class Mamis_Shippit_Core
                 $this,
                 'renderShipmentMetaBox'
             ),
-            $this->getShipmentMetaBoxScreen(),
+            $screen,
             'side',
             'high'
         );
     }
 
     /**
-     * Determines the screen to be utilised for the shipment meta box content
-     * - On HPOS stores, this is `shop-order`
-     * - On legacy storage stores, this is `shop_order`
+     * Register the Shipment Details meta box for a sales order (legacy storage mode)
      *
-     * @return string
+     * @param WP_Post $post
+     * @return void
      */
-    protected function getShipmentMetaBoxScreen(): string
+    public function registerShipmentMetaBoxLegacy(WP_Post $post)
     {
-        // If the WooCommerce version is prior to v7.1, return the legacy order view screen id
-        if (version_compare(WC()->version, '7.1.0') < 0) {
-            return 'shop_order';
-        }
+        $order = wc_get_order($post->ID);
 
-        return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()
-            ? wc_get_page_screen_id( 'shop-order' )
-            : 'shop_order';
+        $this->registerShipmentMetaBox($order, 'shop_order');
+    }
+
+    /**
+     * Register the Shipment Details meta box for a sales order (HPOS storage mode)
+     *
+     * @param WC_Order $order
+     * @return void
+     */
+    public function registerShipmentMetaBoxHpos(WC_Order $order)
+    {
+        // @Workaround: WooCommerce 6.2+ only
+        // - Avoid usage of `wc_get_page_screen_id`, as the method is only introduced in v6.2
+        $this->registerShipmentMetaBox($order, 'woocommerce_page_wc-orders');
     }
 
     /**
