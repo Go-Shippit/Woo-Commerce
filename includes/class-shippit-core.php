@@ -154,44 +154,62 @@ class Mamis_Shippit_Core
         add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
 
         // Add the shipment meta boxes when viewing an order.
-        add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
+        add_action('add_meta_boxes', array($this, 'registerShipmentMetaBox'));
     }
 
     /**
-     * Add the Shippit Shipment Meta Box
+     * Register the Shipment Details meta box for a sales order
+     *
+     * @return void
      */
-    function mamis_add_shipment_meta_box()
+    public function registerShipmentMetaBox()
     {
-        $orderId = get_the_ID();
-        $shipmentData = get_post_meta($orderId, '_mamis_shippit_shipment', true);
-
-        if (empty($shipmentData)) {
-            return;
-        }
-
         add_meta_box(
             'mamis_shipment_fields',
             __('Shipments - Powered by Shippit', 'woocommerce-shippit'),
             array(
                 $this,
-                'mamis_add_shipment_meta_box_content'
+                'renderShipmentMetaBox'
             ),
-            'shop_order',
+            $this->getShipmentMetaBoxScreen(),
             'side',
             'high'
         );
     }
 
     /**
+     * Determines the screen to be utilised for the shipment meta box content
+     * - On HPOS stores, this is `shop-order`
+     * - On legacy storage stores, this is `shop_order`
+     *
+     * @return string
+     */
+    protected function getShipmentMetaBoxScreen(): string
+    {
+        // If the WooCommerce version is prior to v7.1, return the legacy order view screen id
+        if (version_compare(WC()->version, '7.1.0') < 0) {
+            return 'shop_order';
+        }
+
+        return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()
+            ? wc_get_page_screen_id( 'shop-order' )
+            : 'shop_order';
+    }
+
+    /**
      * Render the Shippit Shipment Meta Box Content
      *
-     * @param WP_Post $post
+     * @param WC_Order|WP_Post $order
      * @return void
      */
-    function mamis_add_shipment_meta_box_content(WP_Post $post)
+    public function renderShipmentMetaBox($order)
     {
         // Retrieve the order using the Post ID
-        $order = new WC_Order($post->ID);
+        $order = (
+            $order instanceof WP_Post
+                ? wc_get_order($order->ID)
+                : $order
+        );
 
         $shipmentData = $order->get_meta('_mamis_shippit_shipment', true);
         $count = count($shipmentData);
