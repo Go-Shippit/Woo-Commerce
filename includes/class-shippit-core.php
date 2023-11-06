@@ -191,7 +191,7 @@ class Mamis_Shippit_Core
      * @param WP_Post $post
      * @return void
      */
-    public function registerShipmentMetaBoxLegacy($post)
+    public function registerShipmentMetaBoxLegacy(WP_Post $post)
     {
         $order = wc_get_order($post->ID);
 
@@ -204,7 +204,7 @@ class Mamis_Shippit_Core
      * @param WC_Order $order
      * @return void
      */
-    public function registerShipmentMetaBoxHpos($order)
+    public function registerShipmentMetaBoxHpos(WC_Order $order)
     {
         // @Workaround: WooCommerce 6.2+ only
         // - Avoid usage of `wc_get_page_screen_id`, as the method is only introduced in v6.2
