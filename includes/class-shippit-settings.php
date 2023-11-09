@@ -1,26 +1,31 @@
 <?php
+
 /**
- * Mamis.IT
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the EULA
- * that is available through the world-wide-web at this URL:
- * http://www.mamis.com.au/licencing
- *
- * @category   Mamis
- * @copyright  Copyright (c) by Mamis.IT Pty Ltd (http://www.mamis.com.au)
- * @author     Matthew Muscat <matthew@mamis.com.au>
- * @license    http://www.mamis.com.au/licencing
+ * Mamis - https://www.mamis.com.au
+ * Copyright © Mamis 2023-present. All rights reserved.
+ * See https://www.mamis.com.au/license
  */
 
 class Mamis_Shippit_Settings
 {
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->log = new Mamis_Shippit_Log(['area' => 'settings']);
+    }
+
+    /**
      * Add a new settings tab to the WooCommerce settings tabs array.
      *
      * @param array $settingsTab Array of WooCommerce setting tabs & their labels, excluding the Subscription tab.
-     * @return array $settingsTab Array of WooCommerce setting tabs & their labels, including the Subscription tab.
+     * @return array
      */
     public static function addSettingsTab($settingsTab)
     {
@@ -34,9 +39,9 @@ class Mamis_Shippit_Settings
      *
      * @uses woocommerce_admin_fields()
      */
-    public static function addFields()
+    public function addFields()
     {
-        woocommerce_admin_fields(self::getFields());
+        woocommerce_admin_fields($this->getFields());
 
         // include custom script on shippit settings page
         wp_enqueue_script('shippit-script');
@@ -47,9 +52,33 @@ class Mamis_Shippit_Settings
      *
      * @uses woocommerce_update_options()
      */
-    public static function updateSettings()
+    public function updateSettings()
     {
+        $apiKey = $_POST['wc_settings_shippit_api_key'];
+        $environment = $_POST['wc_settings_shippit_environment'];
+
+        // Validate the api key + environment variable combination
+        if ($this->validateCredentails($apiKey, $environment) === false) {
+            add_action('admin_notices', array($this, 'noticeCredentialsInvalid'));
+
+            return;
+        }
+
+        // If the API Key or Environment being saved differs to the current key,
+        // unregister the merchant associated with the current key
+        if (
+            get_option('wc_settings_shippit_api_key') !== ''
+            && (
+                $apiKey != get_option('wc_settings_shippit_api_key')
+                || $environment != get_option('wc_settings_shippit_environment')
+            )
+        ) {
+            $this->unregisterMerchant($apiKey, $environment);
+        }
+
         woocommerce_update_options(self::getFields());
+
+        $this->registerMerchant();
     }
 
     /**
@@ -57,7 +86,7 @@ class Mamis_Shippit_Settings
      *
      * @return array Array of settings for @see woocommerce_admin_fields() function.
      */
-    public static function getFields()
+    public function getFields(): array
     {
         $shippingMethodOptions = self::getShippingMethodOptions();
 
@@ -136,20 +165,6 @@ class Mamis_Shippit_Settings
                 'desc_tip' => true,
             ),
 
-            'shippingcalculator_city_enabled' => array(
-                'id' => 'wc_settings_shippit_shippingcalculator_city_enabled',
-                'title' => __('Display City Field in Shipping Estimator', 'woocommerce-shippit'),
-                'desc'     => 'Using Shippit Live Quotes? Ensure this is enabled so that we can retrieve quotes for shipping estimations from the Shipping Calculator.',
-                'desc_tip' => true,
-                'class' => 'wc-enhanced-select',
-                'default' => 'yes',
-                'type' => 'select',
-                'options' => array(
-                    'no' => __('No', 'woocommerce-shippit'),
-                    'yes' => __('Yes', 'woocommerce-shippit'),
-                ),
-            ),
-
             'atl_enabled' => array(
                 'id' => 'wc_settings_shippit_atl_enabled',
                 'title' => __('Display Authority to Leave', 'woocommerce-shippit'),
@@ -189,6 +204,18 @@ class Mamis_Shippit_Settings
                     'all' => __('Yes - Auto-sync all new orders', 'woocommerce-shippit'),
                     'all_shippit' => __('Yes - Auto-sync only orders with Shippit Shipping Methods', 'woocommerce-shippit'),
                ),
+            ),
+
+            'section_order_sync_settings_end' => array(
+                'id' => 'shippit-settings-order-sync-settings-end',
+                'type' => 'sectionend',
+           ),
+
+            'title_shipping_options' => array(
+                'id' => 'shippit-settings-shipping-options-title',
+                'name' => __( 'Shipping Options', 'woocommerce-shippit' ),
+                'type' => 'title',
+                'desc' => 'Match your store\'s shipping options to a Shippit service type so we can automatically allocate the correct shipping service for your orders.',
             ),
 
             'standard_shipping_methods' => array(
@@ -412,20 +439,10 @@ class Mamis_Shippit_Settings
      */
     public static function getShippingMethodOptions()
     {
-        // If we have a WooCommerce installation
-        // with Shipping Zones Support
-        if (class_exists('WC_Shipping_Zones')) {
-            $shippingMethodsWithZones = self::getShippingMethodsWithZones();
-            $shippingMethodsWithoutZones = self::getShippingMethodsWithoutZones();
+        $shippingMethodsWithZones = self::getShippingMethodsWithZones();
+        $shippingMethodsWithoutZones = self::getShippingMethodsWithoutZones();
 
-            $shippingMethodsOptions = array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
-        }
-        // Otherwise, fallback to legacy methods only display
-        else {
-            $shippingMethodsOptions = self::getShippingMethodsLegacy();
-        }
-
-        return $shippingMethodsOptions;
+        return array_merge($shippingMethodsWithZones, $shippingMethodsWithoutZones);
     }
 
     /**
@@ -489,29 +506,171 @@ class Mamis_Shippit_Settings
     }
 
     /**
-     * Get the shipping method options using the legacy functionality
+     * Register the merchant to the WooCommerce Integration
      *
-     * @return array
+     * @param string|null $apiKey
+     * @param string|null $environment
+     * @return bool
      */
-    protected static function getShippingMethodsLegacy()
+    public function registerMerchant($apiKey = null, $environment = null): bool
     {
-        $shippingMethodOptions = array();
-        $shippingMethods = WC()->shipping()->get_shipping_methods();
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
 
-        foreach ($shippingMethods as $shippingMethod) {
-            if ($shippingMethod->id == 'mamis_shippit' || $shippingMethod->id == 'mamis_shippit_legacy') {
-                continue;
+        $requestData = [
+            'webhook_url' => (
+                get_option('wc_settings_shippit_fulfillment_enabled') === 'yes'
+                    ? sprintf(
+                        '%s/shippit/shipment_create?shippit_api_key=%s',
+                        get_site_url(),
+                        get_option('wc_settings_shippit_api_key')
+                    )
+                    : null
+            ),
+            'shipping_cart_method_name' => 'woocommerce',
+        ];
+
+        $this->log->info(
+            'Registering Merchant',
+            $requestData
+        );
+
+        try {
+            $apiResponse = $apiService->updateMerchant($requestData);
+
+            if (
+                $apiResponse
+                && !property_exists($apiResponse, 'error')
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info(
+                    'Merchant registration successful',
+                    $requestData
+                );
+
+                add_action('admin_notices', [$this, 'noticeRegisteredMerchant']);
+
+                return true;
             }
+            else {
+                $this->log->error(
+                    'Merchant registration failed',
+                    $requestData
+                );
 
-            $shippingMethodKey = $shippingMethod->id;
-            $shippingMethodLabel = (property_exists($shippingMethod, 'method_title') ? $shippingMethod->method_title : $shippingMethod->title);
-
-            $shippingMethodOptions[$shippingMethodKey] = sprintf(
-                '%s',
-                $shippingMethodLabel
-            );
+                return false;
+            }
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
         }
 
-        return $shippingMethodOptions;
+        return false;
+    }
+
+    /**
+     * Unregister the merchant from the WooCommerce Integration
+     *
+     * @param string|null $apiKey
+     * @param string|null $environment
+     * @return bool
+     */
+    public function unregisterMerchant($apiKey = null, $environment = null): bool
+    {
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+
+        // Merchant Details
+        $requestData = [
+            'webhook_url' => null,
+            'shipping_cart_method_name' => null,
+        ];
+
+        try {
+            $apiService->updateMerchant($requestData);
+
+            add_action('admin_notices', [$this, 'noticeUnregisteredMerchant']);
+
+            return true;
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if the credentials are valid for the environment
+     *
+     * @param string $apiKey        The api key to be validated
+     * @param string $environment   The enviornment in which the api key is validated against
+     * @return bool
+     */
+    protected function validateCredentails($apiKey = null, $environment = null)
+    {
+        $apiService = new Mamis_Shippit_Api($apiKey, $environment);
+
+        try {
+            $apiResponse = $apiService->getMerchant();
+
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'error')
+            ) {
+                $this->log->error('Validating API Key Result - API Key is INVALID');
+
+                return false;
+            }
+
+            if (
+                $apiResponse
+                && property_exists($apiResponse, 'response')
+            ) {
+                $this->log->info('Validating API Key Result - API Key is VALID');
+
+                return true;
+            }
+
+        }
+        catch (Exception $e) {
+            $this->log->exception($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeCredentialsInvalid()
+    {
+        echo '<div class="notice notice-error">'
+            . '<p>The Shippit API Key / Environment provided could not be verified. Please check the Shippit API key and Enviroment values and try again.</p>'
+            . '</div>';
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeUnregisteredMerchant()
+    {
+        echo '<div class="notice notice-warning">'
+            . '<p>We\'ve unregistered the Shippit Store previously associated with the Shippit API Key / Environment settings.</p>'
+            . '</div>';
+    }
+
+    /**
+     * Show a notice stating the credentials are invalid
+     *
+     * @return void
+     */
+    public function noticeRegisteredMerchant()
+    {
+        echo '<div class="notice notice-success">'
+            . '<p>Your WooCommerce Store has been successfully registered with your Shippit store.</p>'
+            . '</div>';
     }
 }

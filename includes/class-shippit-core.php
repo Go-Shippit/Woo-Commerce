@@ -35,6 +35,11 @@ class Mamis_Shippit_Core
     private static $instance;
 
     /**
+     * @var Mamis_Shippit_Log
+     */
+    protected $log;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -48,8 +53,7 @@ class Mamis_Shippit_Core
             return;
         }
 
-        $this->s = new Mamis_Shippit_Settings();
-        $this->log = new Mamis_Shippit_Log();
+        $this->log = new Mamis_Shippit_Log(['area' => 'core']);
 
         $this->init();
     }
@@ -87,10 +91,10 @@ class Mamis_Shippit_Core
         // *****************
 
         $order = new Mamis_Shippit_Order;
-        // If a new order is recieved, add pending sync
-        add_action('woocommerce_checkout_update_order_meta', array($order, 'addPendingSync'));
+
         // If a order transitions into "processing", add pending sync
         add_action('woocommerce_order_status_processing', array($order, 'addPendingSync'));
+
         // If the order transition into "on-hold", remove pending sync
         add_action('woocommerce_order_status_on-hold', array($order, 'removePendingSync'));
 
@@ -107,25 +111,16 @@ class Mamis_Shippit_Core
         // Display the authority to leave on the orders edit page
         add_action('woocommerce_admin_order_data_after_shipping_address', 'authority_to_leave_display_admin_order_meta', 10, 1);
 
-        function authority_to_leave_display_admin_order_meta($order)
+        function authority_to_leave_display_admin_order_meta(WC_Order $order)
         {
-            if (version_compare(WC()->version, '3.0.0') >= 0) {
-                $orderId = $order->get_id();
-            }
-            else {
-                $orderId = $order->id;
-            }
-
-            echo '<p><strong>'.__('Authority to leave').':</strong> ' . get_post_meta( $orderId, 'authority_to_leave', true ) . '</p>';
+            echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $order->get_meta('authority_to_leave') . '</p>';
         }
 
-        // Add the shippit settings tab functionality
-        add_action('woocommerce_settings_tabs_shippit_settings_tab', 'Mamis_Shippit_Settings::addFields');
-        add_action('woocommerce_update_options_shippit_settings_tab', 'Mamis_Shippit_Settings::updateSettings');
+        $settings = new Mamis_Shippit_Settings();
 
-        // Validate the api key when the setting is changed
-        add_action('update_option_wc_settings_shippit_api_key', array($this, 'after_api_key_update'), 10, 2);
-        add_action('update_option_wc_settings_shippit_fulfillment_enabled', array($this, 'after_fulfillment_enabled_update'), 10, 2);
+        // Add the shippit settings tab functionality
+        add_action('woocommerce_settings_tabs_shippit_settings_tab', array($settings, 'addFields'));
+        add_action('woocommerce_update_options_shippit_settings_tab', array($settings, 'updateSettings'));
 
 
         //**********************/
@@ -151,32 +146,29 @@ class Mamis_Shippit_Core
         add_action('bulk_actions-edit-shop_order', array($this, 'shippit_send_bulk_orders_action'), 20, 1);
 
         // Process Shippit bulk orders send action
-        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendBulkOrders'), 10, 3 );
+        add_action('handle_bulk_actions-edit-shop_order', array($order, 'sendOrders'), 10, 3 );
 
         add_action('admin_notices', array($this, 'order_sync_notice') );
 
-        if (get_option('wc_settings_shippit_shippingcalculator_city_enabled') == 'yes') {
-            // Enable suburb/city field for Shipping calculator
-            add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
-        }
+        // Enable suburb/city field for Shipping calculator
+        add_filter('woocommerce_shipping_calculator_enable_city', '__return_true');
 
         // Add the shipment meta boxes when viewing an order.
-        add_action('add_meta_boxes_shop_order', array($this, 'mamis_add_shipment_meta_box'));
-
-        // Add notification if the merchant has this shipping method still enabled
-        add_action('admin_notices', array($this, 'add_depreciation_notice'));
-        add_action('network_admin_notices', array($this, 'add_depreciation_notice'));
+        add_action('add_meta_boxes_shop_order', array($this, 'registerShipmentMetaBoxLegacy'));
+        add_action('add_meta_boxes_woocommerce_page_wc-orders', array($this, 'registerShipmentMetaBoxHpos'));
     }
 
     /**
-     * Add the Shippit Shipment Meta Box
+     * Register the Shipment Details meta box for a sales order
+     *
+     * @param WC_Order $order
+     * @param string $screen
+     * @return void
      */
-    function mamis_add_shipment_meta_box()
+    public function registerShipmentMetaBox(WC_Order $order, string $screen)
     {
-        $orderId = get_the_ID();
-        $shipmentData = get_post_meta($orderId, '_mamis_shippit_shipment', true);
-
-        if (empty($shipmentData)) {
+        // If shipment metadata is empty, return early
+        if ($order->meta_exists('_mamis_shippit_shipment') === false) {
             return;
         }
 
@@ -185,20 +177,56 @@ class Mamis_Shippit_Core
             __('Shipments - Powered by Shippit', 'woocommerce-shippit'),
             array(
                 $this,
-                'mamis_add_shipment_meta_box_content'
+                'renderShipmentMetaBox'
             ),
-            'shop_order',
+            $screen,
             'side',
             'high'
         );
     }
 
     /**
-     * Render the Shippit Shipment Meta Box Content
+     * Register the Shipment Details meta box for a sales order (legacy storage mode)
+     *
+     * @param WP_Post $post
+     * @return void
      */
-    function mamis_add_shipment_meta_box_content($order)
+    public function registerShipmentMetaBoxLegacy(WP_Post $post)
     {
-        $shipmentData = get_post_meta($order->ID, '_mamis_shippit_shipment', true);
+        $order = wc_get_order($post->ID);
+
+        $this->registerShipmentMetaBox($order, 'shop_order');
+    }
+
+    /**
+     * Register the Shipment Details meta box for a sales order (HPOS storage mode)
+     *
+     * @param WC_Order $order
+     * @return void
+     */
+    public function registerShipmentMetaBoxHpos(WC_Order $order)
+    {
+        // @Workaround: WooCommerce 6.2+ only
+        // - Avoid usage of `wc_get_page_screen_id`, as the method is only introduced in v6.2
+        $this->registerShipmentMetaBox($order, 'woocommerce_page_wc-orders');
+    }
+
+    /**
+     * Render the Shippit Shipment Meta Box Content
+     *
+     * @param WC_Order|WP_Post $order
+     * @return void
+     */
+    public function renderShipmentMetaBox($order)
+    {
+        // Retrieve the order using the Post ID
+        $order = (
+            $order instanceof WP_Post
+                ? wc_get_order($order->ID)
+                : $order
+        );
+
+        $shipmentData = $order->get_meta('_mamis_shippit_shipment', true);
         $count = count($shipmentData);
         $shipmentDetails = '';
         $i = 1;
@@ -305,225 +333,6 @@ class Mamis_Shippit_Core
         }
     }
 
-    public function after_api_key_update($oldApiKey, $newApiKey)
-    {
-        $GLOBALS['SHIPPIT_API_KEY_UPDATED'] = true;
-
-        // Retrieve the environment setting from the POST request,
-        // as this may not yet be saved if it was changed in the same request
-        $environment = $_POST['wc_settings_shippit_environment'];
-        $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'];
-
-        $isValidApiKey = $this->validate_apikey($newApiKey, $environment);
-
-        $this->show_api_notice($isValidApiKey);
-
-        if (!$isValidApiKey) {
-            return;
-        }
-
-        $this->register_shopping_cart_name($newApiKey, $environment);
-        $registerWebhookResult = $this->update_webhook($isFulfillmentEnabled, $newApiKey, $environment);
-
-        $this->show_webhook_notice($registerWebhookResult);
-    }
-
-    public function after_fulfillment_enabled_update($oldFulfillmentEnabled, $newFulfillmentEnabled)
-    {
-        // If the api key was updated in this request, return early
-        // as we don't need to update the webhook again
-        if (isset($GLOBALS['SHIPPIT_API_KEY_UPDATED'])) {
-            return;
-        }
-
-        // Retrieve the environment setting from the POST request,
-        // as this may not yet be saved if it was changed in the same request
-        $apiKey = $_POST['wc_settings_shippit_api_key'];
-        $environment = $_POST['wc_settings_shippit_environment'];
-        $isFulfillmentEnabled = $_POST['wc_settings_shippit_fulfillment_enabled'];
-
-        $isValidApiKey = $this->validate_apikey($apiKey, $environment);
-
-        if (!$isValidApiKey) {
-            // Trigger a failied webhook notice
-            $this->show_webhook_notice(false);
-
-            return;
-        }
-
-        $this->register_shopping_cart_name($apiKey, $environment);
-        $registerWebhookResult = $this->update_webhook($isFulfillmentEnabled, $apiKey, $environment);
-
-        $this->show_webhook_notice($registerWebhookResult);
-    }
-
-    /**
-     * Update the webhook url with Shippit
-     *
-     * @param string $apiKey        The api key to be validated
-     * @param string $environment   The enviornment in which the api key is validated against
-     * @return bool
-     */
-    private function update_webhook($isEnabled, $apiKey = null, $environment = null)
-    {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
-
-        if ($isEnabled) {
-            $webhookUrl = sprintf(
-                '%s/shippit/shipment_create?shippit_api_key=%s',
-                get_site_url(),
-                $apiKey
-            );
-        }
-        else {
-            $webhookUrl = null;
-        }
-
-        $requestData = array(
-            'webhook_url' => $webhookUrl
-        );
-
-        $this->log->add(
-            'Webhook',
-            'Registering Webhook Url'
-        );
-
-        try {
-            $apiResponse = $this->api->putMerchant($requestData);
-
-            if ($apiResponse
-                && !property_exists($apiResponse, 'error')
-                && property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Webhook',
-                    'Webhook Registration Successful'
-                );
-
-                return true;
-            }
-            else {
-                $this->log->add(
-                    'Webhook',
-                    'An error occurred while attempting to register the webhook'
-                );
-
-                return false;
-            }
-        }
-        catch (Exception $e) {
-            $this->log->exception($e);
-        }
-
-        return false;
-    }
-
-    /**
-     * Registers the webhook url with Shippit
-     *
-     * @param string $apiKey        The api key to be validated
-     * @param string $environment   The enviornment in which the api key is validated against
-     * @return bool
-     */
-    private function register_shopping_cart_name($apiKey = null, $environment = null)
-    {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
-
-        $requestData = array(
-            'shipping_cart_method_name' => 'woocommerce'
-        );
-
-        $this->log->add('Registering shopping cart name', '', $requestData);
-
-        try {
-            $apiResponse = $this->api->putMerchant($requestData);
-
-            if (empty($apiResponse)
-                || property_exists($apiResponse, 'error')) {
-                $this->show_cart_registration_notice();
-            }
-        }
-        catch (Exception $e) {
-            $this->log->exception($e);
-
-            $this->show_cart_registration_notice();
-        }
-    }
-
-    /**
-     * Determines if the api key is valid
-     *
-     * @param string $apiKey        The api key to be validated
-     * @param string $environment   The enviornment in which the api key is validated against
-     * @return bool
-     */
-    private function validate_apikey($apiKey = null, $environment = null)
-    {
-        $this->api = new Mamis_Shippit_Api($apiKey, $environment);
-
-        try {
-            $apiResponse = $this->api->getMerchant();
-
-            if (property_exists($apiResponse, 'error')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is INVALID'
-                );
-
-                return false;
-            }
-
-            if (property_exists($apiResponse, 'response')) {
-                $this->log->add(
-                    'Validating API Key Result',
-                    'API Key is VALID'
-                );
-
-                return true;
-            }
-
-        }
-        catch (Exception $e) {
-            $this->log->exception($e);
-        }
-
-        return false;
-    }
-
-    public function show_api_notice($isValid)
-    {
-        if (!$isValid) {
-            echo '<div class="error notice">'
-                . '<p>An invalid Shippit API key has been detected, please check the api key and environment and try again.</p>'
-                . '</div>';
-        }
-        else {
-            echo '<div class="updated notice">'
-                . '<p>Your Shippit API Key has been validated and is correct</p>'
-                . '</div>';
-        }
-    }
-
-    public function show_webhook_notice($isValid)
-    {
-        if (!$isValid) {
-            echo '<div class="error notice">'
-                . '<p>Shippit Webhook could not be updated</p>'
-                . '</div>';
-        }
-        else {
-            echo '<div class="updated notice">'
-                . '<p>Shippit Webhook has now been updated</p>'
-                . '</div>';
-        }
-    }
-
-    public function show_cart_registration_notice()
-    {
-        echo '<div class="error notice">'
-            . '<p>The request to update the shopping cart integration name failed - please try again.</p>'
-            . '</div>';
-    }
-
     /**
      * Add the shippit order sync to the cron scheduler
      */
@@ -584,28 +393,5 @@ class Mamis_Shippit_Core
                 sanitize_text_field($_POST['authority_to_leave'])
             );
         }
-    }
-
-    /**
-     * Add a depreciation notice for merchants that have the legacy shipping method active and in use
-     *
-     * @return void
-     */
-    public function add_depreciation_notice()
-    {
-        $legacyOptions = get_option('woocommerce_mamis_shippit_legacy_settings');
-
-        // If there are no options present, we don't require the depreciation notice
-        if (empty($legacyOptions)) {
-            return;
-        }
-
-        // If the `enabled` configuration option is not present, or not yes, we don't require the depreciation notice
-        if (!isset($legacyOptions['enabled']) || $legacyOptions['enabled'] !== 'yes') {
-            return;
-        }
-
-        // Render the depreciation notice
-        include_once __DIR__ . '/../views/notices/shippit-legacy-depreciation.php';
     }
 }

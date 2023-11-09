@@ -2,15 +2,15 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 1.9.0
+ * Version:                 2.0.0
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
- * WC requires at least:    2.6.0
- * WC Tested Up To:         7.7.1
+ * WC requires at least:    6.0.0
+ * WC Tested Up To:         8.2.2
  */
 
-define('MAMIS_SHIPPIT_VERSION', '1.9.0');
+define('MAMIS_SHIPPIT_VERSION', '2.0.0');
 
 // import core classes
 include_once('includes/class-shippit-helper.php');
@@ -25,14 +25,13 @@ function init_shippit_core()
     $upgrade->run();
 
     // import helper classes
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-order.php');
     include_once('includes/class-shippit-object.php');
     include_once('includes/class-shippit-data-mapper-order.php');
-    include_once('includes/class-shippit-data-mapper-order-v26.php');
     include_once('includes/class-shippit-data-mapper-order-item.php');
-    include_once('includes/class-shippit-data-mapper-order-item-v26.php');
     include_once('includes/class-shippit-shipment.php');
 
     $shippit = Mamis_Shippit_Core::instance();
@@ -46,6 +45,20 @@ function init_shippit_core()
         50
     );
 }
+
+// Declare copmatability with HPOS
+add_action(
+    'before_woocommerce_init',
+    function() {
+        if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+                'custom_order_tables',
+                __FILE__,
+                true
+            );
+        }
+    }
+);
 
 // add shippit core functionality
 add_action('woocommerce_init', 'init_shippit_core', 99999);
@@ -66,14 +79,13 @@ function register_shippit_script()
 
 function init_shippit_method()
 {
+    include_once('includes/class-shippit-log-handler.php');
     include_once('includes/class-shippit-log.php');
     include_once('includes/class-shippit-api.php');
     include_once('includes/class-shippit-method.php');
-    include_once('includes/class-shippit-method-legacy.php');
 
     // add shipping methods
     add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method', 'add_shipping_method'));
-    add_filter('woocommerce_shipping_methods', array('Mamis_Shippit_Method_Legacy', 'add_shipping_method'));
 }
 
 // add shipping method class
