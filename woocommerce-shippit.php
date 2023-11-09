@@ -2,12 +2,12 @@
 /*
  * Plugin Name:             WooCommerce Shippit
  * Description:             WooCommerce Shippit
- * Version:                 2.0.0-alpha
+ * Version:                 2.0.0
  * Author:                  Shippit Pty Ltd
  * Author URL:              http://www.shippit.com
  * Text Domain:             woocommerce-shippit
  * WC requires at least:    6.0.0
- * WC Tested Up To:         8.2.1
+ * WC Tested Up To:         8.2.2
  */
 
 define('MAMIS_SHIPPIT_VERSION', '2.0.0');
