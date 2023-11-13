@@ -90,9 +90,40 @@ class Mamis_Shippit_Order
      */
     public function syncOrders()
     {
-        $orderIds = wc_get_orders(
+        $orderIds = $this->isOrderStorageHpos()
+            ? $this->getPendingOrderIdsHpos()
+            : $this->getPendingOrderIdsLegacy();
+
+        foreach ($orderIds as $orderId) {
+            $this->syncOrder($orderId);
+        }
+    }
+
+    /**
+     * Determines if order currently active order storage mode is HPOS
+     *
+     * @return boolean
+     */
+    protected function isOrderStorageHpos(): bool
+    {
+        return (
+            class_exists('\Automattic\WooCommerce\Utilities\OrderUtil')
+            && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()
+        );
+    }
+
+    /**
+     * Retrieve the orders pending sync with Shippit
+     * using the high performance order storage query
+     *
+     * @return array<int>
+     */
+    protected function getPendingOrderIdsHpos()
+    {
+        return wc_get_orders(
             [
                 'status' => ['wc-processing'],
+                'type' => 'shop_order',
                 'meta_query' => [
                     [
                         'key' => '_mamis_shippit_sync',
@@ -103,10 +134,30 @@ class Mamis_Shippit_Order
                 'return' => 'ids'
             ]
         );
+    }
 
-        foreach ($orderIds as $orderId) {
-            $this->syncOrder($orderId);
-        }
+    /**
+     * Retrieve the orders pending sync with Shippit
+     * using the legacy order storage query
+     *
+     * @return array<int>
+     */
+    protected function getPendingOrderIdsLegacy()
+    {
+        return get_posts(
+            [
+                'post_status' => 'wc-processing',
+                'post_type' => 'shop_order',
+                'meta_query' => [
+                    [
+                        'key' => '_mamis_shippit_sync',
+                        'value' => 'false',
+                        'compare' => '='
+                    ]
+                ],
+                'fields' => 'ids',
+            ]
+        );
     }
 
     /**
