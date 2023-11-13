@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.0.1]
+
+### Fixed
+- Fixed an issue whereby orders in a processing state would sync every hour if operating in legacy storage mode (shippit/woocommerce#27)
+
+
 ## [v2.0.0]
 
 ### Added

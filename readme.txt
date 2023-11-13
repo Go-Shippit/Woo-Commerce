@@ -58,6 +58,12 @@ Go to www.shippit.com and sign up for an account. You'll find your API Key in th
 
 == Changelog ==
 
+= 2.0.1 =
+
+### Fixed
+- Fixed an issue whereby orders in a processing state would sync every hour if operating in legacy storage mode
+
+
 = 2.0.0 =
 
 ### Added
