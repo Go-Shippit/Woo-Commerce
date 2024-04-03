@@ -68,6 +68,8 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
      */
     public function __construct(int $instance_id = 0)
     {
+        $this->tax_status = 'none';
+
         $this->supports = [
             'shipping-zones',
             'instance-settings',
@@ -342,6 +344,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id' => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
+                'taxes' => false,
                 'meta_data' => array(
                     'service_level' => $shippingQuote->service_level,
                     'courier_allocation' => $shippingQuote->courier_type,
@@ -367,6 +370,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                 'id' => 'Mamis_Shippit_' . $shippingQuote->service_level,
                 'label' => ucwords($shippingQuote->service_level),
                 'cost' => $quotePrice,
+                'taxes' => false,
                 'meta_data' => array(
                     'service_level' => $shippingQuote->service_level,
                     'courier_allocation' => $shippingQuote->courier_type,
@@ -410,6 +414,7 @@ class Mamis_Shippit_Method extends WC_Shipping_Method
                     $priorityQuote->delivery_window_desc
                 ),
                 'cost' => $quotePrice,
+                'taxes' => false,
                 'meta_data' => array(
                     'service_level' => $shippingQuote->service_level,
                     'courier_allocation' => $priorityQuote->courier_type,
