@@ -39,8 +39,8 @@ class Mamis_Shippit_Log_Handler extends WC_Log_Handler_File
 	{
 		$logDate = self::format_time($timestamp);
 		$logLevel = strtoupper($level);
-		$context = json_encode($context);
-		$entry = "{$logDate} {$logLevel} {$message} - {$context}";
+		$logContext = json_encode($context);
+		$entry = "{$logDate} {$logLevel} {$message} - {$logContext}";
 
 		return apply_filters(
 			'woocommerce_format_log_entry',
