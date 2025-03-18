@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+### Fixed
+- Passes a context of the appropriate type to the woocommerce log filter
+
+
 ## [v2.0.2]
 
 ### Fixed
