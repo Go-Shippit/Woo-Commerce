@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+### Fixed
+- Resolves an issue whereby the "Authority to Leave" was not getting captured at checkout (shippit/woocommerce#33)
+
+
 ## [v2.0.3]
 
 ### Fixed
