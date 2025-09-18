@@ -116,7 +116,7 @@ class Mamis_Shippit_Core
             $authorityToLeave = $order->get_meta('authority_to_leave');
 
             if ($authorityToLeave) {
-                echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $order->get_meta('authority_to_leave') . '</p>';
+                echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $authorityToLeave . '</p>';
             }
         }
 
