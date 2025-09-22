@@ -113,7 +113,11 @@ class Mamis_Shippit_Core
 
         function authority_to_leave_display_admin_order_meta(WC_Order $order)
         {
-            echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $order->get_meta('authority_to_leave') . '</p>';
+            $authorityToLeave = $order->get_meta('authority_to_leave');
+
+            if ($authorityToLeave) {
+                echo '<p><strong>' . __('Authority to leave') . ':</strong> ' . $authorityToLeave . '</p>';
+            }
         }
 
         $settings = new Mamis_Shippit_Settings();
@@ -387,11 +391,16 @@ class Mamis_Shippit_Core
     public function update_authority_to_leave_order_meta($order_id)
     {
         if (!empty($_POST['authority_to_leave'])) {
-            update_post_meta(
-                $order_id,
-                'authority_to_leave',
-                sanitize_text_field($_POST['authority_to_leave'])
-            );
+            $order = wc_get_order($order_id);
+
+            if ($order) {
+                $order->update_meta_data(
+                    'authority_to_leave',
+                    sanitize_text_field($_POST['authority_to_leave'])
+                );
+
+                $order->save();
+            }
         }
     }
 }
