@@ -3,7 +3,7 @@ Contributors: shippit, matthewmuscat
 Donate link: NA
 Tags: shipping, australia post, couriers please, aramex
 Requires at least: 4.0.0
-Tested up to: 6.7.2
+Tested up to: 6.8.3
 Stable tag: stable
 Requires PHP: 7.0
 License: Shippit Commercial Licence
